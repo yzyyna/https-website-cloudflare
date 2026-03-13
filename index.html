@@ -1,10 +1,506 @@
 <!doctype html>
-<html>
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <title>Hello</title>
+    <title>某某科技 · 企业产品H5页面</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="format-detection" content="telephone=no,email=no" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei',
+          sans-serif;
+        background-color: #f5f6f8;
+        color: #222;
+      }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+      img {
+        max-width: 100%;
+        display: block;
+      }
+
+      .page {
+        max-width: 750px;
+        margin: 0 auto;
+        background-color: #fff;
+        min-height: 100vh;
+      }
+
+      /* 顶部导航 */
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #ffffffcc;
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        border-bottom: 1px solid #eee;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #2f80ed, #56ccf2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .brand-name {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .header-right {
+        font-size: 12px;
+        color: #666;
+      }
+
+      /* 顶部 Banner */
+      .hero {
+        padding: 20px 16px 24px;
+        background: linear-gradient(135deg, #2f80ed, #56ccf2);
+        color: #fff;
+      }
+      .hero-title {
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.4;
+        margin-bottom: 8px;
+      }
+      .hero-subtitle {
+        font-size: 13px;
+        line-height: 1.6;
+        opacity: 0.9;
+        margin-bottom: 16px;
+      }
+      .hero-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .hero-tag {
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        border: 1px solid #ffffff55;
+        background: #ffffff22;
+      }
+      .hero-cta {
+        display: flex;
+        gap: 10px;
+      }
+      .btn-primary {
+        flex: 1;
+        text-align: center;
+        padding: 10px 0;
+        border-radius: 999px;
+        background: #fff;
+        color: #2f80ed;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .btn-outline {
+        flex: 1;
+        text-align: center;
+        padding: 10px 0;
+        border-radius: 999px;
+        border: 1px solid #ffffffaa;
+        color: #fff;
+        font-size: 14px;
+      }
+
+      /* 产品亮点 */
+      .section {
+        padding: 18px 16px;
+      }
+      .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+      .section-subtitle {
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 12px;
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .feature-card {
+        background: #f7f9fc;
+        border-radius: 12px;
+        padding: 10px;
+      }
+      .feature-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: #2f80ed11;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 6px;
+        font-size: 16px;
+      }
+      .feature-title {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .feature-desc {
+        font-size: 11px;
+        color: #666;
+        line-height: 1.5;
+      }
+
+      /* 产品卡片 */
+      .product-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .product-card {
+        display: flex;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 12px;
+        background: #f7f9fc;
+      }
+      .product-thumb {
+        width: 72px;
+        height: 72px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #56ccf2, #2f80ed);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 12px;
+        text-align: center;
+        padding: 4px;
+      }
+      .product-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .product-name {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .product-desc {
+        font-size: 11px;
+        color: #666;
+        line-height: 1.5;
+        margin-bottom: 6px;
+      }
+      .product-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        color: #999;
+      }
+      .product-tag {
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: #2f80ed11;
+        color: #2f80ed;
+        font-size: 10px;
+      }
+
+      /* 客户案例 */
+      .cases {
+        display: flex;
+        overflow-x: auto;
+        gap: 10px;
+        padding-bottom: 4px;
+      }
+      .case-card {
+        min-width: 180px;
+        background: #f7f9fc;
+        border-radius: 12px;
+        padding: 10px;
+        flex-shrink: 0;
+      }
+      .case-name {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .case-desc {
+        font-size: 11px;
+        color: #666;
+        line-height: 1.5;
+        margin-bottom: 6px;
+      }
+      .case-tag {
+        font-size: 10px;
+        color: #2f80ed;
+        background: #2f80ed11;
+        padding: 2px 6px;
+        border-radius: 999px;
+        display: inline-block;
+      }
+
+      /* 底部咨询区 */
+      .cta-section {
+        padding: 16px;
+        background: #111827;
+        color: #fff;
+        border-radius: 16px 16px 0 0;
+        margin-top: 12px;
+      }
+      .cta-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .cta-subtitle {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-bottom: 12px;
+      }
+      .cta-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .input {
+        width: 100%;
+        border-radius: 999px;
+        border: none;
+        padding: 10px 12px;
+        font-size: 13px;
+        outline: none;
+      }
+      .btn-cta {
+        width: 100%;
+        border-radius: 999px;
+        border: none;
+        padding: 10px 0;
+        font-size: 14px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #2f80ed, #56ccf2);
+        color: #fff;
+      }
+      .cta-extra {
+        font-size: 11px;
+        color: #9ca3af;
+        text-align: center;
+      }
+
+      .footer {
+        padding: 10px 16px 16px;
+        font-size: 10px;
+        color: #999;
+        text-align: center;
+      }
+    </style>
   </head>
   <body>
-    <h1>Hello</h1>
+    <div class="page">
+      <!-- 顶部导航 -->
+      <header class="header">
+        <div class="header-left">
+          <div class="logo">C</div>
+          <div class="brand-name">某某科技</div>
+        </div>
+        <div class="header-right">企业数字化解决方案</div>
+      </header>
+
+      <!-- 顶部 Banner -->
+      <section class="hero">
+        <h1 class="hero-title">一站式企业移动端产品解决方案</h1>
+        <p class="hero-subtitle">
+          帮助企业快速搭建品牌官网、产品展示、在线获客闭环，适配全端终端，支持快速定制与二次开发。
+        </p>
+        <div class="hero-tags">
+          <span class="hero-tag">支持H5 / 小程序 / App</span>
+          <span class="hero-tag">3天内快速上线</span>
+          <span class="hero-tag">可视化运营后台</span>
+        </div>
+        <div class="hero-cta">
+          <a href="#contact" class="btn-primary">立即咨询方案</a>
+          <a href="#products" class="btn-outline">查看产品能力</a>
+        </div>
+      </section>
+
+      <!-- 产品亮点 -->
+      <section class="section">
+        <div class="section-title">核心产品亮点</div>
+        <div class="section-subtitle">围绕企业获客、转化、运营全链路设计</div>
+        <div class="features">
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-title">快速上线</div>
+            <div class="feature-desc">
+              标准化组件与模板，支持按行业快速搭建，3～7天即可交付上线。
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <div class="feature-title">全端适配</div>
+            <div class="feature-desc">
+              自适应布局，兼容主流手机浏览器与微信内置浏览器。
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <div class="feature-title">数据可视化</div>
+            <div class="feature-desc">
+              支持访问统计、转化漏斗、渠道分析，助力精细化运营。
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <div class="feature-title">安全合规</div>
+            <div class="feature-desc">
+              支持HTTPS、权限控制、审计日志，满足企业安全要求。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 产品列表 -->
+      <section class="section" id="products">
+        <div class="section-title">产品能力矩阵</div>
+        <div class="section-subtitle">可按需组合，支持定制开发</div>
+        <div class="product-list">
+          <div class="product-card">
+            <div class="product-thumb">企业官网 H5 模板</div>
+            <div class="product-info">
+              <div>
+                <div class="product-name">品牌官网 · 移动端</div>
+                <div class="product-desc">
+                  适用于企业品牌展示、产品介绍、案例呈现，支持SEO与多语言扩展。
+                </div>
+              </div>
+              <div class="product-meta">
+                <span>适用：B2B / 服务型企业</span>
+                <span class="product-tag">可快速交付</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-thumb">在线获客与表单收集</div>
+            <div class="product-info">
+              <div>
+                <div class="product-name">在线获客 · 线索收集</div>
+                <div class="product-desc">
+                  支持表单收集、线索分配、短信/邮件通知，打通企业CRM系统。
+                </div>
+              </div>
+              <div class="product-meta">
+                <span>适用：销售型团队</span>
+                <span class="product-tag">支持对接CRM</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-thumb">活动落地页与营销页</div>
+            <div class="product-info">
+              <div>
+                <div class="product-name">活动营销 · 落地页</div>
+                <div class="product-desc">
+                  支持活动报名、优惠券、抽奖等营销玩法，提升转化率与互动率。
+                </div>
+              </div>
+              <div class="product-meta">
+                <span>适用：市场活动 / 品牌推广</span>
+                <span class="product-tag">支持大促场景</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 客户案例 -->
+      <section class="section">
+        <div class="section-title">部分客户案例</div>
+        <div class="section-subtitle">覆盖多个行业场景，沉淀最佳实践</div>
+        <div class="cases">
+          <div class="case-card">
+            <div class="case-name">A集团 · 企业官网重构</div>
+            <div class="case-desc">
+              通过移动端官网改版，访问转化率提升 37%，线索收集效率显著提升。
+            </div>
+            <span class="case-tag">B2B / 制造业</span>
+          </div>
+          <div class="case-card">
+            <div class="case-name">B科技 · SaaS 产品页</div>
+            <div class="case-desc">
+              为SaaS产品打造标准化产品介绍页，支持在线试用与Demo预约。
+            </div>
+            <span class="case-tag">SaaS / 科技</span>
+          </div>
+          <div class="case-card">
+            <div class="case-name">C教育 · 活动报名页</div>
+            <div class="case-desc">
+              通过活动H5落地页，单场活动报名量提升 2.3 倍。
+            </div>
+            <span class="case-tag">教育 / 培训</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 底部咨询区 -->
+      <section class="cta-section" id="contact">
+        <div class="cta-title">获取专属解决方案</div>
+        <div class="cta-subtitle">
+          留下联系方式，我们将在 1
+          个工作日内与您联系，提供定制化产品演示与报价方案。
+        </div>
+        <form class="cta-form">
+          <input class="input" type="text" placeholder="您的姓名 / 公司名称" />
+          <input class="input" type="tel" placeholder="您的手机号码" />
+          <input
+            class="input"
+            type="text"
+            placeholder="您的需求简要说明（选填）"
+          />
+          <button type="button" class="btn-cta">提交咨询</button>
+        </form>
+        <div class="cta-extra">
+          也可通过企业微信 / 邮箱与我们联系，支持远程演示与线上会议。
+        </div>
+      </section>
+
+      <footer class="footer">
+        © 2026 某某科技有限公司 · 保留所有权利<br />
+        （此为示例模板文案，请根据实际公司信息替换）
+      </footer>
+    </div>
   </body>
 </html>
