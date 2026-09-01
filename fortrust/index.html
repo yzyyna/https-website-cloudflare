@@ -637,17 +637,14 @@ footer{
 <!-- Password Authentication Lockscreen -->
 <div id="authOverlay" class="auth-overlay">
   <div class="auth-box">
-    <div class="auth-icon">🔒</div>
-    <h2 class="auth-title">Fortrust 资源中心</h2>
-    <p class="auth-desc">本系统包含内部原型与需求文档，请输入访问密码以解锁。验证后将自动记住身份 7 天。</p>
+    <h2 class="auth-title" style="margin-bottom: 22px;">🔐 请输入访问密钥</h2>
     
     <div class="auth-input-group">
-      <input type="password" id="authPassword" class="auth-input" placeholder="请输入访问密码..." autocomplete="current-password">
+      <input type="password" id="authPassword" class="auth-input" placeholder="请输入访问密钥..." autocomplete="current-password">
     </div>
-    <div id="authError" class="auth-error">密码错误，请重新输入</div>
+    <div id="authError" class="auth-error">密钥错误，请重新输入</div>
     
-    <button id="authBtn" class="auth-btn" onclick="submitAuth()">验证并进入</button>
-    <div class="auth-hint">🔐 验证通过后 7 天内免再次输入</div>
+    <button id="authBtn" class="auth-btn" onclick="submitAuth()">确认进入</button>
   </div>
 </div>
 
@@ -739,7 +736,7 @@ function checkAuthStatus() {
 function submitAuth() {
   const pwd = authPasswordInput.value.trim();
   if (!pwd) {
-    showAuthError('请输入访问密码');
+    showAuthError('请输入访问密钥');
     return;
   }
 
@@ -753,7 +750,7 @@ function submitAuth() {
     localStorage.setItem(AUTH_CONFIG.STORAGE_KEY, JSON.stringify(sessionData));
     unlockApp();
   } else {
-    showAuthError('密码错误，请重新输入');
+    showAuthError('密钥错误，请重新输入');
     authPasswordInput.focus();
     authPasswordInput.select();
   }
