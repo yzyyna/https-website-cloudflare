@@ -370,9 +370,11 @@ function showToast(msg) {
 function copyUrl(e, url) {
   e.preventDefault();
   e.stopPropagation();
-  const fullUrl = window.location.origin + url;
+  // 转换为直观的中文字符链接，方便阅读与分享
+  const readablePath = decodeURIComponent(url);
+  const fullUrl = window.location.origin + readablePath;
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(fullUrl).then(() => showToast('已复制完整链接：' + fullUrl));
+    navigator.clipboard.writeText(fullUrl).then(() => showToast('已复制直观链接'));
   } else {
     const input = document.createElement('input');
     input.value = fullUrl;
@@ -380,7 +382,7 @@ function copyUrl(e, url) {
     input.select();
     document.execCommand('copy');
     document.body.removeChild(input);
-    showToast('已复制链接');
+    showToast('已复制直观链接');
   }
 }
 
