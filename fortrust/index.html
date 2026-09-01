@@ -920,7 +920,7 @@ function renderActionButton(f) {
     return `<a class="btn-action btn-open" href="${f.url}" target="_blank" rel="noopener noreferrer">新标签打开 ↗</a>`;
   }
   if (f.actionType === 'preview') {
-    return `<button class="btn-action btn-preview" onclick="openPreview('${fJson}')">弹窗预览 👁</button>`;
+    return `<button class="btn-action btn-preview" onclick="openPreview('${fJson}')">预览</button>`;
   }
   return `<a class="btn-action btn-download" href="${f.url}" download="${esc(f.fileName)}">启动下载 ⤓</a>`;
 }
