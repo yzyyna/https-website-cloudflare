@@ -4,33 +4,236 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fortrust 静态资源中心</title>
-<meta name="description" content="Fortrust 产品原型、H5、Demo 静态资源导航中心">
+<meta name="description" content="Fortrust 产品原型、H5 页面、前端 Demo 与静态资源统一入口">
 <style>
-*{box-sizing:border-box}html,body{margin:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f5f7fb;color:#172033}
-.container{width:min(1120px,calc(100% - 32px));margin:auto}
-.hero{padding:58px 0 28px}
-.brand{display:flex;align-items:center;gap:9px;color:#2563eb;font-size:13px;font-weight:800;letter-spacing:.08em}
-.dot{width:9px;height:9px;border-radius:50%;background:#2563eb}
-h1{font-size:42px;line-height:1.15;margin:13px 0 10px;letter-spacing:-.035em}
-.sub{margin:0;color:#64748b;font-size:15px}
-.toolbar{margin:28px 0 22px;display:flex;gap:12px}
-.search{flex:1;padding:13px 15px;border:1px solid #dbe2ea;border-radius:11px;background:#fff;outline:0;font-size:14px}
-.search:focus{border-color:#93c5fd;box-shadow:0 0 0 3px #dbeafe}
-.count{display:flex;align-items:center;padding:0 14px;border:1px solid #e2e8f0;border-radius:11px;background:#fff;color:#64748b;font-size:13px;white-space:nowrap}
-.tree{padding-bottom:52px}
-.group{margin:12px 0}
-.row{display:flex;align-items:center;gap:10px;min-height:54px;padding:10px 14px;background:#fff;border:1px solid #e2e8f0;border-radius:12px}
-.row:hover{border-color:#bfdbfe}
-.folder{font-size:18px}
-.name{font-weight:650;flex:1;min-width:0;overflow-wrap:anywhere}
-.meta{font-size:12px;color:#94a3b8}
-.open{padding:7px 11px;border-radius:8px;background:#eff6ff;color:#2563eb;text-decoration:none;font-size:13px;font-weight:650;white-space:nowrap}
-.open:hover{background:#dbeafe}
-.children{margin-left:28px;padding-left:15px;border-left:1px solid #dbe2ea}
-.empty,.loading{padding:28px;text-align:center;color:#94a3b8;background:#fff;border:1px dashed #dbe2ea;border-radius:12px}
-footer{border-top:1px solid #e2e8f0;padding:20px 0 30px;color:#94a3b8;font-size:12px}
-@media(max-width:650px){.hero{padding-top:38px}h1{font-size:32px}.toolbar{flex-direction:column}.count{height:42px;justify-content:center}.children{margin-left:12px;padding-left:10px}.meta{display:none}}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:#f6f8fb;
+  color:#1e293b;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+.container{
+  width:min(1160px,calc(100% - 36px));
+  margin:0 auto;
+}
+.hero{
+  padding:48px 0 24px;
+}
+.brand{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:#2563eb;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  background:#eff6ff;
+  padding:4px 12px;
+  border-radius:20px;
+}
+.dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#2563eb;
+}
+h1{
+  font-size:36px;
+  font-weight:800;
+  line-height:1.2;
+  margin:16px 0 8px;
+  color:#0f172a;
+  letter-spacing:-.02em;
+}
+.sub{
+  margin:0;
+  color:#64748b;
+  font-size:15px;
+}
+.toolbar{
+  margin:28px 0 20px;
+  display:flex;
+  gap:12px;
+}
+.search-box{
+  flex:1;
+  position:relative;
+}
+.search{
+  width:100%;
+  padding:12px 16px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  background:#fff;
+  outline:0;
+  font-size:14px;
+  transition:all .15s ease;
+}
+.search:focus{
+  border-color:#3b82f6;
+  box-shadow:0 0 0 3px rgba(59,130,246,.15);
+}
+.count{
+  display:flex;
+  align-items:center;
+  padding:0 16px;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  background:#fff;
+  color:#64748b;
+  font-size:13px;
+  font-weight:500;
+  white-space:nowrap;
+}
+.main-content{
+  flex:1;
+  padding-bottom:60px;
+}
+.tree{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.card{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  overflow:hidden;
+  transition:border-color .15s, box-shadow .15s;
+}
+.card:hover{
+  border-color:#cbd5e1;
+  box-shadow:0 4px 12px rgba(0,0,0,.03);
+}
+.folder-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 18px;
+  background:#fafbfc;
+  border-bottom:1px solid #edf2f7;
+  gap:12px;
+}
+.folder-title-area{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.folder-icon{
+  font-size:20px;
+  line-height:1;
+}
+.folder-name{
+  font-size:16px;
+  font-weight:700;
+  color:#1e293b;
+  overflow-wrap:anywhere;
+}
+.badge{
+  font-size:11px;
+  font-weight:600;
+  padding:2px 8px;
+  border-radius:12px;
+  background:#e2e8f0;
+  color:#475569;
+  white-space:nowrap;
+}
+.file-list{
+  padding:8px 0;
+  display:flex;
+  flex-direction:column;
+}
+.file-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 18px;
+  gap:12px;
+  transition:background-color .12s;
+  text-decoration:none;
+  color:inherit;
+}
+.file-item:hover{
+  background:#f8fafc;
+}
+.file-info{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  flex:1;
+}
+.file-icon{
+  font-size:16px;
+  color:#64748b;
+}
+.file-name{
+  font-size:14px;
+  font-weight:600;
+  color:#334155;
+  overflow-wrap:anywhere;
+}
+.file-tag{
+  font-size:11px;
+  color:#94a3b8;
+  background:#f1f5f9;
+  padding:2px 6px;
+  border-radius:4px;
+}
+.open-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:6px 12px;
+  border-radius:6px;
+  background:#eff6ff;
+  color:#2563eb;
+  font-size:13px;
+  font-weight:600;
+  text-decoration:none;
+  white-space:nowrap;
+  transition:all .15s ease;
+}
+.open-btn:hover{
+  background:#2563eb;
+  color:#fff;
+}
+.children-section{
+  padding:12px 18px 16px;
+  background:#fbfcfe;
+  border-top:1px dashed #e2e8f0;
+}
+.empty,.loading{
+  padding:36px;
+  text-align:center;
+  color:#94a3b8;
+  background:#fff;
+  border:1px dashed #cbd5e1;
+  border-radius:12px;
+  font-size:14px;
+}
+footer{
+  border-top:1px solid #e2e8f0;
+  padding:20px 0;
+  color:#94a3b8;
+  font-size:12px;
+  text-align:center;
+  background:#fff;
+}
+@media(max-width:650px){
+  .hero{padding-top:32px}
+  h1{font-size:28px}
+  .toolbar{flex-direction:column}
+  .count{height:40px;justify-content:center}
+  .folder-header{padding:12px 14px}
+  .file-item{padding:10px 14px}
+}
 </style>
 </head>
 <body>
@@ -38,19 +241,25 @@ footer{border-top:1px solid #e2e8f0;padding:20px 0 30px;color:#94a3b8;font-size:
   <div class="container">
     <div class="brand"><span class="dot"></span>FORTRUST</div>
     <h1>静态资源中心</h1>
-    <p class="sub">产品原型、H5 页面、前端 Demo 与静态资源统一入口。目录由 GitHub 构建时自动扫描。</p>
+    <p class="sub">产品原型、H5 页面、前端 Demo 与需求文档统一入口 · 由 Cloudflare Pages 自动构建发布</p>
     <div class="toolbar">
-      <input id="search" class="search" placeholder="搜索项目名称…" autocomplete="off">
+      <div class="search-box">
+        <input id="search" class="search" placeholder="搜索目录名称或页面文件…" autocomplete="off">
+      </div>
       <div id="count" class="count">加载中…</div>
     </div>
   </div>
 </header>
 
-<main class="container">
-  <div id="tree" class="tree"><div class="loading">正在读取项目目录…</div></div>
+<main class="main-content">
+  <div class="container">
+    <div id="tree" class="tree"><div class="loading">正在读取项目目录…</div></div>
+  </div>
 </main>
 
-<footer><div class="container">Fortrust Static Resource Center · Cloudflare Pages</div></footer>
+<footer>
+  <div class="container">Fortrust Static Resource Center · Cloudflare Pages</div>
+</footer>
 
 <script>
 const treeEl=document.getElementById('tree');
@@ -58,57 +267,118 @@ const searchEl=document.getElementById('search');
 const countEl=document.getElementById('count');
 let data=[];
 
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-
-function filterNode(node,q){
-  const self=node.name.toLowerCase().includes(q);
-  const children=(node.children||[]).map(x=>filterNode(x,q)).filter(Boolean);
-  if(self||children.length){return {...node,children};}
-  return null;
+function esc(s){
+  return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function countNodes(nodes){
-  return nodes.reduce((n,x)=>n+1+countNodes(x.children||[]),0);
+function filterTree(nodes, q){
+  const res=[];
+  for(const node of nodes){
+    const matchSelf = node.name.toLowerCase().includes(q);
+    const matchedFiles = (node.files||[]).filter(f => 
+      f.title.toLowerCase().includes(q) || f.fileName.toLowerCase().includes(q)
+    );
+    const matchedChildren = filterTree(node.children||[], q);
+
+    if(matchSelf){
+      res.push(node);
+    } else if(matchedFiles.length > 0 || matchedChildren.length > 0){
+      res.push({
+        ...node,
+        files: matchedFiles.length > 0 ? matchedFiles : node.files,
+        children: matchedChildren
+      });
+    }
+  }
+  return res;
 }
 
-function render(nodes){
-  if(!nodes.length){treeEl.innerHTML='<div class="empty">没有找到匹配的项目</div>';countEl.textContent='0 个项目';return;}
-  treeEl.innerHTML=nodes.map(renderNode).join('');
-  countEl.textContent=countNodes(nodes)+' 个目录';
+function getStats(nodes){
+  let folders=0;
+  let pages=0;
+  function traverse(list){
+    for(const n of list){
+      folders++;
+      pages += (n.files||[]).length;
+      if(n.children && n.children.length) traverse(n.children);
+    }
+  }
+  traverse(nodes);
+  return { folders, pages };
 }
 
 function renderNode(node){
-  const children=node.children||[];
-  const href=node.hasIndex ? node.url : '';
-  const action=href ? `<a class="open" href="${href}">查看 →</a>` : '';
-  return `<div class="group">
-    <div class="row">
-      <span class="folder">📁</span>
-      <span class="name">${esc(node.name)}</span>
-      <span class="meta">${node.hasIndex?'可访问':'子目录'}</span>
-      ${action}
+  const files = node.files || [];
+  const children = node.children || [];
+  
+  let filesHtml = '';
+  if(files.length > 0){
+    filesHtml = `<div class="file-list">
+      ${files.map(f => `
+        <a class="file-item" href="${f.url}">
+          <div class="file-info">
+            <span class="file-icon">📄</span>
+            <span class="file-name">${esc(f.title)}</span>
+            <span class="file-tag">${esc(f.fileName)}</span>
+          </div>
+          <span class="open-btn">打开查看 ↗</span>
+        </a>
+      `).join('')}
+    </div>`;
+  }
+
+  let childrenHtml = '';
+  if(children.length > 0){
+    childrenHtml = `<div class="children-section">
+      <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:10px;">子目录：</div>
+      <div class="tree" style="gap:10px;">
+        ${children.map(renderNode).join('')}
+      </div>
+    </div>`;
+  }
+
+  return `<div class="card">
+    <div class="folder-header">
+      <div class="folder-title-area">
+        <span class="folder-icon">📁</span>
+        <span class="folder-name">${esc(node.name)}</span>
+      </div>
+      <span class="badge">${files.length} 个页面</span>
     </div>
-    ${children.length?`<div class="children">${children.map(renderNode).join('')}</div>`:''}
+    ${filesHtml}
+    ${childrenHtml}
   </div>`;
+}
+
+function render(nodes){
+  if(!nodes || !nodes.length){
+    treeEl.innerHTML='<div class="empty">没有找到匹配的项目或页面</div>';
+    countEl.textContent='0 个项目';
+    return;
+  }
+  const stats = getStats(nodes);
+  treeEl.innerHTML=nodes.map(renderNode).join('');
+  countEl.textContent = `${stats.folders} 个项目 · ${stats.pages} 个页面`;
 }
 
 async function load(){
   try{
-    const res=await fetch('./directory.json?ts='+Date.now(),{cache:'no-store'});
+    const res = await fetch('./directory.json?ts='+Date.now(), {cache:'no-store'});
     if(!res.ok) throw new Error('directory.json HTTP '+res.status);
-    data=await res.json();
+    data = await res.json();
     render(data);
   }catch(e){
-    treeEl.innerHTML='<div class="empty">目录读取失败，请确认 Cloudflare 构建脚本已执行并生成 directory.json。</div>';
+    treeEl.innerHTML='<div class="empty">目录读取失败，请确认 Cloudflare 构建已生成 directory.json。</div>';
     countEl.textContent='读取失败';
     console.error(e);
   }
 }
 
 searchEl.addEventListener('input',()=>{
-  const q=searchEl.value.trim().toLowerCase();
-  render(q?data.map(x=>filterNode(x,q)).filter(Boolean):data);
+  const q = searchEl.value.trim().toLowerCase();
+  render(q ? filterTree(data, q) : data);
 });
+
 load();
 </script>
 </body>
