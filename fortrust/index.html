@@ -4,35 +4,49 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fortrust 静态资源中心</title>
-<meta name="description" content="Fortrust 产品原型、H5 页面、前端 Demo 与静态资源统一入口">
+<meta name="description" content="Fortrust 产品原型、H5 页面、前端 Demo 与需求文档统一入口">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><circle cx='12' cy='12' r='10'/></svg>">
 <style>
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #eff6ff;
+  --bg: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --border-hover: #cbd5e1;
+}
+
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
-  background:#f6f8fb;
-  color:#1e293b;
+  background:var(--bg);
+  color:var(--text-main);
   min-height:100vh;
   display:flex;
   flex-direction:column;
+  line-height:1.5;
 }
 .container{
   width:min(1160px,calc(100% - 36px));
   margin:0 auto;
 }
 .hero{
-  padding:48px 0 24px;
+  padding:44px 0 20px;
 }
 .brand{
   display:inline-flex;
   align-items:center;
   gap:8px;
-  color:#2563eb;
+  color:var(--primary);
   font-size:13px;
   font-weight:700;
   letter-spacing:.08em;
   text-transform:uppercase;
-  background:#eff6ff;
+  background:var(--primary-light);
   padding:4px 12px;
   border-radius:20px;
 }
@@ -40,52 +54,70 @@ body{
   width:8px;
   height:8px;
   border-radius:50%;
-  background:#2563eb;
+  background:var(--primary);
 }
 h1{
-  font-size:36px;
+  font-size:34px;
   font-weight:800;
   line-height:1.2;
-  margin:16px 0 8px;
-  color:#0f172a;
+  margin:14px 0 8px;
+  color:var(--text-main);
   letter-spacing:-.02em;
 }
 .sub{
   margin:0;
-  color:#64748b;
-  font-size:15px;
+  color:var(--text-muted);
+  font-size:14px;
 }
 .toolbar{
-  margin:28px 0 20px;
+  margin:24px 0 20px;
   display:flex;
   gap:12px;
 }
 .search-box{
   flex:1;
   position:relative;
+  display:flex;
+  align-items:center;
 }
 .search{
   width:100%;
-  padding:12px 16px;
+  padding:12px 40px 12px 16px;
   border:1px solid #cbd5e1;
   border-radius:10px;
   background:#fff;
   outline:0;
   font-size:14px;
+  color:var(--text-main);
   transition:all .15s ease;
 }
 .search:focus{
-  border-color:#3b82f6;
-  box-shadow:0 0 0 3px rgba(59,130,246,.15);
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(37,99,235,.15);
+}
+.search-clear{
+  position:absolute;
+  right:12px;
+  background:none;
+  border:none;
+  color:#94a3b8;
+  font-size:14px;
+  cursor:pointer;
+  display:none;
+  padding:4px;
+  border-radius:50%;
+}
+.search-clear:hover{
+  color:#475569;
 }
 .count{
   display:flex;
   align-items:center;
   padding:0 16px;
-  border:1px solid #e2e8f0;
+  border:1px solid var(--border);
   border-radius:10px;
   background:#fff;
-  color:#64748b;
+  color:var(--text-muted);
   font-size:13px;
   font-weight:500;
   white-space:nowrap;
@@ -100,14 +132,14 @@ h1{
   gap:16px;
 }
 .card{
-  background:#fff;
-  border:1px solid #e2e8f0;
+  background:var(--card-bg);
+  border:1px solid var(--border);
   border-radius:12px;
   overflow:hidden;
   transition:border-color .15s, box-shadow .15s;
 }
 .card:hover{
-  border-color:#cbd5e1;
+  border-color:var(--border-hover);
   box-shadow:0 4px 12px rgba(0,0,0,.03);
 }
 .folder-header{
@@ -115,24 +147,27 @@ h1{
   align-items:center;
   justify-content:space-between;
   padding:14px 18px;
-  background:#fafbfc;
-  border-bottom:1px solid #edf2f7;
+  background:#f8fafc;
+  border-bottom:1px solid #f1f5f9;
   gap:12px;
+  user-select:none;
+  cursor:pointer;
 }
 .folder-title-area{
   display:flex;
   align-items:center;
   gap:10px;
   min-width:0;
+  flex:1;
 }
 .folder-icon{
-  font-size:20px;
+  font-size:18px;
   line-height:1;
 }
 .folder-name{
-  font-size:16px;
+  font-size:15px;
   font-weight:700;
-  color:#1e293b;
+  color:var(--text-main);
   overflow-wrap:anywhere;
 }
 .badge{
@@ -145,7 +180,7 @@ h1{
   white-space:nowrap;
 }
 .file-list{
-  padding:8px 0;
+  padding:6px 0;
   display:flex;
   flex-direction:column;
 }
@@ -158,6 +193,10 @@ h1{
   transition:background-color .12s;
   text-decoration:none;
   color:inherit;
+  border-bottom:1px solid #f8fafc;
+}
+.file-item:last-child{
+  border-bottom:none;
 }
 .file-item:hover{
   background:#f8fafc;
@@ -171,7 +210,7 @@ h1{
 }
 .file-icon{
   font-size:16px;
-  color:#64748b;
+  color:var(--text-muted);
 }
 .file-name{
   font-size:14px;
@@ -185,15 +224,37 @@ h1{
   background:#f1f5f9;
   padding:2px 6px;
   border-radius:4px;
+  white-space:nowrap;
+}
+.action-group{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.btn-copy{
+  padding:6px 10px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:#fff;
+  color:#64748b;
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  transition:all .15s ease;
+  white-space:nowrap;
+}
+.btn-copy:hover{
+  border-color:var(--primary);
+  color:var(--primary);
 }
 .open-btn{
   display:inline-flex;
   align-items:center;
   gap:4px;
-  padding:6px 12px;
+  padding:6px 14px;
   border-radius:6px;
-  background:#eff6ff;
-  color:#2563eb;
+  background:var(--primary-light);
+  color:var(--primary);
   font-size:13px;
   font-weight:600;
   text-decoration:none;
@@ -201,13 +262,13 @@ h1{
   transition:all .15s ease;
 }
 .open-btn:hover{
-  background:#2563eb;
+  background:var(--primary);
   color:#fff;
 }
 .children-section{
   padding:12px 18px 16px;
   background:#fbfcfe;
-  border-top:1px dashed #e2e8f0;
+  border-top:1px dashed var(--border);
 }
 .empty,.loading{
   padding:36px;
@@ -218,8 +279,30 @@ h1{
   border-radius:12px;
   font-size:14px;
 }
+/* Toast Notification */
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(100px);
+  background:#1e293b;
+  color:#fff;
+  padding:10px 20px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:500;
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
+  transition:transform .2s cubic-bezier(0.16, 1, 0.3, 1), opacity .2s;
+  opacity:0;
+  z-index:999;
+  pointer-events:none;
+}
+.toast.show{
+  transform:translateX(-50%) translateY(0);
+  opacity:1;
+}
 footer{
-  border-top:1px solid #e2e8f0;
+  border-top:1px solid var(--border);
   padding:20px 0;
   color:#94a3b8;
   font-size:12px;
@@ -227,12 +310,14 @@ footer{
   background:#fff;
 }
 @media(max-width:650px){
-  .hero{padding-top:32px}
-  h1{font-size:28px}
+  .hero{padding-top:28px}
+  h1{font-size:26px}
   .toolbar{flex-direction:column}
-  .count{height:40px;justify-content:center}
+  .count{height:38px;justify-content:center}
   .folder-header{padding:12px 14px}
-  .file-item{padding:10px 14px}
+  .file-item{padding:10px 14px;flex-wrap:wrap}
+  .action-group{width:100%;justify-content:flex-end;margin-top:6px}
+  .file-tag{display:none}
 }
 </style>
 </head>
@@ -244,7 +329,8 @@ footer{
     <p class="sub">产品原型、H5 页面、前端 Demo 与需求文档统一入口 · 由 Cloudflare Pages 自动构建发布</p>
     <div class="toolbar">
       <div class="search-box">
-        <input id="search" class="search" placeholder="搜索目录名称或页面文件…" autocomplete="off">
+        <input id="search" class="search" placeholder="搜索目录名称或页面文件… (快捷键 /)" autocomplete="off">
+        <button id="searchClear" class="search-clear" title="清空搜索">✕</button>
       </div>
       <div id="count" class="count">加载中…</div>
     </div>
@@ -258,27 +344,58 @@ footer{
 </main>
 
 <footer>
-  <div class="container">Fortrust Static Resource Center · Cloudflare Pages</div>
+  <div class="container">
+    <span>Fortrust Static Resource Center · Cloudflare Pages</span>
+    <span id="buildTimeText" style="margin-left: 8px; opacity: 0.8;"></span>
+  </div>
 </footer>
 
+<div id="toast" class="toast">已复制链接到剪贴板</div>
+
 <script>
-const treeEl=document.getElementById('tree');
-const searchEl=document.getElementById('search');
-const countEl=document.getElementById('count');
-let data=[];
+const treeEl = document.getElementById('tree');
+const searchEl = document.getElementById('search');
+const clearBtn = document.getElementById('searchClear');
+const countEl = document.getElementById('count');
+const toastEl = document.getElementById('toast');
+const buildTimeEl = document.getElementById('buildTimeText');
+let data = [];
+
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(() => toastEl.classList.remove('show'), 2000);
+}
+
+function copyUrl(e, url) {
+  e.preventDefault();
+  e.stopPropagation();
+  const fullUrl = window.location.origin + url;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fullUrl).then(() => showToast('已复制完整链接：' + fullUrl));
+  } else {
+    const input = document.createElement('input');
+    input.value = fullUrl;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    showToast('已复制链接');
+  }
+}
 
 function esc(s){
   return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 function filterTree(nodes, q){
-  const res=[];
+  const res = [];
   for(const node of nodes){
     const matchSelf = node.name.toLowerCase().includes(q);
-    const matchedFiles = (node.files||[]).filter(f => 
+    const matchedFiles = (node.files || []).filter(f => 
       f.title.toLowerCase().includes(q) || f.fileName.toLowerCase().includes(q)
     );
-    const matchedChildren = filterTree(node.children||[], q);
+    const matchedChildren = filterTree(node.children || [], q);
 
     if(matchSelf){
       res.push(node);
@@ -294,12 +411,12 @@ function filterTree(nodes, q){
 }
 
 function getStats(nodes){
-  let folders=0;
-  let pages=0;
+  let folders = 0;
+  let pages = 0;
   function traverse(list){
     for(const n of list){
       folders++;
-      pages += (n.files||[]).length;
+      pages += (n.files || []).length;
       if(n.children && n.children.length) traverse(n.children);
     }
   }
@@ -315,14 +432,17 @@ function renderNode(node){
   if(files.length > 0){
     filesHtml = `<div class="file-list">
       ${files.map(f => `
-        <a class="file-item" href="${f.url}">
+        <div class="file-item">
           <div class="file-info">
             <span class="file-icon">📄</span>
             <span class="file-name">${esc(f.title)}</span>
             <span class="file-tag">${esc(f.fileName)}</span>
           </div>
-          <span class="open-btn">打开查看 ↗</span>
-        </a>
+          <div class="action-group">
+            <button class="btn-copy" onclick="copyUrl(event, '${f.url}')">复制链接</button>
+            <a class="open-btn" href="${f.url}" target="_blank" rel="noopener noreferrer">打开查看 ↗</a>
+          </div>
+        </div>
       `).join('')}
     </div>`;
   }
@@ -352,31 +472,56 @@ function renderNode(node){
 
 function render(nodes){
   if(!nodes || !nodes.length){
-    treeEl.innerHTML='<div class="empty">没有找到匹配的项目或页面</div>';
-    countEl.textContent='0 个项目';
+    treeEl.innerHTML = '<div class="empty">没有找到匹配的项目或页面</div>';
+    countEl.textContent = '0 个项目';
     return;
   }
   const stats = getStats(nodes);
-  treeEl.innerHTML=nodes.map(renderNode).join('');
+  treeEl.innerHTML = nodes.map(renderNode).join('');
   countEl.textContent = `${stats.folders} 个项目 · ${stats.pages} 个页面`;
 }
 
 async function load(){
   try{
-    const res = await fetch('./directory.json?ts='+Date.now(), {cache:'no-store'});
-    if(!res.ok) throw new Error('directory.json HTTP '+res.status);
-    data = await res.json();
+    const res = await fetch('./directory.json?ts=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('directory.json HTTP ' + res.status);
+    const raw = await res.json();
+    data = Array.isArray(raw) ? raw : (raw.data || []);
+    if(raw.buildTime) {
+      const d = new Date(raw.buildTime);
+      buildTimeEl.textContent = `· 构建于 ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+    }
     render(data);
   }catch(e){
-    treeEl.innerHTML='<div class="empty">目录读取失败，请确认 Cloudflare 构建已生成 directory.json。</div>';
-    countEl.textContent='读取失败';
+    treeEl.innerHTML = '<div class="empty">目录读取失败，请确认 Cloudflare 构建已生成 directory.json。</div>';
+    countEl.textContent = '读取失败';
     console.error(e);
   }
 }
 
-searchEl.addEventListener('input',()=>{
+searchEl.addEventListener('input', () => {
   const q = searchEl.value.trim().toLowerCase();
+  clearBtn.style.display = q ? 'block' : 'none';
   render(q ? filterTree(data, q) : data);
+});
+
+clearBtn.addEventListener('click', () => {
+  searchEl.value = '';
+  clearBtn.style.display = 'none';
+  render(data);
+  searchEl.focus();
+});
+
+document.addEventListener('keydown', (e) => {
+  if(e.key === '/' && document.activeElement !== searchEl) {
+    e.preventDefault();
+    searchEl.focus();
+  } else if(e.key === 'Escape' && document.activeElement === searchEl) {
+    searchEl.value = '';
+    clearBtn.style.display = 'none';
+    render(data);
+    searchEl.blur();
+  }
 });
 
 load();

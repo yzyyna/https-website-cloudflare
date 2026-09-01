@@ -1,50 +1,63 @@
-[
-  {
-    "name": "沃达数据报表",
-    "path": "/%E6%B2%83%E8%BE%BE%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8/",
-    "url": "/fortrust/%E6%B2%83%E8%BE%BE%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8/%E7%94%B5%E7%AB%99%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8%E5%8E%9F%E5%9E%8BLatest.html",
-    "hasIndex": false,
-    "files": [
-      {
-        "fileName": "电站数据报表原型Latest.html",
-        "title": "电站数据报表原型Latest",
-        "url": "/fortrust/%E6%B2%83%E8%BE%BE%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8/%E7%94%B5%E7%AB%99%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8%E5%8E%9F%E5%9E%8BLatest.html",
-        "isIndex": false
-      },
-      {
-        "fileName": "数据报表原型Latest.html",
-        "title": "数据报表原型Latest",
-        "url": "/fortrust/%E6%B2%83%E8%BE%BE%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8/%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8%E5%8E%9F%E5%9E%8BLatest.html",
-        "isIndex": false
-      }
-    ],
-    "children": []
-  },
-  {
-    "name": "App2服务到期提醒功能",
-    "path": "/App2%E6%9C%8D%E5%8A%A1%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92%E5%8A%9F%E8%83%BD/",
-    "url": "/fortrust/App2%E6%9C%8D%E5%8A%A1%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92%E5%8A%9F%E8%83%BD/%E5%BC%80%E5%8F%91%E6%96%B9%E6%A1%88.html",
-    "hasIndex": false,
-    "files": [
-      {
-        "fileName": "开发方案.html",
-        "title": "开发方案",
-        "url": "/fortrust/App2%E6%9C%8D%E5%8A%A1%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92%E5%8A%9F%E8%83%BD/%E5%BC%80%E5%8F%91%E6%96%B9%E6%A1%88.html",
-        "isIndex": false
-      },
-      {
-        "fileName": "需求说明.html",
-        "title": "需求说明",
-        "url": "/fortrust/App2%E6%9C%8D%E5%8A%A1%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92%E5%8A%9F%E8%83%BD/%E9%9C%80%E6%B1%82%E8%AF%B4%E6%98%8E.html",
-        "isIndex": false
-      },
-      {
-        "fileName": "原型.html",
-        "title": "原型",
-        "url": "/fortrust/App2%E6%9C%8D%E5%8A%A1%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92%E5%8A%9F%E8%83%BD/%E5%8E%9F%E5%9E%8B.html",
-        "isIndex": false
-      }
-    ],
-    "children": []
-  }
-]
+{
+  "buildTime": "2026-09-01T03:26:34.406Z",
+  "data": [
+    {
+      "name": "沃达数据报表",
+      "path": "/fortrust/%E6%B2%83%E8%BE%BE%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8/",
+      "url": "/fortrust/%E6%B2%83%E8%BE%BE%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8/%E7%94%B5%E7%AB%99%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8%E5%8E%9F%E5%9E%8BLatest.html",
+      "hasIndex": false,
+      "files": [
+        {
+          "fileName": "电站数据报表原型Latest.html",
+          "title": "电站数据报表原型Latest",
+          "url": "/fortrust/%E6%B2%83%E8%BE%BE%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8/%E7%94%B5%E7%AB%99%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8%E5%8E%9F%E5%9E%8BLatest.html",
+          "size": "42.4 KB",
+          "mtime": "2026-09-01",
+          "isIndex": false
+        },
+        {
+          "fileName": "数据报表原型Latest.html",
+          "title": "数据报表原型Latest",
+          "url": "/fortrust/%E6%B2%83%E8%BE%BE%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8/%E6%95%B0%E6%8D%AE%E6%8A%A5%E8%A1%A8%E5%8E%9F%E5%9E%8BLatest.html",
+          "size": "67.1 KB",
+          "mtime": "2026-09-01",
+          "isIndex": false
+        }
+      ],
+      "children": []
+    },
+    {
+      "name": "App2服务到期提醒功能",
+      "path": "/fortrust/App2%E6%9C%8D%E5%8A%A1%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92%E5%8A%9F%E8%83%BD/",
+      "url": "/fortrust/App2%E6%9C%8D%E5%8A%A1%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92%E5%8A%9F%E8%83%BD/%E5%BC%80%E5%8F%91%E6%96%B9%E6%A1%88.html",
+      "hasIndex": false,
+      "files": [
+        {
+          "fileName": "开发方案.html",
+          "title": "开发方案",
+          "url": "/fortrust/App2%E6%9C%8D%E5%8A%A1%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92%E5%8A%9F%E8%83%BD/%E5%BC%80%E5%8F%91%E6%96%B9%E6%A1%88.html",
+          "size": "33.1 KB",
+          "mtime": "2026-09-01",
+          "isIndex": false
+        },
+        {
+          "fileName": "需求说明.html",
+          "title": "需求说明",
+          "url": "/fortrust/App2%E6%9C%8D%E5%8A%A1%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92%E5%8A%9F%E8%83%BD/%E9%9C%80%E6%B1%82%E8%AF%B4%E6%98%8E.html",
+          "size": "46.7 KB",
+          "mtime": "2026-08-31",
+          "isIndex": false
+        },
+        {
+          "fileName": "原型.html",
+          "title": "原型",
+          "url": "/fortrust/App2%E6%9C%8D%E5%8A%A1%E5%88%B0%E6%9C%9F%E6%8F%90%E9%86%92%E5%8A%9F%E8%83%BD/%E5%8E%9F%E5%9E%8B.html",
+          "size": "57.5 KB",
+          "mtime": "2026-08-31",
+          "isIndex": false
+        }
+      ],
+      "children": []
+    }
+  ]
+}
