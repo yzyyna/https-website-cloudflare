@@ -20,37 +20,38 @@ const ALLOWED_EXTS = new Set([
 
 function getFileType(ext) {
   ext = (ext || '').toLowerCase();
+  const label = ext.replace(/^\./, '').toUpperCase() || 'FILE';
   if (['.html', '.htm'].includes(ext)) {
-    return { category: 'html', label: '网页原型', icon: '📄', isHtml: true, actionType: 'new_tab' };
+    return { category: 'html', label, icon: '📄', isHtml: true, actionType: 'new_tab' };
   }
   if (ext === '.pdf') {
-    return { category: 'pdf', label: 'PDF 文档', icon: '📕', isHtml: false, actionType: 'preview' };
+    return { category: 'pdf', label, icon: '📕', isHtml: false, actionType: 'preview' };
   }
   if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'].includes(ext)) {
-    return { category: 'image', label: '设计图片', icon: '🖼️', isHtml: false, actionType: 'preview' };
+    return { category: 'image', label, icon: '🖼️', isHtml: false, actionType: 'preview' };
   }
   if (['.mp4', '.webm'].includes(ext)) {
-    return { category: 'video', label: '演示视频', icon: '🎬', isHtml: false, actionType: 'preview' };
+    return { category: 'video', label, icon: '🎬', isHtml: false, actionType: 'preview' };
   }
   if (ext === '.mp3') {
-    return { category: 'audio', label: '音频文件', icon: '🎵', isHtml: false, actionType: 'preview' };
+    return { category: 'audio', label, icon: '🎵', isHtml: false, actionType: 'preview' };
   }
   if (['.md', '.txt'].includes(ext)) {
-    return { category: 'text', label: '说明文档', icon: '📃', isHtml: false, actionType: 'preview' };
+    return { category: 'text', label, icon: '📃', isHtml: false, actionType: 'preview' };
   }
   if (['.docx', '.doc'].includes(ext)) {
-    return { category: 'word', label: 'Word 文档', icon: '📝', isHtml: false, actionType: 'download' };
+    return { category: 'word', label, icon: '📝', isHtml: false, actionType: 'download' };
   }
   if (['.xlsx', '.xls'].includes(ext)) {
-    return { category: 'excel', label: 'Excel 表格', icon: '📊', isHtml: false, actionType: 'download' };
+    return { category: 'excel', label, icon: '📊', isHtml: false, actionType: 'download' };
   }
   if (['.pptx', '.ppt'].includes(ext)) {
-    return { category: 'ppt', label: 'PPT 演示', icon: '📑', isHtml: false, actionType: 'download' };
+    return { category: 'ppt', label, icon: '📑', isHtml: false, actionType: 'download' };
   }
   if (['.zip', '.rar', '.7z', '.tar', '.gz'].includes(ext)) {
-    return { category: 'archive', label: '压缩包', icon: '📦', isHtml: false, actionType: 'download' };
+    return { category: 'archive', label, icon: '📦', isHtml: false, actionType: 'download' };
   }
-  return { category: 'file', label: '附件文件', icon: '📎', isHtml: false, actionType: 'download' };
+  return { category: 'file', label, icon: '📎', isHtml: false, actionType: 'download' };
 }
 
 function encodePath(parts, fileName = '') {

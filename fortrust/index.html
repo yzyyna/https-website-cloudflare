@@ -830,9 +830,10 @@ function esc(s){
 
 async function openPreview(fileJsonStr) {
   const f = typeof fileJsonStr === 'string' ? JSON.parse(decodeURIComponent(fileJsonStr)) : fileJsonStr;
+  const extName = (f.ext || '').replace(/^\./, '').toUpperCase() || 'FILE';
   modalIcon.textContent = f.icon || '📄';
   modalTitle.textContent = f.title || f.fileName;
-  modalTag.textContent = (f.typeLabel || '') + (f.size ? ` · ${f.size}` : '');
+  modalTag.textContent = extName + (f.size ? ` · ${f.size}` : '');
   modalNewTab.href = f.url;
   modalDownload.href = f.url;
   modalDownload.setAttribute('download', f.fileName);
@@ -880,7 +881,7 @@ function filterTree(nodes, q){
     const matchedFiles = (node.files || []).filter(f => 
       f.title.toLowerCase().includes(q) || 
       f.fileName.toLowerCase().includes(q) ||
-      (f.typeLabel && f.typeLabel.toLowerCase().includes(q))
+      (f.ext && f.ext.toLowerCase().includes(q))
     );
     const matchedChildren = filterTree(node.children || [], q);
 
@@ -929,13 +930,15 @@ function renderNode(node){
   let filesHtml = '';
   if(files.length > 0){
     filesHtml = `<div class="file-list">
-      ${files.map(f => `
+      ${files.map(f => {
+        const extText = (f.ext || '').replace(/^\./, '').toUpperCase() || 'FILE';
+        return `
         <div class="file-item">
           <div class="file-info">
             <span class="file-icon">${f.icon || '📄'}</span>
             <span class="file-name">${esc(f.title)}</span>
             <div class="file-meta-group">
-              <span class="file-tag">${esc(f.typeLabel || f.fileName)}</span>
+              <span class="file-tag">${esc(extText)}</span>
               ${f.size ? `<span class="file-size">${esc(f.size)}</span>` : ''}
             </div>
           </div>
@@ -944,7 +947,7 @@ function renderNode(node){
             ${renderActionButton(f)}
           </div>
         </div>
-      `).join('')}
+      `;}).join('')}
     </div>`;
   }
 
