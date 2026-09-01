@@ -1,0 +1,7 @@
+{
+  "name": "fortrust-static-center",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/generate-fortrust.js"
+  }
+}

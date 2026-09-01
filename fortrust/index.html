@@ -1,231 +1,115 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fortrust 静态资源中心</title>
-  <meta name="description" content="Fortrust 内部静态页面、产品原型与 H5 Demo 导航中心">
-  <style>
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-                   "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
-      background: #f6f8fb;
-      color: #172033;
-      line-height: 1.6;
-    }
-    .container {
-      width: min(1120px, calc(100% - 32px));
-      margin: 0 auto;
-    }
-    .hero {
-      padding: 64px 0 34px;
-    }
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-      font-weight: 700;
-      color: #2563eb;
-      letter-spacing: .04em;
-      margin-bottom: 14px;
-    }
-    .brand-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #2563eb;
-      box-shadow: 0 0 0 5px #dbeafe;
-    }
-    h1 {
-      margin: 0;
-      font-size: clamp(32px, 5vw, 48px);
-      line-height: 1.15;
-      letter-spacing: -0.03em;
-    }
-    .subtitle {
-      margin: 14px 0 0;
-      color: #64748b;
-      font-size: 16px;
-      max-width: 720px;
-    }
-    .stats {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 28px;
-    }
-    .stat {
-      padding: 10px 15px;
-      border: 1px solid #e2e8f0;
-      background: #fff;
-      border-radius: 10px;
-      color: #475569;
-      font-size: 13px;
-    }
-    .section-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin: 18px 0 14px;
-    }
-    .section-title h2 {
-      margin: 0;
-      font-size: 20px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-      padding-bottom: 48px;
-    }
-    .card {
-      display: block;
-      text-decoration: none;
-      color: inherit;
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 22px;
-      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-    .card:hover {
-      transform: translateY(-2px);
-      border-color: #bfdbfe;
-      box-shadow: 0 12px 30px rgba(15, 23, 42, .08);
-    }
-    .card-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .icon {
-      width: 44px;
-      height: 44px;
-      display: grid;
-      place-items: center;
-      border-radius: 12px;
-      background: #eff6ff;
-      color: #2563eb;
-      font-weight: 800;
-      font-size: 15px;
-    }
-    .arrow {
-      color: #94a3b8;
-      font-size: 22px;
-      transition: transform .18s ease;
-    }
-    .card:hover .arrow { transform: translateX(4px); color: #2563eb; }
-    .card h3 {
-      margin: 18px 0 5px;
-      font-size: 18px;
-    }
-    .card p {
-      margin: 0;
-      color: #64748b;
-      font-size: 14px;
-    }
-    .path {
-      margin-top: 16px;
-      padding: 9px 11px;
-      border-radius: 8px;
-      background: #f8fafc;
-      color: #94a3b8;
-      font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      overflow-wrap: anywhere;
-    }
-    footer {
-      border-top: 1px solid #e2e8f0;
-      padding: 22px 0 32px;
-      color: #94a3b8;
-      font-size: 12px;
-    }
-    @media (max-width: 720px) {
-      .hero { padding-top: 42px; }
-      .grid { grid-template-columns: 1fr; }
-      .container { width: min(100% - 24px, 1120px); }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fortrust 静态资源中心</title>
+<meta name="description" content="Fortrust 产品原型、H5、Demo 静态资源导航中心">
+<style>
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f5f7fb;color:#172033}
+.container{width:min(1120px,calc(100% - 32px));margin:auto}
+.hero{padding:58px 0 28px}
+.brand{display:flex;align-items:center;gap:9px;color:#2563eb;font-size:13px;font-weight:800;letter-spacing:.08em}
+.dot{width:9px;height:9px;border-radius:50%;background:#2563eb}
+h1{font-size:42px;line-height:1.15;margin:13px 0 10px;letter-spacing:-.035em}
+.sub{margin:0;color:#64748b;font-size:15px}
+.toolbar{margin:28px 0 22px;display:flex;gap:12px}
+.search{flex:1;padding:13px 15px;border:1px solid #dbe2ea;border-radius:11px;background:#fff;outline:0;font-size:14px}
+.search:focus{border-color:#93c5fd;box-shadow:0 0 0 3px #dbeafe}
+.count{display:flex;align-items:center;padding:0 14px;border:1px solid #e2e8f0;border-radius:11px;background:#fff;color:#64748b;font-size:13px;white-space:nowrap}
+.tree{padding-bottom:52px}
+.group{margin:12px 0}
+.row{display:flex;align-items:center;gap:10px;min-height:54px;padding:10px 14px;background:#fff;border:1px solid #e2e8f0;border-radius:12px}
+.row:hover{border-color:#bfdbfe}
+.folder{font-size:18px}
+.name{font-weight:650;flex:1;min-width:0;overflow-wrap:anywhere}
+.meta{font-size:12px;color:#94a3b8}
+.open{padding:7px 11px;border-radius:8px;background:#eff6ff;color:#2563eb;text-decoration:none;font-size:13px;font-weight:650;white-space:nowrap}
+.open:hover{background:#dbeafe}
+.children{margin-left:28px;padding-left:15px;border-left:1px solid #dbe2ea}
+.empty,.loading{padding:28px;text-align:center;color:#94a3b8;background:#fff;border:1px dashed #dbe2ea;border-radius:12px}
+footer{border-top:1px solid #e2e8f0;padding:20px 0 30px;color:#94a3b8;font-size:12px}
+@media(max-width:650px){.hero{padding-top:38px}h1{font-size:32px}.toolbar{flex-direction:column}.count{height:42px;justify-content:center}.children{margin-left:12px;padding-left:10px}.meta{display:none}}
+</style>
 </head>
 <body>
-  <header class="hero">
-    <div class="container">
-      <div class="brand">
-        <span class="brand-dot"></span>
-        FORTRUST
-      </div>
-      <h1>静态资源中心</h1>
-      <p class="subtitle">
-        产品原型、H5 页面、前端 Demo 与静态资源统一入口。
-        点击项目即可直接打开对应页面。
-      </p>
-      <div class="stats">
-        <div class="stat">Cloudflare Pages</div>
-        <div class="stat">GitHub 自动部署</div>
-        <div class="stat">内部原型 / Demo</div>
-      </div>
+<header class="hero">
+  <div class="container">
+    <div class="brand"><span class="dot"></span>FORTRUST</div>
+    <h1>静态资源中心</h1>
+    <p class="sub">产品原型、H5 页面、前端 Demo 与静态资源统一入口。目录由 GitHub 构建时自动扫描。</p>
+    <div class="toolbar">
+      <input id="search" class="search" placeholder="搜索项目名称…" autocomplete="off">
+      <div id="count" class="count">加载中…</div>
     </div>
-  </header>
+  </div>
+</header>
 
-  <main class="container">
-    <div class="section-title">
-      <h2>项目导航</h2>
+<main class="container">
+  <div id="tree" class="tree"><div class="loading">正在读取项目目录…</div></div>
+</main>
+
+<footer><div class="container">Fortrust Static Resource Center · Cloudflare Pages</div></footer>
+
+<script>
+const treeEl=document.getElementById('tree');
+const searchEl=document.getElementById('search');
+const countEl=document.getElementById('count');
+let data=[];
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+function filterNode(node,q){
+  const self=node.name.toLowerCase().includes(q);
+  const children=(node.children||[]).map(x=>filterNode(x,q)).filter(Boolean);
+  if(self||children.length){return {...node,children};}
+  return null;
+}
+
+function countNodes(nodes){
+  return nodes.reduce((n,x)=>n+1+countNodes(x.children||[]),0);
+}
+
+function render(nodes){
+  if(!nodes.length){treeEl.innerHTML='<div class="empty">没有找到匹配的项目</div>';countEl.textContent='0 个项目';return;}
+  treeEl.innerHTML=nodes.map(renderNode).join('');
+  countEl.textContent=countNodes(nodes)+' 个目录';
+}
+
+function renderNode(node){
+  const children=node.children||[];
+  const href=node.hasIndex ? node.url : '';
+  const action=href ? `<a class="open" href="${href}">查看 →</a>` : '';
+  return `<div class="group">
+    <div class="row">
+      <span class="folder">📁</span>
+      <span class="name">${esc(node.name)}</span>
+      <span class="meta">${node.hasIndex?'可访问':'子目录'}</span>
+      ${action}
     </div>
+    ${children.length?`<div class="children">${children.map(renderNode).join('')}</div>`:''}
+  </div>`;
+}
 
-    <div class="grid">
-      <!-- App2 -->
-      <a class="card" href="./App2服务到期提醒功能/原型/">
-        <div class="card-top">
-          <div class="icon">A2</div>
-          <div class="arrow">→</div>
-        </div>
-        <h3>App2 · 服务到期提醒功能</h3>
-        <p>App2 服务到期提醒功能产品原型</p>
-        <div class="path">/fortrust/App2服务到期提醒功能/原型/</div>
-      </a>
+async function load(){
+  try{
+    const res=await fetch('./directory.json?ts='+Date.now(),{cache:'no-store'});
+    if(!res.ok) throw new Error('directory.json HTTP '+res.status);
+    data=await res.json();
+    render(data);
+  }catch(e){
+    treeEl.innerHTML='<div class="empty">目录读取失败，请确认 Cloudflare 构建脚本已执行并生成 directory.json。</div>';
+    countEl.textContent='读取失败';
+    console.error(e);
+  }
+}
 
-      <!-- App3：后续直接修改 href 和文字即可 -->
-      <a class="card" href="#">
-        <div class="card-top">
-          <div class="icon">A3</div>
-          <div class="arrow">→</div>
-        </div>
-        <h3>App3</h3>
-        <p>App3 产品页面 / 原型 / Demo</p>
-        <div class="path">待添加</div>
-      </a>
-
-      <!-- 云平台 -->
-      <a class="card" href="#">
-        <div class="card-top">
-          <div class="icon">云</div>
-          <div class="arrow">→</div>
-        </div>
-        <h3>孚创云平台</h3>
-        <p>云平台相关产品页面与原型</p>
-        <div class="path">待添加</div>
-      </a>
-
-      <!-- H5 -->
-      <a class="card" href="#">
-        <div class="card-top">
-          <div class="icon">H5</div>
-          <div class="arrow">→</div>
-        </div>
-        <h3>H5 页面</h3>
-        <p>H5、活动页及其他 Web 页面</p>
-        <div class="path">待添加</div>
-      </a>
-    </div>
-  </main>
-
-  <footer>
-    <div class="container">
-      Fortrust Static Resource Center · Powered by Cloudflare Pages
-    </div>
-  </footer>
+searchEl.addEventListener('input',()=>{
+  const q=searchEl.value.trim().toLowerCase();
+  render(q?data.map(x=>filterNode(x,q)).filter(Boolean):data);
+});
+load();
+</script>
 </body>
 </html>
