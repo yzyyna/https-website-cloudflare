@@ -21,6 +21,7 @@
   --green-light: #ecfdf5;
   --amber: #d97706;
   --amber-light: #fffbeb;
+  --danger: #ef4444;
 }
 
 *{box-sizing:border-box}
@@ -38,8 +39,120 @@ body{
   width:min(1160px,calc(100% - 36px));
   margin:0 auto;
 }
+
+/* Auth Lockscreen Overlay */
+.auth-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  padding:20px;
+  backdrop-filter:blur(10px);
+}
+.auth-box{
+  background:#ffffff;
+  border-radius:18px;
+  width:min(440px, 100%);
+  padding:36px 32px;
+  box-shadow:0 25px 50px -12px rgba(0, 0, 0, 0.45);
+  text-align:center;
+  animation:authFadeIn .25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes authFadeIn {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.auth-icon{
+  width:56px;
+  height:56px;
+  border-radius:16px;
+  background:var(--primary-light);
+  color:var(--primary);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  margin-bottom:18px;
+}
+.auth-title{
+  font-size:22px;
+  font-weight:800;
+  color:#0f172a;
+  margin-bottom:8px;
+  letter-spacing:-0.02em;
+}
+.auth-desc{
+  font-size:13px;
+  color:var(--text-muted);
+  margin-bottom:24px;
+  line-height:1.6;
+}
+.auth-input-group{
+  position:relative;
+  margin-bottom:14px;
+}
+.auth-input{
+  width:100%;
+  padding:13px 16px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  font-size:15px;
+  outline:none;
+  transition:all .15s ease;
+  background:#f8fafc;
+}
+.auth-input:focus{
+  background:#ffffff;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+.auth-error{
+  color:var(--danger);
+  font-size:12px;
+  font-weight:600;
+  margin-bottom:14px;
+  min-height:18px;
+  display:none;
+}
+.auth-btn{
+  width:100%;
+  padding:13px;
+  background:var(--primary);
+  color:#ffffff;
+  border:none;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  transition:background .15s ease, transform .1s ease;
+}
+.auth-btn:hover{
+  background:var(--primary-hover);
+}
+.auth-btn:active{
+  transform:scale(0.99);
+}
+.auth-hint{
+  font-size:12px;
+  color:#94a3b8;
+  margin-top:16px;
+}
+
+/* App Header & Layout */
 .hero{
   padding:44px 0 20px;
+}
+.header-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
 }
 .brand{
   display:inline-flex;
@@ -59,6 +172,24 @@ body{
   height:8px;
   border-radius:50%;
   background:var(--primary);
+}
+.logout-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  background:none;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:4px 10px;
+  font-size:12px;
+  color:var(--text-muted);
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.logout-btn:hover{
+  border-color:var(--danger);
+  color:var(--danger);
+  background:#fef2f2;
 }
 h1{
   font-size:34px;
@@ -473,7 +604,7 @@ h1{
   box-shadow:0 10px 25px rgba(0,0,0,.2);
   transition:transform .2s cubic-bezier(0.16, 1, 0.3, 1), opacity .2s;
   opacity:0;
-  z-index:1100;
+  z-index:10000;
   pointer-events:none;
 }
 .toast.show{
@@ -502,58 +633,158 @@ footer{
 </style>
 </head>
 <body>
-<header class="hero">
-  <div class="container">
-    <div class="brand"><span class="dot"></span>FORTRUST</div>
-    <h1>静态资源中心</h1>
-    <p class="sub">产品原型、H5 页面、设计稿、需求文档与附件统一入口 · 由 Cloudflare Pages 自动构建发布</p>
-    <div class="toolbar">
-      <div class="search-box">
-        <input id="search" class="search" placeholder="搜索目录名称或页面文件… (快捷键 /)" autocomplete="off">
-        <button id="searchClear" class="search-clear" title="清空搜索">✕</button>
-      </div>
-      <div id="count" class="count">加载中…</div>
-    </div>
-  </div>
-</header>
 
-<main class="main-content">
-  <div class="container">
-    <div id="tree" class="tree"><div class="loading">正在读取项目目录…</div></div>
-  </div>
-</main>
-
-<!-- Modal Preview -->
-<div id="previewModal" class="modal-overlay" onclick="closePreviewOnBackdrop(event)">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <div class="modal-title-area">
-        <span id="modalIcon" style="font-size: 20px;">📄</span>
-        <span id="modalTitle" class="modal-title">预览文件</span>
-        <span id="modalTag" class="file-tag" style="margin-left: 4px;">PDF</span>
-      </div>
-      <div class="modal-actions">
-        <a id="modalNewTab" class="modal-btn" href="#" target="_blank" rel="noopener noreferrer">新标签打开 ↗</a>
-        <a id="modalDownload" class="modal-btn" href="#" download>下载 ⤓</a>
-        <button class="modal-close" onclick="closePreview()" title="关闭 (Esc)">✕</button>
-      </div>
+<!-- Password Authentication Lockscreen -->
+<div id="authOverlay" class="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-icon">🔒</div>
+    <h2 class="auth-title">Fortrust 资源中心</h2>
+    <p class="auth-desc">本系统包含内部原型与需求文档，请输入访问密码以解锁。验证后将自动记住身份 7 天。</p>
+    
+    <div class="auth-input-group">
+      <input type="password" id="authPassword" class="auth-input" placeholder="请输入访问密码..." autocomplete="current-password">
     </div>
-    <div id="modalBody" class="modal-body">
-      <!-- 动态插入内容 -->
-    </div>
+    <div id="authError" class="auth-error">密码错误，请重新输入</div>
+    
+    <button id="authBtn" class="auth-btn" onclick="submitAuth()">验证并进入</button>
+    <div class="auth-hint">🔐 验证通过后 7 天内免再次输入</div>
   </div>
 </div>
 
-<footer>
-  <div class="container">
-    <span>Fortrust Static Resource Center · Cloudflare Pages</span>
-    <span id="buildTimeText" style="margin-left: 8px; opacity: 0.8;"></span>
+<!-- Main App Content -->
+<div id="appRoot" style="display:none; flex-direction:column; min-height:100vh;">
+  <header class="hero">
+    <div class="container">
+      <div class="header-top">
+        <div class="brand"><span class="dot"></span>FORTRUST</div>
+        <button class="logout-btn" onclick="logout()" title="清除登录状态">🔒 锁定退出</button>
+      </div>
+      <h1>静态资源中心</h1>
+      <p class="sub">产品原型、H5 页面、设计稿、需求文档与附件统一入口 · 由 Cloudflare Pages 自动构建发布</p>
+      <div class="toolbar">
+        <div class="search-box">
+          <input id="search" class="search" placeholder="搜索目录名称或页面文件… (快捷键 /)" autocomplete="off">
+          <button id="searchClear" class="search-clear" title="清空搜索">✕</button>
+        </div>
+        <div id="count" class="count">加载中…</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <div id="tree" class="tree"><div class="loading">正在读取项目目录…</div></div>
+    </div>
+  </main>
+
+  <!-- Modal Preview -->
+  <div id="previewModal" class="modal-overlay" onclick="closePreviewOnBackdrop(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-area">
+          <span id="modalIcon" style="font-size: 20px;">📄</span>
+          <span id="modalTitle" class="modal-title">预览文件</span>
+          <span id="modalTag" class="file-tag" style="margin-left: 4px;">PDF</span>
+        </div>
+        <div class="modal-actions">
+          <a id="modalNewTab" class="modal-btn" href="#" target="_blank" rel="noopener noreferrer">新标签打开 ↗</a>
+          <a id="modalDownload" class="modal-btn" href="#" download>下载 ⤓</a>
+          <button class="modal-close" onclick="closePreview()" title="关闭 (Esc)">✕</button>
+        </div>
+      </div>
+      <div id="modalBody" class="modal-body"></div>
+    </div>
   </div>
-</footer>
+
+  <footer>
+    <div class="container">
+      <span>Fortrust Static Resource Center · Cloudflare Pages</span>
+      <span id="buildTimeText" style="margin-left: 8px; opacity: 0.8;"></span>
+    </div>
+  </footer>
+</div>
 
 <div id="toast" class="toast">已复制直观链接</div>
 
 <script>
+// ==========================================
+// 密码验证与 7 天有效期配置
+// ==========================================
+const AUTH_CONFIG = {
+  // 访问密码（支持自定义修改）
+  PASSWORDS: ['fortrust', 'fortrust2026', 'fortrust888'],
+  STORAGE_KEY: 'fortrust_auth_session_v1',
+  EXPIRE_MS: 7 * 24 * 60 * 60 * 1000 // 7 天
+};
+
+const authOverlay = document.getElementById('authOverlay');
+const authPasswordInput = document.getElementById('authPassword');
+const authError = document.getElementById('authError');
+const authBtn = document.getElementById('authBtn');
+const appRoot = document.getElementById('appRoot');
+
+function checkAuthStatus() {
+  try {
+    const raw = localStorage.getItem(AUTH_CONFIG.STORAGE_KEY);
+    if (!raw) return false;
+    const session = JSON.parse(raw);
+    if (session && session.authed && session.expiresAt && session.expiresAt > Date.now()) {
+      return true;
+    }
+  } catch(e) {}
+  localStorage.removeItem(AUTH_CONFIG.STORAGE_KEY);
+  return false;
+}
+
+function submitAuth() {
+  const pwd = authPasswordInput.value.trim();
+  if (!pwd) {
+    showAuthError('请输入访问密码');
+    return;
+  }
+
+  if (AUTH_CONFIG.PASSWORDS.includes(pwd)) {
+    // 验证成功，写入 7 天有效期
+    const sessionData = {
+      authed: true,
+      expiresAt: Date.now() + AUTH_CONFIG.EXPIRE_MS,
+      loginAt: new Date().toISOString()
+    };
+    localStorage.setItem(AUTH_CONFIG.STORAGE_KEY, JSON.stringify(sessionData));
+    unlockApp();
+  } else {
+    showAuthError('密码错误，请重新输入');
+    authPasswordInput.focus();
+    authPasswordInput.select();
+  }
+}
+
+function showAuthError(msg) {
+  authError.textContent = msg;
+  authError.style.display = 'block';
+}
+
+function unlockApp() {
+  authOverlay.style.display = 'none';
+  appRoot.style.display = 'flex';
+  load(); // 加载目录数据
+}
+
+function logout() {
+  localStorage.removeItem(AUTH_CONFIG.STORAGE_KEY);
+  window.location.reload();
+}
+
+authPasswordInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    submitAuth();
+  }
+  authError.style.display = 'none';
+});
+
+// ==========================================
+// 页面主逻辑与渲染
+// ==========================================
 const treeEl = document.getElementById('tree');
 const searchEl = document.getElementById('search');
 const clearBtn = document.getElementById('searchClear');
@@ -600,7 +831,6 @@ function esc(s){
   return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-// 预览弹窗控制
 async function openPreview(fileJsonStr) {
   const f = typeof fileJsonStr === 'string' ? JSON.parse(decodeURIComponent(fileJsonStr)) : fileJsonStr;
   modalIcon.textContent = f.icon || '📄';
@@ -687,14 +917,11 @@ function getStats(nodes){
 function renderActionButton(f) {
   const fJson = encodeURIComponent(JSON.stringify(f));
   if (f.actionType === 'new_tab') {
-    // 网页原型：新标签页打开
     return `<a class="btn-action btn-open" href="${f.url}" target="_blank" rel="noopener noreferrer">新标签打开 ↗</a>`;
   }
   if (f.actionType === 'preview') {
-    // PDF、图片、视频、音频、文本：弹窗预览
     return `<button class="btn-action btn-preview" onclick="openPreview('${fJson}')">弹窗预览 👁</button>`;
   }
-  // Word、Excel、PPT、压缩包：启动下载
   return `<a class="btn-action btn-download" href="${f.url}" download="${esc(f.fileName)}">启动下载 ⤓</a>`;
 }
 
@@ -805,7 +1032,14 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-load();
+// 初始化启动检查
+if (checkAuthStatus()) {
+  unlockApp();
+} else {
+  authOverlay.style.display = 'flex';
+  appRoot.style.display = 'none';
+  setTimeout(() => authPasswordInput.focus(), 100);
+}
 </script>
 </body>
 </html>
