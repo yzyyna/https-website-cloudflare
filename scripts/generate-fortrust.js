@@ -4,7 +4,54 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..', 'fortrust');
 const OUTPUT = path.join(ROOT, 'directory.json');
 const IGNORE_DIRS = new Set(['.git', '.github', 'node_modules', '.DS_Store']);
-const IGNORE_FILES = new Set(['index.html', 'directory.json', '.DS_Store', 'README.md', 'Thumbs.db']);
+const IGNORE_FILES = new Set(['index.html', 'directory.json', '.DS_Store', 'README.md', 'Thumbs.db', 'package.json']);
+
+const ALLOWED_EXTS = new Set([
+  // 网页（新标签页打开）
+  '.html', '.htm',
+  // 可预览文档/媒体（弹窗直接预览）
+  '.pdf', '.md', '.txt',
+  '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp',
+  '.mp4', '.webm', '.mp3',
+  // 需下载文档/附件（直接启动下载）
+  '.docx', '.doc', '.xlsx', '.xls', '.pptx', '.ppt',
+  '.zip', '.rar', '.7z', '.tar', '.gz'
+]);
+
+function getFileType(ext) {
+  ext = (ext || '').toLowerCase();
+  if (['.html', '.htm'].includes(ext)) {
+    return { category: 'html', label: '网页原型', icon: '📄', isHtml: true, actionType: 'new_tab' };
+  }
+  if (ext === '.pdf') {
+    return { category: 'pdf', label: 'PDF 文档', icon: '📕', isHtml: false, actionType: 'preview' };
+  }
+  if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'].includes(ext)) {
+    return { category: 'image', label: '设计图片', icon: '🖼️', isHtml: false, actionType: 'preview' };
+  }
+  if (['.mp4', '.webm'].includes(ext)) {
+    return { category: 'video', label: '演示视频', icon: '🎬', isHtml: false, actionType: 'preview' };
+  }
+  if (ext === '.mp3') {
+    return { category: 'audio', label: '音频文件', icon: '🎵', isHtml: false, actionType: 'preview' };
+  }
+  if (['.md', '.txt'].includes(ext)) {
+    return { category: 'text', label: '说明文档', icon: '📃', isHtml: false, actionType: 'preview' };
+  }
+  if (['.docx', '.doc'].includes(ext)) {
+    return { category: 'word', label: 'Word 文档', icon: '📝', isHtml: false, actionType: 'download' };
+  }
+  if (['.xlsx', '.xls'].includes(ext)) {
+    return { category: 'excel', label: 'Excel 表格', icon: '📊', isHtml: false, actionType: 'download' };
+  }
+  if (['.pptx', '.ppt'].includes(ext)) {
+    return { category: 'ppt', label: 'PPT 演示', icon: '📑', isHtml: false, actionType: 'download' };
+  }
+  if (['.zip', '.rar', '.7z', '.tar', '.gz'].includes(ext)) {
+    return { category: 'archive', label: '压缩包', icon: '📦', isHtml: false, actionType: 'download' };
+  }
+  return { category: 'file', label: '附件文件', icon: '📎', isHtml: false, actionType: 'download' };
+}
 
 function encodePath(parts, fileName = '') {
   const segs = ['fortrust', ...parts];
@@ -29,18 +76,29 @@ function scan(dir, relativeParts = []) {
     .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN', { numeric: true }));
 
   const nodes = [];
-  const rootDirectFiles = [];
 
-  // 如果是在 fortrust/ 根目录，检查是否有直接放置的独立 .html 文件
+  // 如果是在 fortrust/ 根目录，检查是否有直接放置的独立文件
   if (relativeParts.length === 0) {
-    const directHtmls = entries
-      .filter(e => e.isFile() && !IGNORE_FILES.has(e.name) && /\.(html|htm)$/i.test(e.name))
+    const directFiles = entries
+      .filter(e => {
+        if (!e.isFile() || IGNORE_FILES.has(e.name)) return false;
+        const ext = path.extname(e.name).toLowerCase();
+        return ALLOWED_EXTS.has(ext);
+      })
       .map(e => {
         const filePath = path.join(dir, e.name);
         const stat = fs.statSync(filePath);
+        const ext = path.extname(e.name);
+        const typeInfo = getFileType(ext);
         return {
           fileName: e.name,
-          title: e.name.replace(/\.(html|htm)$/i, ''),
+          title: e.name.replace(new RegExp(`\\${ext}$`, 'i'), ''),
+          ext: ext.toLowerCase(),
+          category: typeInfo.category,
+          typeLabel: typeInfo.label,
+          icon: typeInfo.icon,
+          isHtml: typeInfo.isHtml,
+          actionType: typeInfo.actionType,
           url: encodePath([], e.name),
           size: formatSize(stat.size),
           mtime: stat.mtime.toISOString().split('T')[0],
@@ -48,13 +106,13 @@ function scan(dir, relativeParts = []) {
         };
       });
 
-    if (directHtmls.length > 0) {
+    if (directFiles.length > 0) {
       nodes.push({
-        name: '独立页面 / 单文件原型',
+        name: '独立文件 / 根目录资源',
         path: '/fortrust/',
-        url: directHtmls[0].url,
+        url: directFiles[0].url,
         hasIndex: false,
-        files: directHtmls,
+        files: directFiles,
         children: []
       });
     }
@@ -66,21 +124,32 @@ function scan(dir, relativeParts = []) {
     const abs = path.join(dir, entry.name);
     const parts = [...relativeParts, entry.name];
 
-    // 读取该目录下的所有 .html / .htm 文件
     const subEntries = fs.readdirSync(abs, { withFileTypes: true })
       .filter(e => !IGNORE_DIRS.has(e.name))
       .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN', { numeric: true }));
 
-    const htmlFiles = subEntries
-      .filter(e => e.isFile() && /\.(html|htm)$/i.test(e.name))
+    const validFiles = subEntries
+      .filter(e => {
+        if (!e.isFile() || IGNORE_FILES.has(e.name)) return false;
+        const ext = path.extname(e.name).toLowerCase();
+        return ALLOWED_EXTS.has(ext);
+      })
       .map(e => {
         const filePath = path.join(abs, e.name);
         const stat = fs.statSync(filePath);
+        const ext = path.extname(e.name);
+        const typeInfo = getFileType(ext);
         const isIndex = e.name.toLowerCase() === 'index.html';
-        const title = isIndex ? '首页 (index.html)' : e.name.replace(/\.(html|htm)$/i, '');
+        const title = isIndex ? '首页 (index.html)' : e.name.replace(new RegExp(`\\${ext}$`, 'i'), '');
         return {
           fileName: e.name,
           title,
+          ext: ext.toLowerCase(),
+          category: typeInfo.category,
+          typeLabel: typeInfo.label,
+          icon: typeInfo.icon,
+          isHtml: typeInfo.isHtml,
+          actionType: typeInfo.actionType,
           url: encodePath(parts, e.name),
           size: formatSize(stat.size),
           mtime: stat.mtime.toISOString().split('T')[0],
@@ -88,19 +157,18 @@ function scan(dir, relativeParts = []) {
         };
       });
 
-    const hasIndex = htmlFiles.some(f => f.isIndex);
+    const hasIndex = validFiles.some(f => f.isIndex);
     const children = scan(abs, parts);
 
     const node = {
       name: entry.name,
       path: encodePath(parts),
-      url: hasIndex ? encodePath(parts) : (htmlFiles.length ? htmlFiles[0].url : null),
+      url: hasIndex ? encodePath(parts) : (validFiles.length ? validFiles[0].url : null),
       hasIndex,
-      files: htmlFiles,
+      files: validFiles,
       children
     };
 
-    // 只要包含 html 文件或者包含有效子目录，就纳入展示
     if (node.files.length > 0 || node.children.length > 0) {
       nodes.push(node);
     }
