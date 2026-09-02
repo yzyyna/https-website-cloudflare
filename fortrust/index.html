@@ -880,7 +880,13 @@ async function openPreview(f) {
   modalIcon.textContent = f.icon || '📄';
   modalTitle.textContent = f.title || f.fileName;
   modalTag.textContent = extName + (f.size ? ` · ${f.size}` : '');
-  modalNewTab.href = f.url;
+  // md/docx/xlsx/txt 浏览器原生打不开会触发下载，改经 /_view 查看器渲染；
+  // pdf/图片/音视频/网页浏览器可直接预览，保持直链
+  const NEED_VIEWER = ['md', 'docx', 'xlsx', 'text'];
+  const rawUrl = NEED_VIEWER.includes(f.category)
+    ? '/_view?u=' + encodeURIComponent(f.url)
+    : f.url;
+  modalNewTab.href = rawUrl;
   modalDownload.href = f.url;
   modalDownload.setAttribute('download', f.fileName);
   exitFullscreen(); // 每次新开预览从窗口模式开始，按钮图标复位
@@ -962,7 +968,9 @@ function ensureScript(globalName, src) {
 }
 
 function previewErrorHtml(f) {
-  return `<div class="preview-status"><div style="font-size:32px;">😵</div><div>该文件类型暂不支持在线预览</div><a class="btn-action btn-open" href="${f.url}" target="_blank" rel="noopener noreferrer">尝试新标签打开 ↗</a></div>`;
+  const NEED_VIEWER = ['md', 'docx', 'xlsx', 'text'];
+  const url = NEED_VIEWER.includes(f.category) ? '/_view?u=' + encodeURIComponent(f.url) : f.url;
+  return `<div class="preview-status"><div style="font-size:32px;">😵</div><div>该文件类型暂不支持在线预览</div><a class="btn-action btn-open" href="${url}" target="_blank" rel="noopener noreferrer">尝试新标签打开 ↗</a></div>`;
 }
 
 // Excel 多 Sheet 渲染与切换

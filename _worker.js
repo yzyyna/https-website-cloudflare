@@ -152,6 +152,148 @@ async function handleAuth(request, env, url) {
   });
 }
 
+// 浏览器原生无法渲染、需经查看器页面解析的文件扩展名
+const VIEWER_EXTS = new Set(['.md', '.markdown', '.docx', '.xlsx', '.xls', '.txt']);
+
+function viewerPage(targetUrl) {
+  const safeTarget = JSON.stringify(targetUrl);
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>预览 · Fortrust 静态资源中心</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;display:flex;flex-direction:column;min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:#f1f5f9;color:#1f2937}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 20px;background:#fff;border-bottom:1px solid #e2e8f0}
+.title{font-size:15px;font-weight:700;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.actions{display:flex;gap:8px;flex-shrink:0}
+.btn{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;
+  border:1px solid #e2e8f0;background:#fff;color:#475569}
+.btn:hover{border-color:#2563eb;color:#2563eb}
+main{flex:1;overflow:auto;padding:28px 32px;background:#fff}
+.status{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  height:60vh;color:#64748b;font-size:14px}
+.spinner{width:28px;height:28px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;
+  animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Markdown 渲染样式 */
+.md h1,.md h2,.md h3,.md h4{color:#0f172a;line-height:1.3;margin:1.4em 0 .5em}
+.md h1{font-size:26px;border-bottom:2px solid #e2e8f0;padding-bottom:8px}
+.md h2{font-size:21px;border-bottom:1px solid #eef2f7;padding-bottom:6px}
+.md h3{font-size:17px}
+.md p{margin:.7em 0;line-height:1.75}
+.md a{color:#2563eb}
+.md code{background:#f1f5f9;border:1px solid #e2e8f0;padding:1px 6px;border-radius:4px;
+  font-family:ui-monospace,Consolas,Menlo,monospace;font-size:13px;color:#dc2626}
+.md pre{background:#0f172a;color:#f8fafc;padding:14px 16px;border-radius:8px;overflow:auto;margin:.8em 0}
+.md pre code{background:none;border:none;color:inherit;padding:0}
+.md blockquote{margin:.8em 0;padding:8px 16px;border-left:4px solid #93c5fd;background:#eff6ff;
+  color:#334155;border-radius:0 6px 6px 0}
+.md ul,.md ol{padding-left:1.6em}
+.md table{border-collapse:collapse;margin:.9em 0}
+.md th,.md td{border:1px solid #cbd5e1;padding:6px 12px;font-size:13px}
+.md th{background:#f1f5f9}
+.md img{max-width:100%}
+.md hr{border:none;border-top:1px solid #e2e8f0;margin:1.5em 0}
+/* Word 渲染样式 */
+.word{line-height:1.8;font-size:15px}
+.word h1,.word h2,.word h3{color:#0f172a;margin:1.2em 0 .5em}
+.word table{border-collapse:collapse;margin:12px 0}
+.word td,.word th{border:1px solid #cbd5e1;padding:6px 12px;font-size:13px;min-width:64px}
+.word img{max-width:100%}
+/* Excel 渲染样式 */
+.sheet-tab{display:flex;gap:6px;padding:10px 0;overflow-x:auto}
+.sheet-tab button{padding:6px 14px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;
+  color:#475569;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.sheet-tab button.active{background:#2563eb;border-color:#2563eb;color:#fff}
+.sheet{display:none}
+.sheet.active{display:block}
+.sheet table{border-collapse:collapse}
+.sheet td,.sheet th{border:1px solid #cbd5e1;padding:6px 12px;font-size:13px;white-space:nowrap}
+</style>
+</head>
+<body>
+<header>
+  <div class="title" id="docTitle">加载中…</div>
+  <div class="actions">
+    <a class="btn" id="dlBtn" download>下载 ⤓</a>
+  </div>
+</header>
+<main><div class="status"><div class="spinner"></div><div>正在加载预览…</div></div></main>
+<script>
+const TARGET = ${safeTarget};
+const name = decodeURIComponent(TARGET.split('/').pop() || '');
+document.getElementById('docTitle').textContent = name;
+const dl = document.getElementById('dlBtn');
+dl.href = TARGET;
+dl.setAttribute('download', name);
+
+const ext = (name.match(/\\.[^.]+$/) || [''])[0].toLowerCase();
+const main = document.querySelector('main');
+const esc = s => String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function loadScript(src, check) {
+  if (check()) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = () => check() ? res() : rej(new Error('lib init failed'));
+    s.onerror = () => rej(new Error('lib load failed'));
+    document.head.appendChild(s);
+  });
+}
+
+async function render() {
+  try {
+    if (ext === '.md' || ext === '.markdown') {
+      const txt = await (await fetch(TARGET)).text();
+      await loadScript('https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js', () => window.marked);
+      main.innerHTML = '<div class="md">' + marked.parse(txt, { breaks: true, gfm: true }) + '</div>';
+    } else if (ext === '.docx') {
+      const buf = await (await fetch(TARGET)).arrayBuffer();
+      await loadScript('https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js', () => window.mammoth);
+      const r = await window.mammoth.convertToHtml({ arrayBuffer: buf });
+      main.innerHTML = '<div class="word">' + (r.value || '<p style="color:#94a3b8">此 Word 文档为空</p>') + '</div>';
+    } else if (ext === '.xlsx' || ext === '.xls') {
+      const buf = await (await fetch(TARGET)).arrayBuffer();
+      await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', () => window.XLSX);
+      const wb = window.XLSX.read(buf, { type: 'array' });
+      const tabs = wb.SheetNames.map((n, i) =>
+        '<button class="' + (i === 0 ? 'active' : '') + '" data-i="' + i + '">' + esc(n) + '</button>').join('');
+      const panes = wb.SheetNames.map((n, i) => {
+        const html = window.XLSX.utils.sheet_to_html(wb.Sheets[n], { header: '', footer: '' });
+        return '<div class="sheet ' + (i === 0 ? 'active' : '') + '" data-i="' + i + '">' + html + '</div>';
+      }).join('');
+      main.innerHTML =
+        '<div class="sheet-tab">' + tabs + '</div>' + panes;
+      main.querySelectorAll('.sheet-tab button').forEach(b => b.addEventListener('click', () => {
+        main.querySelectorAll('.sheet').forEach(p => p.classList.toggle('active', p.dataset.i === b.dataset.i));
+        main.querySelectorAll('.sheet-tab button').forEach(x => x.classList.toggle('active', x === b));
+      }));
+    } else {
+      const txt = await (await fetch(TARGET)).text();
+      main.innerHTML = '<pre style="background:#0f172a;color:#f8fafc;padding:20px;border-radius:8px;' +
+        'overflow:auto;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-all">' + esc(txt) + '</pre>';
+    }
+  } catch (e) {
+    main.innerHTML = '<div class="status"><div style="font-size:32px">😵</div>' +
+      '<div>预览加载失败，请尝试下载后查看</div></div>';
+  }
+}
+render();
+</script>
+</body>
+</html>`;
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }
+  });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -159,6 +301,20 @@ export default {
 
     if (path === '/_auth') {
       return handleAuth(request, env, url);
+    }
+
+    // 新标签页查看器：受密码保护，将不可原生预览的文件渲染为网页
+    if (path === '/_view') {
+      if (!(await isAuthed(request, env))) {
+        return loginPage('', '/fortrust/');
+      }
+      const target = safeNext(url.searchParams.get('u') || '', '/fortrust/');
+      const ext = (target.match(/\.([^./]+)$/i) || [''])[0].toLowerCase();
+      if (!target.startsWith('/fortrust/') || !VIEWER_EXTS.has(ext)) {
+        // 非查看器类型直接回到原文件（浏览器可原生预览）
+        return new Response(null, { status: 302, headers: { 'Location': target } });
+      }
+      return viewerPage(target);
     }
 
     // 受保护区：/fortrust 及其下所有资源（含 directory.json、原型、文档）
