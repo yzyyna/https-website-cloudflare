@@ -10,11 +10,13 @@ const ALLOWED_EXTS = new Set([
   // 网页（新标签页打开）
   '.html', '.htm',
   // 可预览文档/媒体（弹窗直接预览）
-  '.pdf', '.md', '.txt',
+  '.pdf', '.md', '.markdown', '.txt',
   '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp',
   '.mp4', '.webm', '.mp3',
+  // 可解析预览的 Office 文档
+  '.docx', '.xlsx', '.xls',
   // 需下载文档/附件（直接启动下载）
-  '.docx', '.doc', '.xlsx', '.xls', '.pptx', '.ppt',
+  '.doc', '.pptx', '.ppt',
   '.zip', '.rar', '.7z', '.tar', '.gz'
 ]);
 
@@ -36,14 +38,17 @@ function getFileType(ext) {
   if (ext === '.mp3') {
     return { category: 'audio', label, icon: '🎵', isHtml: false, actionType: 'preview' };
   }
-  if (['.md', '.txt'].includes(ext)) {
+  if (['.md', '.markdown'].includes(ext)) {
+    return { category: 'md', label, icon: '📃', isHtml: false, actionType: 'preview' };
+  }
+  if (['.txt'].includes(ext)) {
     return { category: 'text', label, icon: '📃', isHtml: false, actionType: 'preview' };
   }
-  if (['.docx', '.doc'].includes(ext)) {
-    return { category: 'word', label, icon: '📝', isHtml: false, actionType: 'download' };
+  if (['.docx'].includes(ext)) {
+    return { category: 'docx', label, icon: '📝', isHtml: false, actionType: 'preview' };
   }
   if (['.xlsx', '.xls'].includes(ext)) {
-    return { category: 'excel', label, icon: '📊', isHtml: false, actionType: 'download' };
+    return { category: 'xlsx', label, icon: '📊', isHtml: false, actionType: 'preview' };
   }
   if (['.pptx', '.ppt'].includes(ext)) {
     return { category: 'ppt', label, icon: '📑', isHtml: false, actionType: 'download' };

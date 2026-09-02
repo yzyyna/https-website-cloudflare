@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>沃达 IoT 智慧电站 · 维修管理模块开发设计规范文档</title>
+<style>
+  :root {
+    --primary: #409EFF;
+    --primary-dark: #337ecc;
+    --primary-light: #ecf5ff;
+    --success: #67C23A;
+    --warning: #E6A23C;
+    --danger: #F56C6C;
+    --info: #909399;
+    --text-primary: #303133;
+    --text-regular: #606266;
+    --text-secondary: #909399;
+    --border: #DCDFE6;
+    --border-light: #E4E7ED;
+    --bg-page: #f5f7fa;
+    --bg-card: #ffffff;
+    --sidebar-w: 260px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--text-primary);
+    background: var(--bg-page);
+    line-height: 1.6;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* 侧边导航 */
+  .doc-sidebar {
+    width: var(--sidebar-w);
+    background: #001529;
+    color: #bfcbd9;
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    overflow-y: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+  }
+  .doc-logo {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .doc-logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--primary), var(--success));
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 14px; font-weight: bold;
+  }
+  .doc-logo-title {
+    font-size: 15px; font-weight: 600; color: #fff;
+  }
+  .doc-nav {
+    padding: 16px 0;
+    flex: 1;
+  }
+  .doc-nav-group {
+    padding: 8px 20px 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #5e6d7f;
+    letter-spacing: 0.5px;
+  }
+  .doc-nav-item {
+    display: block;
+    padding: 9px 20px;
+    color: #bfcbd9;
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+  }
+  .doc-nav-item:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+  }
+  .doc-nav-item.active {
+    color: #fff;
+    background: var(--primary);
+    border-left-color: #fff;
+  }
+
+  /* 主体内容 */
+  .doc-main {
+    flex: 1;
+    margin-left: var(--sidebar-w);
+    padding: 30px 40px 80px;
+    max-width: 1280px;
+  }
+
+  .doc-header {
+    background: #fff;
+    padding: 24px 30px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 24px;
+    border-left: 5px solid var(--primary);
+  }
+  .doc-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .doc-header-meta {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .section {
+    background: #fff;
+    padding: 28px 32px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 24px;
+  }
+  .section h2 {
+    font-size: 18px;
+    font-weight: 700;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-light);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section h2::before {
+    content: "";
+    width: 4px;
+    height: 18px;
+    background: var(--primary);
+    border-radius: 2px;
+  }
+  .section h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: #1f2d3d;
+  }
+  .section p {
+    font-size: 14px;
+    color: var(--text-regular);
+    margin-bottom: 12px;
+    line-height: 1.7;
+  }
+
+  /* 表格样式 */
+  table.doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 20px;
+    font-size: 13px;
+  }
+  table.doc-table th, table.doc-table td {
+    border: 1px solid var(--border-light);
+    padding: 10px 14px;
+    text-align: left;
+  }
+  table.doc-table th {
+    background: #f8fafc;
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  table.doc-table tr:hover td {
+    background: #fafafa;
+  }
+
+  /* 标签 Tag */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+  .tag-primary { background: #ecf5ff; color: #409eff; border-color: #d9ecff; }
+  .tag-success { background: #f0f9eb; color: #67c23a; border-color: #e1f3d8; }
+  .tag-warning { background: #fdf6ec; color: #e6a23c; border-color: #faecd8; }
+  .tag-danger { background: #fef0f0; color: #f56c6c; border-color: #fde2e2; }
+  .tag-info { background: #f4f4f5; color: #909399; border-color: #e9e9eb; }
+
+  /* 流程示意卡片 */
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .flow-card {
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    padding: 16px;
+    background: #fafbfc;
+    position: relative;
+  }
+  .flow-card-num {
+    display: inline-block;
+    width: 22px; height: 22px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  .flow-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .flow-card-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* 页面结构预览卡 */
+  .view-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 18px;
+    background: #fff;
+  }
+  .view-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+  }
+  .view-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+  .view-card-tag {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+
+  /* 代码块 */
+  pre.code-block {
+    background: #282c34;
+    color: #abb2bf;
+    padding: 14px 18px;
+    border-radius: 6px;
+    font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+    font-size: 12px;
+    overflow-x: auto;
+    margin: 12px 0 16px;
+    line-height: 1.5;
+  }
+
+  /* 提示框 */
+  .alert-box {
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .alert-info {
+    background: #e6f7ff;
+    border: 1px solid #91d5ff;
+    color: #0050b3;
+  }
+  .alert-warning {
+    background: #fffbe6;
+    border: 1px solid #ffe58f;
+    color: #874d00;
+  }
+</style>
+</head>
+<body>
+
+<!-- 侧边导航 -->
+<aside class="doc-sidebar">
+  <div class="doc-logo">
+    <div class="doc-logo-icon">W</div>
+    <div class="doc-logo-title">沃达 维修管理规范</div>
+  </div>
+  <nav class="doc-nav">
+    <div class="doc-nav-group">总体概述</div>
+    <a href="#sec-overview" class="doc-nav-item active">1. 业务架构与双入口体系</a>
+    <a href="#sec-flow" class="doc-nav-item">2. 状态机与三步流转机制</a>
+
+    <div class="doc-nav-group">字典与模型</div>
+    <a href="#sec-dict" class="doc-nav-item">3. 故障级别与分类字典</a>
+    <a href="#sec-models" class="doc-nav-item">4. 数据结构与字段模型</a>
+
+    <div class="doc-nav-group">原型与页面规格</div>
+    <a href="#sec-view1" class="doc-nav-item">5. 电站内机组列表 (Tab)</a>
+    <a href="#sec-view2" class="doc-nav-item">6. 维修管理主工单池 (Menu)</a>
+    <a href="#sec-view3" class="doc-nav-item">7. 维修信息登记整页</a>
+    <a href="#sec-view4" class="doc-nav-item">8. 维修记录详情与编辑</a>
+    <a href="#sec-view5" class="doc-nav-item">9. 机组历史维修履历页</a>
+
+    <div class="doc-nav-group">技术实现</div>
+    <a href="#sec-api" class="doc-nav-item">10. 接口契约与 Mock 规范</a>
+    <a href="#sec-arch" class="doc-nav-item">11. 工程代码目录与组件拆分</a>
+  </nav>
+</aside>
+
+<!-- 主体内容 -->
+<main class="doc-main">
+  <!-- 头部概要 -->
+  <header class="doc-header">
+    <h1>沃达 IoT 智慧电站 · 维修管理模块开发设计规范文档</h1>
+    <div class="doc-header-meta">
+      <span><b>需求来源：</b>《沃达-维修管理功能设计说明.docx》+ Mockplus 5 页面原型</span>
+      <span><b>路由入口：</b><code>operation/repairManagement/index</code> 与 电站详情 <code>维修记录 Tab</code></span>
+      <span><b>状态：</b>定稿方案待实施</span>
+    </div>
+  </header>
+
+  <!-- 1. 业务架构与双入口体系 -->
+  <section id="sec-overview" class="section">
+    <h2>1. 业务架构与双入口体系</h2>
+    <p>
+      维修管理涉及整个机组全生命周期的故障排查、配件更换、照片归档和履历追溯。根据最新定稿需求，维修管理在 PC 端分为两个入口协同运作：
+    </p>
+
+    <div class="view-card">
+      <div class="view-card-header">
+        <span class="view-card-title">入口一：电站详情内「维修记录」Tab</span>
+        <span class="view-card-tag">电站维度 / 机组视角</span>
+      </div>
+      <p><b>位置：</b>在电站详情（如利比亚106MW燃气电站）的二级 Tab 栏中，在「运行记录」之后、「预警记录」之前，新增 <code>维修记录</code> Tab。</p>
+      <p><b>作用：</b>按电站列出该电站下的所有机组列表（如 1~106 台机组依次排列），展示各机组的运行状态、维修状态、维修次数，并支持直接对某机组发起维修登记或查看该机组的历史维修记录。</p>
+    </div>
+
+    <div class="view-card">
+      <div class="view-card-header">
+        <span class="view-card-title">入口二：运维管理菜单下「维修管理」</span>
+        <span class="view-card-tag">全平台全局维度 / 工单池视角</span>
+      </div>
+      <p><b>位置：</b>主菜单 <code>运维管理 ➔ 维修管理</code>（组件路径：<code>operation/repairManagement/index</code>）。</p>
+      <p><b>作用：</b>汇集全平台所有电站与机组的维修工单池，按状态页签（全部 / 待维修 / 维修中 / 已完成）进行多维组合筛选、批量导出、打印，并支持全局发起维修登记。</p>
+    </div>
+  </section>
+
+  <!-- 2. 状态机与三步流转机制 -->
+  <section id="sec-flow" class="section">
+    <h2>2. 状态机与三步流转机制</h2>
+    <p>
+      <b>核心业务原则：</b>维修登记<b>不需要审核流程</b>，由登记人员在登记界面手动登记推进三个阶段，系统自动更新并确认对应的维修状态。
+    </p>
+
+    <div class="flow-grid">
+      <div class="flow-card">
+        <span class="flow-card-num">1</span>
+        <div class="flow-card-title">维修登记 ➔ <span class="tag tag-warning">待维修</span></div>
+        <div class="flow-card-desc">
+          创建维修登记单，选择电站/机组，关联报警记录或停机记录，录入故障基本信息与维修事项。
+        </div>
+      </div>
+      <div class="flow-card">
+        <span class="flow-card-num">2</span>
+        <div class="flow-card-title">开始维修 ➔ <span class="tag tag-primary">维修中</span></div>
+        <div class="flow-card-desc">
+          维修人员到达现场开展解体检修、更换配件、过程拍照，可多次<b>保存草稿暂存</b>记录。
+        </div>
+      </div>
+      <div class="flow-card">
+        <span class="flow-card-num">3</span>
+        <div class="flow-card-title">完工确认 ➔ <span class="tag tag-success">已完成</span></div>
+        <div class="flow-card-desc">
+          试运行正常后，主维修人与协助人员分别进行<b>电子手写签名</b>，提交完工，工单归档并计入机组履历。
+        </div>
+      </div>
+    </div>
+
+    <div class="alert-box alert-info">
+      <div>💡 <b>与报警模块的联动：</b>在「报警处理登记」页面中新增【保存并登记维修】按钮，点击后自动携带该报警的机组、故障级别、故障类型、过程描述跳转至维修登记页面；同时报警处理登记页面支持选择该机组历史维修记录反向带入。</div>
+    </div>
+  </section>
+
+  <!-- 3. 故障级别与分类字典 -->
+  <section id="sec-dict" class="section">
+    <h2>3. 故障级别与分类字典规范</h2>
+    <p>完全与报警处理登记模块的数据字典拉齐：</p>
+
+    <h3>3.1 故障级别字典 (Fault Level)</h3>
+    <table class="doc-table">
+      <thead><tr><th>级别编码</th><th>级别名称</th><th>说明</th><th>Tag 样式</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>一级：报警停机类</td><td>导致机组停机的重大紧急故障</td><td><span class="tag tag-danger">一级：报警停机类</span></td></tr>
+        <tr><td>2</td><td>二级：报警故障类</td><td>机组带故障运行，需紧急排查</td><td><span class="tag tag-warning">二级：报警故障类</span></td></tr>
+        <tr><td>3</td><td>三级：一般警告类</td><td>参数越限或一般异常警告</td><td><span class="tag tag-primary">三级：一般警告类</span></td></tr>
+        <tr><td>4</td><td>四级：提示信息类</td><td>例行维护提示与状态信息</td><td><span class="tag tag-info">四级：提示信息类</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.2 故障类型字典 (Fault Category)</h3>
+    <table class="doc-table">
+      <thead><tr><th>类型编码</th><th>类型名称</th><th>典型涉及部件</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>电控系统类 (ECU)</td><td>ECU、通信板卡、传感器通信、执行器驱动</td></tr>
+        <tr><td>2</td><td>燃料与燃烧系统类</td><td>燃油泵、喷油嘴、火花塞、燃气阀组、点火系统</td></tr>
+        <tr><td>3</td><td>冷却与润滑系统类</td><td>散热水箱、水泵、润滑油泵、机油滤清器、温控阀</td></tr>
+        <tr><td>4</td><td>机械与结构类</td><td>齿轮箱、轴承、曲轴、连杆、机体减震、底座</td></tr>
+        <tr><td>5</td><td>控制与安全保护类</td><td>急停回路、防爆阀、超速保护、逆功率保护</td></tr>
+        <tr><td>6</td><td>环境与辅助系统类</td><td>通风风机、机房温湿度、百叶窗、消音降噪</td></tr>
+        <tr><td>7</td><td>发电侧系统类</td><td>发电机定子/转子、AVR 励磁、高低压断路器、PT/CT</td></tr>
+        <tr><td>9</td><td>其他类</td><td>外观破损、风速仪、铭牌标识等</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4. 数据结构与字段模型 -->
+  <section id="sec-models" class="section">
+    <h2>4. 数据结构与字段模型</h2>
+
+    <h3>4.1 维修工单主表 (`repair_order`)</h3>
+    <table class="doc-table">
+      <thead><tr><th>字段名</th><th>类型</th><th>必填</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>bigint</td><td>是</td><td>主键 ID</td></tr>
+        <tr><td>orderNo</td><td>varchar(32)</td><td>是</td><td>工单编号（如 <code>BX20260804001</code>）</td></tr>
+        <tr><td>registerNo</td><td>varchar(32)</td><td>是</td><td>维修登记编号（如 <code>WXD20260805001</code>，自动生成）</td></tr>
+        <tr><td>powerStationId / powerStationName</td><td>bigint / varchar</td><td>是</td><td>所属电站 ID 与名称</td></tr>
+        <tr><td>gensetId / gensetName</td><td>bigint / varchar</td><td>是</td><td>机组 ID 与名称</td></tr>
+        <tr><td>cloudCatCode</td><td>varchar(64)</td><td>否</td><td>云猫编号（机组选择后<b>自动带出</b>，如 <code>YM-001-A</code>）</td></tr>
+        <tr><td>runHours</td><td>varchar(32)</td><td>否</td><td>机组运行时长（<b>自动带出</b>，如 <code>12,580 h</code>）</td></tr>
+        <tr><td>relatedAlarmDesc</td><td>varchar(255)</td><td>否</td><td>关联报警记录（下拉选择带入）</td></tr>
+        <tr><td>relatedStopDesc</td><td>varchar(255)</td><td>否</td><td>关联停机记录（下拉选择带入）</td></tr>
+        <tr><td>repairItem</td><td>varchar(200)</td><td>是</td><td>维修事项（如 <code>更换火花塞</code>、<code>齿轮箱异响维修</code>）</td></tr>
+        <tr><td>faultLevel</td><td>tinyint</td><td>是</td><td>故障级别（1-一级 2-二级 3-三级 4-四级）</td></tr>
+        <tr><td>faultType</td><td>tinyint</td><td>是</td><td>故障类型（1-电控 2-燃料 3-冷却 4-机械 5-保护 6-环境 7-发电 9-其他）</td></tr>
+        <tr><td>repairStartTime / repairEndTime</td><td>datetime</td><td>是</td><td>维修开始时间 / 结束时间</td></tr>
+        <tr><td>repairHours</td><td>decimal(5,1)</td><td>是</td><td>维修工时（根据起止时间自动计算，支持微调）</td></tr>
+        <tr><td>repairProcess</td><td>text</td><td>是</td><td>维修过程描述（≤1000字，支持时间分段）</td></tr>
+        <tr><td>repairResult</td><td>tinyint</td><td>是</td><td>维修结果（1-已修复 2-更换配件修复 3-临时处理待观察 4-无法修复）</td></tr>
+        <tr><td>status</td><td>tinyint</td><td>是</td><td>状态：0-待维修 1-维修中 2-已完成</td></tr>
+        <tr><td>remark</td><td>varchar(500)</td><td>否</td><td>补充说明备注</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.2 更换配件子表 (`repair_order_part`)</h3>
+    <table class="doc-table">
+      <thead><tr><th>字段名</th><th>类型</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>partName</td><td>varchar(128)</td><td>备件名称（如 <code>火花塞</code>、<code>圆锥滚子轴承</code>）</td></tr>
+        <tr><td>partNo</td><td>varchar(64)</td><td>件号/编码（如 <code>GR-HS-002</code>、<code>30212</code>）</td></tr>
+        <tr><td>unit</td><td>varchar(16)</td><td>单位（如 <code>件</code>、<code>套</code>、<code>L</code>、<code>个</code>）</td></tr>
+        <tr><td>quantity</td><td>varchar(32)</td><td>数量（如 <code>1</code>、<code>280</code>）</td></tr>
+        <tr><td>location</td><td>varchar(64)</td><td>安装位置（如 <code>1缸</code>、<code>主轴箱</code>）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.3 作业人员与电子签名子表 (`repair_order_repairer`)</h3>
+    <table class="doc-table">
+      <thead><tr><th>字段名</th><th>类型</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>userName</td><td>varchar(64)</td><td>人员姓名（如 <code>赵维修</code>、<code>刘师傅</code>）</td></tr>
+        <tr><td>workNo</td><td>varchar(32)</td><td>工号（如 <code>WX-001</code>、<code>WX-008</code>）</td></tr>
+        <tr><td>phone</td><td>varchar(32)</td><td>联系电话（如 <code>138****1234</code>）</td></tr>
+        <tr><td>role</td><td>tinyint</td><td>角色：1-主维修人 2-协助人员</td></tr>
+        <tr><td>signImage</td><td>text</td><td>手写签名 SVG/Base64/图片链接</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 5. 页面一：电站内机组列表 -->
+  <section id="sec-view1" class="section">
+    <h2>5. 页面一：电站详情内「维修记录」Tab</h2>
+    <div class="alert-box alert-info">
+      <b>位置：</b><code>src/views/station/detail/modules/StationRepairRecord.vue</code>
+    </div>
+    <table class="doc-table">
+      <thead><tr><th>区域</th><th>控件 / 列</th><th>交互与规则</th></tr></thead>
+      <tbody>
+        <tr><td>顶部筛选</td><td>关键字输入框（支持机组名称/撬装箱）、重置、查询</td><td>实时筛选当前电站内的受控机组列表</td></tr>
+        <tr><td>表格列</td><td>序号、机组名称、所属撬装箱、所属电站、运行状态、维修状态、维修记录（数字）、操作</td><td>
+          1. 运行状态：运行（蓝）/ 正常（绿）/ 故障（红）<br/>
+          2. 维修状态：维修中（橙）/ 待维修（橙）/ 已完成（绿）<br/>
+          3. 维修记录：展示该机组累计维修次数（如 3 次）
+        </td></tr>
+        <tr><td>操作列</td><td>【维修登记】、【查看更多】</td><td>
+          1. <b>维修登记：</b>点击直接打开维修登记整页，<b>自动锁定并带入当前电站与该机组</b>。<br/>
+          2. <b>查看更多：</b>点击进入该机组的历史维修记录时间轴大页。
+        </td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 6. 页面二：维修管理主工单池 -->
+  <section id="sec-view2" class="section">
+    <h2>6. 页面二：运维管理 ➔ 维修管理主工单池</h2>
+    <div class="alert-box alert-info">
+      <b>位置：</b><code>src/views/operation/repairManagement/index.vue</code>
+    </div>
+    <table class="doc-table">
+      <thead><tr><th>模块</th><th>组成部分</th><th>交互逻辑</th></tr></thead>
+      <tbody>
+        <tr><td>状态页签</td><td>全部 (128) | 待维修 (23) | 维修中 (45) | 已完成 (60)</td><td>切换过滤对应状态工单</td></tr>
+        <tr><td>筛选区</td><td>关键词（编号/机组/电站）、所属电站、故障类型、维修结果、维修人员、完工时间、重置、查询</td><td>多条件组合检索</td></tr>
+        <tr><td>工具栏</td><td>已选择 N 项、导出、批量打印、右上角【维修登记】主按钮</td><td>批量处理与新建登记</td></tr>
+        <tr><td>表格列</td><td>复选框、序号、记录编号（BX* 链接）、机组名称、所属电站、故障类型、维修事项、维修结果、维修人员、维修时长、开始时间、结束时间、操作（查看详情）</td><td>
+          点击记录编号或「查看详情」进入【维修记录详情 / 修改页面】
+        </td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 7. 页面三：维修信息登记整页 -->
+  <section id="sec-view3" class="section">
+    <h2>7. 页面三：维修信息登记整页规格</h2>
+    <div class="alert-box alert-warning">
+      <b>核心设计：</b>完整 7 大模块 + 顶部 3 步进度条 + 底部状态提示与操作栏
+    </div>
+
+    <table class="doc-table">
+      <thead><tr><th>序号</th><th>表单区块</th><th>字段与控件明细</th><th>联动与自动化规则</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>顶部步骤指示器</td><td>1. 维修登记 ──► 2. 开始维修 ──► 3. 完工确认</td><td>进度直观呈现</td></tr>
+        <tr><td>2</td><td>机组选择与关联</td><td>所属电站*、机组名称*、云猫编号（只读）、机组运行时长（只读）、报警记录下拉、停机记录下拉</td><td>选择机组后<b>自动带出云猫编号与运行时长</b></td></tr>
+        <tr><td>3</td><td>维修基本信息</td><td>登记编号（WXD* 自动生成）、登记时间、登记人、维修事项*、故障级别*（4级下拉）、故障类型*（8类下拉）、维修开始时间*、维修结束时间*、维修工时</td><td>起止时间选择后<b>自动计算工时</b>，支持手动微调</td></tr>
+        <tr><td>4</td><td>维修过程描述</td><td>维修过程描述 textarea*（支持分阶段记录）</td><td>右下角实时字数计数（≤1000字）</td></tr>
+        <tr><td>5</td><td>维修更换件</td><td>备件名称、件号、单位（下拉/输入）、数量、位置（如1缸）、删除行</td><td>右上角「共 N 项」，底部「＋ 添加更换件」动态增删</td></tr>
+        <tr><td>6</td><td>维修过程图片</td><td>卡片式图片墙，带分类标签（拆解前 / 故障点 / 维修中 / 维修后）</td><td>支持拖拽/点击上传，单张 ≤5MB，最多 12 张</td></tr>
+        <tr><td>7</td><td>维修人员与签字</td><td>姓名、工号、电话、角色（主维修人/协助人员）+ <b>双人手写电子签名板</b></td><td>主维修人与协助人员分别点击签名板手写签名并保存</td></tr>
+        <tr><td>8</td><td>补充信息</td><td>备注说明 textarea</td><td>备件领用、废品回收等补充说明</td></tr>
+        <tr><td>9</td><td>底部操作栏</td><td>左侧提示条 + 【保存（暂存草稿）】、【取消】、【提交维修登记】</td><td>暂存保持维修中，提交完工确认后流转为已完成</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 8. 页面四：维修记录详情与编辑 -->
+  <section id="sec-view4" class="section">
+    <h2>8. 页面四：维修记录详情与修改页面规格</h2>
+    <p>
+      工单完成后或维修中查看的详情全景，支持查看、打印、导出、以及点击【编辑】重新进入登记页修改：
+    </p>
+    <table class="doc-table">
+      <thead><tr><th>板块</th><th>展示内容</th></tr></thead>
+      <tbody>
+        <tr><td>头部信息栏</td><td>工单标题（如 <code>Atomic模块通信故障维修单</code>）、登记单号 <code>WXD20260805001</code>、状态 Tag、电站/机组面包屑、打印工单、导出、<b>【编辑】</b>按钮</td></tr>
+        <tr><td>三步完成指示</td><td>绿色对勾 维修登记 ── 绿色对勾 开始维修 ── 绿色对勾 完工确认</td></tr>
+        <tr><td>结构化卡片</td><td>机组信息与关联记录、维修基本信息、维修过程描述、更换件表格、过程对比照片墙、双人手写签字展示、补充说明</td></tr>
+        <tr><td>工单流转过程记录</td><td>垂直时间轴：维修登记时间 ➔ 开始维修时间 ➔ 信息更新时间 ➔ 完工确认时间（带操作人头像与姓名）</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 9. 页面五：机组历史维修履历页 -->
+  <section id="sec-view5" class="section">
+    <h2>9. 页面五：机组历史维修履历页规格</h2>
+    <table class="doc-table">
+      <thead><tr><th>模块</th><th>展示与功能</th></tr></thead>
+      <tbody>
+        <tr><td>机组英雄卡</td><td>3D 芯片图标、机组名称、正常运行 Tag、编号 FD-001-A、型号规格、额定功率、投运日期、运行时长、<b>累计维修次数大看板 (18)</b></td></tr>
+        <tr><td>四大分类统计卡</td><td>总维修记录 (18次)、电控系统类 (7次)、燃料与燃烧系统类 (5次)、机械与结构类 (4次)</td></tr>
+        <tr><td>双视图切换</td><td>时间轴视图 / 列表视图 切换，支持按类型、人员、时间、结果筛选</td></tr>
+        <tr><td>按年时间轴</td><td>按 2026 年、2025 年等分组，展示故障圆点色标、维修摘要、作业人员、完工日期与「查看详情」联动</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 10. 接口契约与 Mock 规范 -->
+  <section id="sec-api" class="section">
+    <h2>10. 接口契约与 Mock 规范</h2>
+    <pre class="code-block">
+/** 维修管理标准 API 导出定义 */
+export const RepairManagementApi = {
+  // 1. 电站与机组维度列表
+  getStationGensetList: (powerStationId: number | string, keyword?: string) => Promise&lt;GensetVO[]&gt;,
+
+  // 2. 维修工单列表 (支持状态/电站/类型/结果/人员/时间筛选)
+  getOrderPage: (params: OrderPageParams) => Promise&lt;PageResult&lt;RepairOrderVO&gt;&gt;,
+
+  // 3. 工单全景详情
+  getOrderDetail: (id: number | string) => Promise&lt;RepairOrderVO&gt;,
+
+  // 4. 保存草稿与提交完工
+  saveDraft: (data: RepairRegisterDTO) => Promise&lt;boolean&gt;,
+  submitFinish: (data: RepairRegisterDTO) => Promise&lt;boolean&gt;,
+
+  // 5. 机组维修履历与统计
+  getGensetRepairStats: (gensetId: number | string) => Promise&lt;GensetRepairStatsVO&gt;,
+  getGensetRepairTimeline: (params: TimelineParams) => Promise&lt;PageResult&lt;TimelineItemVO&gt;&gt;,
+}
+    </pre>
+  </section>
+
+  <!-- 11. 工程代码目录与组件拆分 -->
+  <section id="sec-arch" class="section">
+    <h2>11. 工程代码目录与组件拆分架构</h2>
+    <pre class="code-block">
+src/
+├── api/operation/
+│   └── repairManagement.ts                 # 维修管理 API 与全量纯 Mock 数据池
+├── views/
+│   ├── station/detail/modules/
+│   │   └── StationRepairRecord.vue         # 【入口一】电站详情内「维修记录」Tab 页组件
+│   └── operation/repairManagement/
+│       ├── index.vue                       # 【入口二】主菜单入口（动态视图路由器）
+│       ├── types.ts                        # 字典常量（故障级别4级、故障类型8类等）与 VO 类型
+│       └── components/
+│           ├── RepairOrderTab.vue          # 主工单池列表（4态页签、组合筛选、操作栏）
+│           ├── RepairRegisterView.vue      # 维修信息登记 / 修改整页（7大模块、3步指示器、手写签字）
+│           ├── RepairDetailView.vue        # 维修记录详情页（全景卡片、编辑入口、工单时间线）
+│           └── GensetRepairRecordView.vue  # 机组维修履历整页（英雄卡、4统计卡、双视图）
+    </pre>
+  </section>
+</main>
+
+<script>
+  // 侧边导航点击高亮平滑滚动
+  document.querySelectorAll('.doc-nav-item').forEach(link => {
+    link.addEventListener('click', function(e) {
+      document.querySelectorAll('.doc-nav-item').forEach(el => el.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

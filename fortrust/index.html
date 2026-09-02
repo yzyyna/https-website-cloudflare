@@ -588,6 +588,122 @@ h1{
   white-space:pre-wrap;
   word-break:break-all;
 }
+/* Document rich preview container (Word / Excel / Markdown) */
+.doc-preview{
+  width:100%;
+  height:100%;
+  overflow:auto;
+  background:#ffffff;
+  padding:28px 32px;
+}
+.doc-preview-word{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",serif;
+  color:#1f2937;
+  font-size:15px;
+  line-height:1.8;
+}
+.doc-preview-word h1,.doc-preview-word h2,.doc-preview-word h3{color:#0f172a;margin:1.2em 0 .5em;}
+.doc-preview-word table,.doc-preview-xlsx table{
+  border-collapse:collapse;
+  margin:12px 0;
+  width:auto;
+}
+.doc-preview-word td,.doc-preview-word th,
+.doc-preview-xlsx td,.doc-preview-xlsx th{
+  border:1px solid #cbd5e1;
+  padding:6px 12px;
+  font-size:13px;
+  min-width:64px;
+  white-space:nowrap;
+}
+.doc-preview-word img{max-width:100%;}
+.doc-preview-xlsx table{max-width:100%;}
+.doc-preview-xlsx td.title-cell{font-weight:700;background:#f1f5f9;}
+/* Excel sheet tabs */
+.xlsx-tab{
+  padding:6px 14px;
+  border:1px solid #e2e8f0;
+  border-radius:6px;
+  background:#ffffff;
+  color:#475569;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:all .15s ease;
+}
+.xlsx-tab:hover{border-color:#93c5fd;color:#2563eb;}
+.xlsx-tab.active{background:#2563eb;border-color:#2563eb;color:#ffffff;}
+.xlsx-pane{position:absolute;top:0;left:0;right:0;bottom:0;overflow:hidden;display:none;}
+.xlsx-pane.active{display:block;}
+/* Markdown preview */
+.doc-preview-md{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  color:#1f2937;
+  font-size:15px;
+  line-height:1.75;
+  max-width:860px;
+  margin:0 auto;
+}
+.doc-preview-md h1,.doc-preview-md h2,.doc-preview-md h3,.doc-preview-md h4{color:#0f172a;margin:1.4em 0 .5em;line-height:1.3;}
+.doc-preview-md h1{font-size:26px;border-bottom:2px solid #e2e8f0;padding-bottom:8px;}
+.doc-preview-md h2{font-size:21px;border-bottom:1px solid #eef2f7;padding-bottom:6px;}
+.doc-preview-md h3{font-size:17px;}
+.doc-preview-md p{margin:.7em 0;}
+.doc-preview-md a{color:#2563eb;}
+.doc-preview-md code{
+  background:#f1f5f9;
+  border:1px solid #e2e8f0;
+  padding:1px 6px;
+  border-radius:4px;
+  font-family:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace;
+  font-size:13px;
+  color:#dc2626;
+}
+.doc-preview-md pre{
+  background:#0f172a;
+  color:#f8fafc;
+  padding:14px 16px;
+  border-radius:8px;
+  overflow:auto;
+  margin:.8em 0;
+}
+.doc-preview-md pre code{background:none;border:none;color:inherit;padding:0;}
+.doc-preview-md blockquote{
+  margin:.8em 0;
+  padding:8px 16px;
+  border-left:4px solid #93c5fd;
+  background:#eff6ff;
+  color:#334155;
+  border-radius:0 6px 6px 0;
+}
+.doc-preview-md ul,.doc-preview-md ol{padding-left:1.6em;margin:.5em 0;}
+.doc-preview-md li{margin:.25em 0;}
+.doc-preview-md table{border-collapse:collapse;margin:.9em 0;}
+.doc-preview-md th,.doc-preview-md td{border:1px solid #cbd5e1;padding:6px 12px;font-size:13px;}
+.doc-preview-md th{background:#f1f5f9;font-weight:700;}
+.doc-preview-md img{max-width:100%;}
+.doc-preview-md hr{border:none;border-top:1px solid #e2e8f0;margin:1.5em 0;}
+/* Preview loading / error states */
+.preview-status{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  height:100%;
+  color:#64748b;
+  font-size:14px;
+}
+.preview-status .spinner{
+  width:28px;
+  height:28px;
+  border:3px solid #e2e8f0;
+  border-top-color:#2563eb;
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* Toast Notification */
 .toast{
@@ -838,7 +954,7 @@ async function openPreview(fileJsonStr) {
   modalDownload.href = f.url;
   modalDownload.setAttribute('download', f.fileName);
 
-  modalBody.innerHTML = '<div style="color:#64748b;font-size:14px;">正在加载预览…</div>';
+  modalBody.innerHTML = '<div class="preview-status"><div class="spinner"></div><div>正在加载预览…</div></div>';
   modalOverlay.classList.add('active');
 
   const cat = f.category;
@@ -850,17 +966,99 @@ async function openPreview(fileJsonStr) {
     modalBody.innerHTML = `<video src="${f.url}" controls autoplay playsinline></video>`;
   } else if (cat === 'audio') {
     modalBody.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;"><audio src="${f.url}" controls autoplay style="width:min(480px,80%);"></audio></div>`;
+  } else if (cat === 'md') {
+    // Markdown：marked.js 渲染为富文本
+    try {
+      const res = await fetch(f.url);
+      const txt = await res.text();
+      await ensureScript('marked', 'https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js');
+      const html = marked.parse(txt, { breaks: true, gfm: true });
+      modalBody.innerHTML = `<div class="doc-preview doc-preview-md">${html}</div>`;
+    } catch(err) {
+      console.error(err);
+      modalBody.innerHTML = previewErrorHtml(f);
+    }
+  } else if (cat === 'docx') {
+    // Word (.docx)：mammoth.js 转换为 HTML
+    try {
+      await ensureScript('mammoth', 'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js');
+      const res = await fetch(f.url);
+      const arrayBuffer = await res.arrayBuffer();
+      const result = await window.mammoth.convertToHtml({ arrayBuffer });
+      modalBody.innerHTML = `<div class="doc-preview doc-preview-word">${result.value || '<p style="color:#94a3b8;">此 Word 文档为空</p>'}</div>`;
+    } catch(err) {
+      console.error(err);
+      modalBody.innerHTML = previewErrorHtml(f);
+    }
+  } else if (cat === 'xlsx') {
+    // Excel (.xlsx/.xls)：SheetJS 解析为 HTML 表格（多 Sheet 切换）
+    try {
+      await ensureScript('XLSX', 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+      const res = await fetch(f.url);
+      const arrayBuffer = await res.arrayBuffer();
+      const wb = XLSX.read(arrayBuffer, { type: 'array' });
+      modalBody.innerHTML = renderXlsxSheets(wb);
+    } catch(err) {
+      console.error(err);
+      modalBody.innerHTML = previewErrorHtml(f);
+    }
   } else if (cat === 'text') {
     try {
       const res = await fetch(f.url);
       const txt = await res.text();
       modalBody.innerHTML = `<pre>${esc(txt)}</pre>`;
     } catch(err) {
-      modalBody.innerHTML = `<div style="color:#ef4444;font-size:14px;">加载文本内容失败，请在新标签页打开。</div>`;
+      modalBody.innerHTML = previewErrorHtml(f);
     }
   } else {
     modalBody.innerHTML = `<iframe src="${f.url}"></iframe>`;
   }
+}
+
+// 按需加载外部解析库（只加载一次）
+const loadedScripts = {};
+function ensureScript(globalName, src) {
+  if (window[globalName]) return Promise.resolve();
+  if (loadedScripts[src]) return loadedScripts[src];
+  loadedScripts[src] = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = () => window[globalName] ? resolve() : reject(new Error(globalName + ' 加载失败'));
+    s.onerror = () => reject(new Error('解析库 CDN 加载失败: ' + src));
+    document.head.appendChild(s);
+  });
+  return loadedScripts[src];
+}
+
+function previewErrorHtml(f) {
+  return `<div class="preview-status"><div style="font-size:32px;">😵</div><div>该文件类型暂不支持在线预览</div><a class="btn-action btn-open" href="${f.url}" target="_blank" rel="noopener noreferrer">尝试新标签打开 ↗</a></div>`;
+}
+
+// Excel 多 Sheet 渲染与切换
+function renderXlsxSheets(wb) {
+  const sheets = wb.SheetNames.map((name, i) => {
+    const ws = wb.Sheets[name];
+    const html = XLSX.utils.sheet_to_html(ws, { header: '', footer: '' });
+    return { name, html, i };
+  });
+  const tabs = sheets.map((s, i) =>
+    `<button class="xlsx-tab ${i === 0 ? 'active' : ''}" data-i="${i}" onclick="switchXlsxSheet(this)">${esc(s.name)}</button>`
+  ).join('');
+  const panes = sheets.map((s, i) =>
+    `<div class="xlsx-pane ${i === 0 ? 'active' : ''}" data-i="${i}"><div class="doc-preview doc-preview-xlsx">${s.html}</div></div>`
+  ).join('');
+  return `
+    <div style="display:flex;flex-direction:column;width:100%;height:100%;">
+      ${sheets.length > 1 ? `<div style="display:flex;gap:6px;padding:10px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0;overflow-x:auto;flex-shrink:0;">${tabs}</div>` : ''}
+      <div style="flex:1;overflow:hidden;position:relative;">${panes}</div>
+    </div>`;
+}
+
+function switchXlsxSheet(btn) {
+  const i = btn.dataset.i;
+  const container = btn.parentElement.nextElementSibling;
+  container.querySelectorAll('.xlsx-pane').forEach(p => p.classList.toggle('active', p.dataset.i === i));
+  btn.parentElement.querySelectorAll('.xlsx-tab').forEach(t => t.classList.toggle('active', t === btn));
 }
 
 function closePreview() {
