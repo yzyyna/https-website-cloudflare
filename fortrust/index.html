@@ -40,110 +40,6 @@ body{
   margin:0 auto;
 }
 
-/* Auth Lockscreen Overlay */
-.auth-overlay{
-  position:fixed;
-  top:0;
-  left:0;
-  right:0;
-  bottom:0;
-  background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-  padding:20px;
-  backdrop-filter:blur(10px);
-}
-.auth-box{
-  background:#ffffff;
-  border-radius:18px;
-  width:min(440px, 100%);
-  padding:36px 32px;
-  box-shadow:0 25px 50px -12px rgba(0, 0, 0, 0.45);
-  text-align:center;
-  animation:authFadeIn .25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes authFadeIn {
-  0% { transform: scale(0.92); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-.auth-icon{
-  width:56px;
-  height:56px;
-  border-radius:16px;
-  background:var(--primary-light);
-  color:var(--primary);
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  font-size:26px;
-  margin-bottom:18px;
-}
-.auth-title{
-  font-size:22px;
-  font-weight:800;
-  color:#0f172a;
-  margin-bottom:8px;
-  letter-spacing:-0.02em;
-}
-.auth-desc{
-  font-size:13px;
-  color:var(--text-muted);
-  margin-bottom:24px;
-  line-height:1.6;
-}
-.auth-input-group{
-  position:relative;
-  margin-bottom:14px;
-}
-.auth-input{
-  width:100%;
-  padding:13px 16px;
-  border:1px solid #cbd5e1;
-  border-radius:10px;
-  font-size:15px;
-  outline:none;
-  transition:all .15s ease;
-  background:#f8fafc;
-}
-.auth-input:focus{
-  background:#ffffff;
-  border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(37, 99, 235, 0.15);
-}
-.auth-error{
-  color:var(--danger);
-  font-size:12px;
-  font-weight:600;
-  margin-bottom:14px;
-  min-height:18px;
-  display:none;
-}
-.auth-btn{
-  width:100%;
-  padding:13px;
-  background:var(--primary);
-  color:#ffffff;
-  border:none;
-  border-radius:10px;
-  font-size:14px;
-  font-weight:700;
-  cursor:pointer;
-  transition:background .15s ease, transform .1s ease;
-}
-.auth-btn:hover{
-  background:var(--primary-hover);
-}
-.auth-btn:active{
-  transform:scale(0.99);
-}
-.auth-hint{
-  font-size:12px;
-  color:#94a3b8;
-  margin-top:16px;
-}
-
 /* App Header & Layout */
 .hero{
   padding:44px 0 20px;
@@ -750,27 +646,13 @@ footer{
 </head>
 <body>
 
-<!-- Password Authentication Lockscreen -->
-<div id="authOverlay" class="auth-overlay">
-  <div class="auth-box">
-    <h2 class="auth-title" style="margin-bottom: 22px;">🔐 请输入访问密钥</h2>
-    
-    <div class="auth-input-group">
-      <input type="password" id="authPassword" class="auth-input" placeholder="请输入访问密钥..." autocomplete="current-password">
-    </div>
-    <div id="authError" class="auth-error">密钥错误，请重新输入</div>
-    
-    <button id="authBtn" class="auth-btn" onclick="submitAuth()">确认进入</button>
-  </div>
-</div>
-
 <!-- Main App Content -->
-<div id="appRoot" style="display:none; flex-direction:column; min-height:100vh;">
+<div id="appRoot" style="display:flex; flex-direction:column; min-height:100vh;">
   <header class="hero">
     <div class="container">
       <div class="header-top">
         <div class="brand"><span class="dot"></span>FORTRUST</div>
-        <button class="logout-btn" onclick="logout()" title="清除登录状态">🔒 锁定退出</button>
+        <a class="logout-btn" href="/_auth?logout=1" title="清除登录状态" style="text-decoration:none;">🔒 锁定退出</a>
       </div>
       <h1>静态资源中心</h1>
       <p class="sub">产品原型、H5 页面、设计稿、需求文档与附件统一入口 · 由 Cloudflare Pages 自动构建发布</p>
@@ -821,82 +703,8 @@ footer{
 
 <script>
 // ==========================================
-// 密码验证与 7 天有效期配置
-// ==========================================
-const AUTH_CONFIG = {
-  // 访问密码（支持自定义修改）
-  PASSWORDS: ['fortrust', 'fortrust2026', 'fortrust888'],
-  STORAGE_KEY: 'fortrust_auth_session_v1',
-  EXPIRE_MS: 7 * 24 * 60 * 60 * 1000 // 7 天
-};
-
-const authOverlay = document.getElementById('authOverlay');
-const authPasswordInput = document.getElementById('authPassword');
-const authError = document.getElementById('authError');
-const authBtn = document.getElementById('authBtn');
-const appRoot = document.getElementById('appRoot');
-
-function checkAuthStatus() {
-  try {
-    const raw = localStorage.getItem(AUTH_CONFIG.STORAGE_KEY);
-    if (!raw) return false;
-    const session = JSON.parse(raw);
-    if (session && session.authed && session.expiresAt && session.expiresAt > Date.now()) {
-      return true;
-    }
-  } catch(e) {}
-  localStorage.removeItem(AUTH_CONFIG.STORAGE_KEY);
-  return false;
-}
-
-function submitAuth() {
-  const pwd = authPasswordInput.value.trim();
-  if (!pwd) {
-    showAuthError('请输入访问密钥');
-    return;
-  }
-
-  if (AUTH_CONFIG.PASSWORDS.includes(pwd)) {
-    // 验证成功，写入 7 天有效期
-    const sessionData = {
-      authed: true,
-      expiresAt: Date.now() + AUTH_CONFIG.EXPIRE_MS,
-      loginAt: new Date().toISOString()
-    };
-    localStorage.setItem(AUTH_CONFIG.STORAGE_KEY, JSON.stringify(sessionData));
-    unlockApp();
-  } else {
-    showAuthError('密钥错误，请重新输入');
-    authPasswordInput.focus();
-    authPasswordInput.select();
-  }
-}
-
-function showAuthError(msg) {
-  authError.textContent = msg;
-  authError.style.display = 'block';
-}
-
-function unlockApp() {
-  authOverlay.style.display = 'none';
-  appRoot.style.display = 'flex';
-  load(); // 加载目录数据
-}
-
-function logout() {
-  localStorage.removeItem(AUTH_CONFIG.STORAGE_KEY);
-  window.location.reload();
-}
-
-authPasswordInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    submitAuth();
-  }
-  authError.style.display = 'none';
-});
-
-// ==========================================
-// 页面主逻辑与渲染
+// 说明：访问鉴权已由 Cloudflare Pages Workers（_worker.js）在服务端强制执行，
+// 直链访问同样受保护；此页面仅负责目录渲染与预览交互。
 // ==========================================
 const treeEl = document.getElementById('tree');
 const searchEl = document.getElementById('search');
@@ -915,6 +723,10 @@ const modalDownload = document.getElementById('modalDownload');
 const modalBody = document.getElementById('modalBody');
 
 let data = [];
+let loaded = false;
+
+// 渲染期间的文件注册表：按钮通过 data-fid 引用，避免内联 onclick 注入问题
+let FILE_MAP = {};
 
 function showToast(msg) {
   toastEl.textContent = msg;
@@ -922,21 +734,23 @@ function showToast(msg) {
   setTimeout(() => toastEl.classList.remove('show'), 2000);
 }
 
-function copyUrl(e, url) {
-  e.preventDefault();
-  e.stopPropagation();
+async function copyUrlFrom(url) {
   const readablePath = decodeURIComponent(url);
   const fullUrl = window.location.origin + readablePath;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(fullUrl).then(() => showToast('已复制直观链接'));
-  } else {
-    const input = document.createElement('input');
-    input.value = fullUrl;
-    document.body.appendChild(input);
-    input.select();
-    document.execCommand('copy');
-    document.body.removeChild(input);
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(fullUrl);
+    } else {
+      const input = document.createElement('input');
+      input.value = fullUrl;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+    }
     showToast('已复制直观链接');
+  } catch (e) {
+    showToast('复制失败，请手动复制');
   }
 }
 
@@ -944,8 +758,7 @@ function esc(s){
   return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-async function openPreview(fileJsonStr) {
-  const f = typeof fileJsonStr === 'string' ? JSON.parse(decodeURIComponent(fileJsonStr)) : fileJsonStr;
+async function openPreview(f) {
   const extName = (f.ext || '').replace(/^\./, '').toUpperCase() || 'FILE';
   modalIcon.textContent = f.icon || '📄';
   modalTitle.textContent = f.title || f.fileName;
@@ -1011,7 +824,7 @@ async function openPreview(fileJsonStr) {
       modalBody.innerHTML = previewErrorHtml(f);
     }
   } else {
-    modalBody.innerHTML = `<iframe src="${f.url}"></iframe>`;
+    modalBody.innerHTML = previewErrorHtml(f);
   }
 }
 
@@ -1110,26 +923,27 @@ function getStats(nodes){
   return { folders, files };
 }
 
-function renderActionButton(f) {
-  const fJson = encodeURIComponent(JSON.stringify(f));
+function renderActionButton(f, fid) {
   if (f.actionType === 'new_tab') {
-    return `<a class="btn-action btn-open" href="${f.url}" target="_blank" rel="noopener noreferrer">新标签打开 ↗</a>`;
+    return `<a class="btn-action btn-open" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">新标签打开 ↗</a>`;
   }
   if (f.actionType === 'preview') {
-    return `<button class="btn-action btn-preview" onclick="openPreview('${fJson}')">预览</button>`;
+    return `<button class="btn-action btn-preview" data-action="preview" data-fid="${fid}">预览</button>`;
   }
-  return `<a class="btn-action btn-download" href="${f.url}" download="${esc(f.fileName)}">启动下载 ⤓</a>`;
+  return `<a class="btn-action btn-download" href="${esc(f.url)}" download="${esc(f.fileName)}">启动下载 ⤓</a>`;
 }
 
 function renderNode(node){
   const files = node.files || [];
   const children = node.children || [];
-  
+
   let filesHtml = '';
   if(files.length > 0){
     filesHtml = `<div class="file-list">
       ${files.map(f => {
         const extText = (f.ext || '').replace(/^\./, '').toUpperCase() || 'FILE';
+        const fid = 'f' + Object.keys(FILE_MAP).length;
+        FILE_MAP[fid] = f;
         return `
         <div class="file-item">
           <div class="file-info">
@@ -1141,8 +955,8 @@ function renderNode(node){
             </div>
           </div>
           <div class="action-group">
-            <button class="btn-copy" onclick="copyUrl(event, '${f.url}')">复制链接</button>
-            ${renderActionButton(f)}
+            <button class="btn-copy" data-action="copy" data-url="${esc(f.url)}">复制链接</button>
+            ${renderActionButton(f, fid)}
           </div>
         </div>
       `;}).join('')}
@@ -1173,6 +987,7 @@ function renderNode(node){
 }
 
 function render(nodes){
+  FILE_MAP = {};
   if(!nodes || !nodes.length){
     treeEl.innerHTML = '<div class="empty">没有找到匹配的项目或文件</div>';
     countEl.textContent = '0 个资源';
@@ -1194,6 +1009,7 @@ async function load(){
       buildTimeEl.textContent = `· 构建于 ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
     }
     render(data);
+    loaded = true;
   }catch(e){
     treeEl.innerHTML = '<div class="empty">目录读取失败，请确认 Cloudflare 构建已生成 directory.json。</div>';
     countEl.textContent = '读取失败';
@@ -1202,6 +1018,7 @@ async function load(){
 }
 
 searchEl.addEventListener('input', () => {
+  if (!loaded) return; // 数据未加载完成前忽略输入，避免「没有找到匹配」闪现
   const q = searchEl.value.trim().toLowerCase();
   clearBtn.style.display = q ? 'block' : 'none';
   render(q ? filterTree(data, q) : data);
@@ -1212,6 +1029,19 @@ clearBtn.addEventListener('click', () => {
   clearBtn.style.display = 'none';
   render(data);
   searchEl.focus();
+});
+
+// 事件委托：复制链接 / 弹窗预览（避免内联 onclick 与文件名引号冲突）
+treeEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  if (btn.dataset.action === 'copy') {
+    e.preventDefault();
+    copyUrlFrom(btn.dataset.url);
+  } else if (btn.dataset.action === 'preview') {
+    const f = FILE_MAP[btn.dataset.fid];
+    if (f) openPreview(f);
+  }
 });
 
 document.addEventListener('keydown', (e) => {
@@ -1230,14 +1060,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// 初始化启动检查
-if (checkAuthStatus()) {
-  unlockApp();
-} else {
-  authOverlay.style.display = 'flex';
-  appRoot.style.display = 'none';
-  setTimeout(() => authPasswordInput.focus(), 100);
-}
+load();
 </script>
 </body>
 </html>

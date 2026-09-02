@@ -4,7 +4,10 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..', 'fortrust');
 const OUTPUT = path.join(ROOT, 'directory.json');
 const IGNORE_DIRS = new Set(['.git', '.github', 'node_modules', '.DS_Store']);
-const IGNORE_FILES = new Set(['index.html', 'directory.json', '.DS_Store', 'README.md', 'Thumbs.db', 'package.json']);
+// 根目录自身的导航首页与生成产物不进入索引
+const ROOT_IGNORE_FILES = new Set(['index.html', 'directory.json', '.DS_Store', 'README.md', 'Thumbs.db', 'package.json']);
+// 子目录允许 index.html 进入文件列表（作为「首页」条目）
+const SUB_IGNORE_FILES = new Set(['.DS_Store', 'README.md', 'Thumbs.db', 'package.json', 'directory.json']);
 
 const ALLOWED_EXTS = new Set([
   // 网页（新标签页打开）
@@ -24,39 +27,39 @@ function getFileType(ext) {
   ext = (ext || '').toLowerCase();
   const label = ext.replace(/^\./, '').toUpperCase() || 'FILE';
   if (['.html', '.htm'].includes(ext)) {
-    return { category: 'html', label, icon: '📄', isHtml: true, actionType: 'new_tab' };
+    return { category: 'html', icon: '📄', actionType: 'new_tab' };
   }
   if (ext === '.pdf') {
-    return { category: 'pdf', label, icon: '📕', isHtml: false, actionType: 'preview' };
+    return { category: 'pdf', icon: '📕', actionType: 'preview' };
   }
   if (['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'].includes(ext)) {
-    return { category: 'image', label, icon: '🖼️', isHtml: false, actionType: 'preview' };
+    return { category: 'image', icon: '🖼️', actionType: 'preview' };
   }
   if (['.mp4', '.webm'].includes(ext)) {
-    return { category: 'video', label, icon: '🎬', isHtml: false, actionType: 'preview' };
+    return { category: 'video', icon: '🎬', actionType: 'preview' };
   }
   if (ext === '.mp3') {
-    return { category: 'audio', label, icon: '🎵', isHtml: false, actionType: 'preview' };
+    return { category: 'audio', icon: '🎵', actionType: 'preview' };
   }
   if (['.md', '.markdown'].includes(ext)) {
-    return { category: 'md', label, icon: '📃', isHtml: false, actionType: 'preview' };
+    return { category: 'md', icon: '📃', actionType: 'preview' };
   }
-  if (['.txt'].includes(ext)) {
-    return { category: 'text', label, icon: '📃', isHtml: false, actionType: 'preview' };
+  if (ext === '.txt') {
+    return { category: 'text', icon: '📃', actionType: 'preview' };
   }
-  if (['.docx'].includes(ext)) {
-    return { category: 'docx', label, icon: '📝', isHtml: false, actionType: 'preview' };
+  if (ext === '.docx') {
+    return { category: 'docx', icon: '📝', actionType: 'preview' };
   }
   if (['.xlsx', '.xls'].includes(ext)) {
-    return { category: 'xlsx', label, icon: '📊', isHtml: false, actionType: 'preview' };
+    return { category: 'xlsx', icon: '📊', actionType: 'preview' };
   }
   if (['.pptx', '.ppt'].includes(ext)) {
-    return { category: 'ppt', label, icon: '📑', isHtml: false, actionType: 'download' };
+    return { category: 'ppt', icon: '📑', actionType: 'download' };
   }
   if (['.zip', '.rar', '.7z', '.tar', '.gz'].includes(ext)) {
-    return { category: 'archive', label, icon: '📦', isHtml: false, actionType: 'download' };
+    return { category: 'archive', icon: '📦', actionType: 'download' };
   }
-  return { category: 'file', label, icon: '📎', isHtml: false, actionType: 'download' };
+  return { category: 'file', icon: '📎', actionType: 'download' };
 }
 
 function encodePath(parts, fileName = '') {
@@ -74,6 +77,22 @@ function formatSize(bytes) {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
+function buildFileEntry(fileName, ext, stat, url, isIndex) {
+  const typeInfo = getFileType(ext);
+  const title = isIndex ? '首页 (index.html)' : fileName.replace(new RegExp(`\\${ext}$`, 'i'), '');
+  return {
+    fileName,
+    title,
+    ext: ext.toLowerCase(),
+    category: typeInfo.category,
+    icon: typeInfo.icon,
+    actionType: typeInfo.actionType,
+    url,
+    size: formatSize(stat.size),
+    isIndex
+  };
+}
+
 function scan(dir, relativeParts = []) {
   if (!fs.existsSync(dir)) return [];
 
@@ -83,33 +102,18 @@ function scan(dir, relativeParts = []) {
 
   const nodes = [];
 
-  // 如果是在 fortrust/ 根目录，检查是否有直接放置的独立文件
+  // fortrust/ 根目录下直接放置的独立文件，归入「独立文件」分组
   if (relativeParts.length === 0) {
     const directFiles = entries
       .filter(e => {
-        if (!e.isFile() || IGNORE_FILES.has(e.name)) return false;
+        if (!e.isFile() || ROOT_IGNORE_FILES.has(e.name)) return false;
         const ext = path.extname(e.name).toLowerCase();
         return ALLOWED_EXTS.has(ext);
       })
       .map(e => {
-        const filePath = path.join(dir, e.name);
-        const stat = fs.statSync(filePath);
         const ext = path.extname(e.name);
-        const typeInfo = getFileType(ext);
-        return {
-          fileName: e.name,
-          title: e.name.replace(new RegExp(`\\${ext}$`, 'i'), ''),
-          ext: ext.toLowerCase(),
-          category: typeInfo.category,
-          typeLabel: typeInfo.label,
-          icon: typeInfo.icon,
-          isHtml: typeInfo.isHtml,
-          actionType: typeInfo.actionType,
-          url: encodePath([], e.name),
-          size: formatSize(stat.size),
-          mtime: stat.mtime.toISOString().split('T')[0],
-          isIndex: false
-        };
+        const stat = fs.statSync(path.join(dir, e.name));
+        return buildFileEntry(e.name, ext, stat, encodePath([], e.name), false);
       });
 
     if (directFiles.length > 0) {
@@ -134,36 +138,26 @@ function scan(dir, relativeParts = []) {
       .filter(e => !IGNORE_DIRS.has(e.name))
       .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN', { numeric: true }));
 
+    // hasIndex 必须在文件过滤之前判断，否则永远为 false
+    const hasIndex = subEntries.some(e => e.isFile() && e.name.toLowerCase() === 'index.html');
+
     const validFiles = subEntries
       .filter(e => {
-        if (!e.isFile() || IGNORE_FILES.has(e.name)) return false;
+        if (!e.isFile() || SUB_IGNORE_FILES.has(e.name)) return false;
         const ext = path.extname(e.name).toLowerCase();
         return ALLOWED_EXTS.has(ext);
       })
       .map(e => {
-        const filePath = path.join(abs, e.name);
-        const stat = fs.statSync(filePath);
         const ext = path.extname(e.name);
-        const typeInfo = getFileType(ext);
+        const stat = fs.statSync(path.join(abs, e.name));
         const isIndex = e.name.toLowerCase() === 'index.html';
-        const title = isIndex ? '首页 (index.html)' : e.name.replace(new RegExp(`\\${ext}$`, 'i'), '');
-        return {
-          fileName: e.name,
-          title,
-          ext: ext.toLowerCase(),
-          category: typeInfo.category,
-          typeLabel: typeInfo.label,
-          icon: typeInfo.icon,
-          isHtml: typeInfo.isHtml,
-          actionType: typeInfo.actionType,
-          url: encodePath(parts, e.name),
-          size: formatSize(stat.size),
-          mtime: stat.mtime.toISOString().split('T')[0],
-          isIndex
-        };
-      });
+        // index.html 条目直接指向目录本身（目录默认页）
+        const url = isIndex ? encodePath(parts) : encodePath(parts, e.name);
+        return buildFileEntry(e.name, ext, stat, url, isIndex);
+      })
+      // 首页条目排在最前，其余按名称自然排序
+      .sort((a, b) => (b.isIndex - a.isIndex) || a.title.localeCompare(b.title, 'zh-CN', { numeric: true }));
 
-    const hasIndex = validFiles.some(f => f.isIndex);
     const children = scan(abs, parts);
 
     const node = {
