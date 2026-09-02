@@ -824,6 +824,7 @@ const modalTag = document.getElementById('modalTag');
 const modalNewTab = document.getElementById('modalNewTab');
 const modalDownload = document.getElementById('modalDownload');
 const modalBody = document.getElementById('modalBody');
+const modalFullscreenBtn = document.getElementById('modalFullscreen');
 
 let data = [];
 let loaded = false;
@@ -882,6 +883,7 @@ async function openPreview(f) {
   modalNewTab.href = f.url;
   modalDownload.href = f.url;
   modalDownload.setAttribute('download', f.fileName);
+  exitFullscreen(); // 每次新开预览从窗口模式开始，按钮图标复位
 
   modalBody.innerHTML = '<div class="preview-status"><div class="spinner"></div><div>正在加载预览…</div></div>';
   modalOverlay.classList.add('active');
@@ -999,14 +1001,22 @@ function closePreview() {
 /* 弹窗全屏切换 */
 function toggleFullscreen() {
   modalOverlay.classList.toggle('fullscreen');
+  updateFullscreenBtn();
 }
 
 function exitFullscreen() {
   modalOverlay.classList.remove('fullscreen');
+  updateFullscreenBtn();
 }
 
 function isFullscreen() {
   return modalOverlay.classList.contains('fullscreen');
+}
+
+function updateFullscreenBtn() {
+  const fs = isFullscreen();
+  modalFullscreenBtn.textContent = fs ? '⧉' : '⛶';
+  modalFullscreenBtn.title = fs ? '还原窗口 (F)' : '全屏预览 (F)';
 }
 
 function closePreviewOnBackdrop(e) {
@@ -1146,9 +1156,19 @@ function toggleCard(headerEl) {
   updateToggleAllLabel();
 }
 
+// 递归收集全部目录路径（含嵌套子目录）
+function collectAllPaths(nodes, acc = []) {
+  for (const n of nodes) {
+    acc.push(n.path);
+    collectAllPaths(n.children || [], acc);
+  }
+  return acc;
+}
+
 function updateToggleAllLabel() {
   if (!loaded || !data.length) return;
-  const allCollapsed = data.every(n => collapsedSet.has(n.path));
+  const paths = collectAllPaths(data);
+  const allCollapsed = paths.length > 0 && paths.every(p => collapsedSet.has(p));
   toggleAllBtn.textContent = allCollapsed ? '全部展开' : '全部收起';
 }
 
@@ -1200,16 +1220,17 @@ treeEl.addEventListener('click', (e) => {
   }
 });
 
-// 全部收起 / 展开
+// 全部收起 / 展开（递归所有层级，含嵌套子目录）
 toggleAllBtn.addEventListener('click', () => {
-  const anyExpanded = data.some(n => !collapsedSet.has(n.path));
-  document.querySelectorAll('#tree > .card').forEach(card => {
-    card.classList.toggle('collapsed', anyExpanded);
+  const paths = collectAllPaths(data);
+  const allCollapsed = paths.length > 0 && paths.every(p => collapsedSet.has(p));
+  document.querySelectorAll('#tree .card').forEach(card => {
+    card.classList.toggle('collapsed', !allCollapsed);
   });
-  if (anyExpanded) {
-    data.forEach(n => collapsedSet.add(n.path));
-  } else {
+  if (allCollapsed) {
     collapsedSet.clear();
+  } else {
+    paths.forEach(p => collapsedSet.add(p));
   }
   persistCollapsed();
   updateToggleAllLabel();
