@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f8fafc">
 <title>Fortrust 静态资源中心</title>
 <meta name="description" content="Fortrust 产品原型、H5 页面、设计稿、需求文档与附件统一入口">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><circle cx='12' cy='12' r='10'/></svg>">
@@ -153,6 +154,53 @@ h1{
   font-weight:500;
   white-space:nowrap;
 }
+.btn-tool{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:0 16px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+  color:var(--text-muted);
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:all .15s ease;
+}
+.btn-tool:hover{
+  border-color:var(--primary);
+  color:var(--primary);
+}
+#backTop{
+  position:fixed;
+  right:24px;
+  bottom:28px;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:1px solid var(--border);
+  background:#fff;
+  color:#475569;
+  font-size:16px;
+  cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,.1);
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(12px);
+  transition:all .2s ease;
+  z-index:900;
+}
+#backTop.show{
+  opacity:1;
+  pointer-events:auto;
+  transform:translateY(0);
+}
+#backTop:hover{
+  border-color:var(--primary);
+  color:var(--primary);
+}
 .main-content{
   flex:1;
   padding-bottom:60px;
@@ -181,6 +229,24 @@ h1{
   background:#f8fafc;
   border-bottom:1px solid #f1f5f9;
   gap:12px;
+  cursor:pointer;
+  user-select:none;
+}
+.card.collapsed .folder-header{
+  border-bottom-color:transparent;
+}
+.chevron{
+  font-size:11px;
+  color:#94a3b8;
+  transition:transform .18s ease;
+  flex-shrink:0;
+}
+.card.collapsed .chevron{
+  transform:rotate(-90deg);
+}
+.card.collapsed .file-list,
+.card.collapsed .children-section{
+  display:none;
 }
 .folder-title-area{
   display:flex;
@@ -373,6 +439,18 @@ h1{
   box-shadow:0 25px 50px -12px rgba(0, 0, 0, 0.35);
   overflow:hidden;
   animation:modalScale .2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:width .2s ease, height .2s ease, border-radius .2s ease;
+}
+/* 弹窗全屏模式 */
+.modal-overlay.fullscreen{
+  padding:0;
+}
+.modal-overlay.fullscreen .modal-box{
+  width:100vw;
+  height:100vh;
+  max-width:none;
+  max-height:none;
+  border-radius:0;
 }
 @keyframes modalScale {
   0% { transform: scale(0.95); opacity: 0; }
@@ -441,6 +519,24 @@ h1{
   transition:background .15s;
 }
 .modal-close:hover{
+  background:#e2e8f0;
+  color:#0f172a;
+}
+.modal-fullscreen{
+  width:32px;
+  height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:6px;
+  border:none;
+  background:none;
+  color:#64748b;
+  font-size:15px;
+  cursor:pointer;
+  transition:background .15s;
+}
+.modal-fullscreen:hover{
   background:#e2e8f0;
   color:#0f172a;
 }
@@ -636,11 +732,13 @@ footer{
   h1{font-size:26px}
   .toolbar{flex-direction:column}
   .count{height:38px;justify-content:center}
+  .btn-tool{height:38px;justify-content:center}
   .folder-header{padding:12px 14px}
   .file-item{padding:10px 14px;flex-wrap:wrap}
   .action-group{width:100%;justify-content:flex-end;margin-top:6px}
   .file-meta-group{display:none}
   .modal-box{width:98vw;height:92vh}
+  #backTop{right:14px;bottom:18px;width:38px;height:38px}
 }
 </style>
 </head>
@@ -661,6 +759,7 @@ footer{
           <input id="search" class="search" placeholder="搜索目录名称或页面文件… (快捷键 /)" autocomplete="off">
           <button id="searchClear" class="search-clear" title="清空搜索">✕</button>
         </div>
+        <button id="toggleAll" class="btn-tool" title="收起或展开全部目录">全部收起</button>
         <div id="count" class="count">加载中…</div>
       </div>
     </div>
@@ -684,6 +783,7 @@ footer{
         <div class="modal-actions">
           <a id="modalNewTab" class="modal-btn" href="#" target="_blank" rel="noopener noreferrer">新标签打开 ↗</a>
           <a id="modalDownload" class="modal-btn" href="#" download>下载 ⤓</a>
+          <button id="modalFullscreen" class="modal-fullscreen" onclick="toggleFullscreen()" title="全屏预览 (F)">⛶</button>
           <button class="modal-close" onclick="closePreview()" title="关闭 (Esc)">✕</button>
         </div>
       </div>
@@ -700,6 +800,7 @@ footer{
 </div>
 
 <div id="toast" class="toast">已复制直观链接</div>
+<button id="backTop" title="返回顶部">↑</button>
 
 <script>
 // ==========================================
@@ -712,6 +813,8 @@ const clearBtn = document.getElementById('searchClear');
 const countEl = document.getElementById('count');
 const toastEl = document.getElementById('toast');
 const buildTimeEl = document.getElementById('buildTimeText');
+const toggleAllBtn = document.getElementById('toggleAll');
+const backTopBtn = document.getElementById('backTop');
 
 // Modal Elements
 const modalOverlay = document.getElementById('previewModal');
@@ -724,6 +827,19 @@ const modalBody = document.getElementById('modalBody');
 
 let data = [];
 let loaded = false;
+
+// 折叠状态集合（按目录路径记录，持久化到 localStorage，刷新后保留）
+const COLLAPSE_KEY = 'fortrust_collapsed_v1';
+let collapsedSet = new Set();
+try {
+  collapsedSet = new Set(JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '[]'));
+} catch(e) {}
+
+function persistCollapsed() {
+  try {
+    localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...collapsedSet]));
+  } catch(e) {}
+}
 
 // 渲染期间的文件注册表：按钮通过 data-fid 引用，避免内联 onclick 注入问题
 let FILE_MAP = {};
@@ -876,7 +992,21 @@ function switchXlsxSheet(btn) {
 
 function closePreview() {
   modalOverlay.classList.remove('active');
+  exitFullscreen();
   modalBody.innerHTML = '';
+}
+
+/* 弹窗全屏切换 */
+function toggleFullscreen() {
+  modalOverlay.classList.toggle('fullscreen');
+}
+
+function exitFullscreen() {
+  modalOverlay.classList.remove('fullscreen');
+}
+
+function isFullscreen() {
+  return modalOverlay.classList.contains('fullscreen');
 }
 
 function closePreviewOnBackdrop(e) {
@@ -973,9 +1103,11 @@ function renderNode(node){
     </div>`;
   }
 
-  return `<div class="card">
-    <div class="folder-header">
+  const isCollapsed = collapsedSet.has(node.path);
+  return `<div class="card ${isCollapsed ? 'collapsed' : ''}">
+    <div class="folder-header" data-action="toggle" data-path="${esc(node.path)}" title="点击展开 / 收起">
       <div class="folder-title-area">
+        <span class="chevron">▼</span>
         <span class="folder-icon">📁</span>
         <span class="folder-name">${esc(node.name)}</span>
       </div>
@@ -996,6 +1128,28 @@ function render(nodes){
   const stats = getStats(nodes);
   treeEl.innerHTML = nodes.map(renderNode).join('');
   countEl.textContent = `${stats.folders} 个项目 · ${stats.files} 个文件`;
+  updateToggleAllLabel();
+}
+
+/* 目录折叠 / 展开 */
+function toggleCard(headerEl) {
+  const card = headerEl.closest('.card');
+  const path = headerEl.dataset.path;
+  const nowCollapsed = !card.classList.contains('collapsed');
+  card.classList.toggle('collapsed', nowCollapsed);
+  if (nowCollapsed) {
+    collapsedSet.add(path);
+  } else {
+    collapsedSet.delete(path);
+  }
+  persistCollapsed();
+  updateToggleAllLabel();
+}
+
+function updateToggleAllLabel() {
+  if (!loaded || !data.length) return;
+  const allCollapsed = data.every(n => collapsedSet.has(n.path));
+  toggleAllBtn.textContent = allCollapsed ? '全部展开' : '全部收起';
 }
 
 async function load(){
@@ -1031,11 +1185,13 @@ clearBtn.addEventListener('click', () => {
   searchEl.focus();
 });
 
-// 事件委托：复制链接 / 弹窗预览（避免内联 onclick 与文件名引号冲突）
+// 事件委托：折叠目录 / 复制链接 / 弹窗预览（避免内联 onclick 与文件名引号冲突）
 treeEl.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
-  if (btn.dataset.action === 'copy') {
+  if (btn.dataset.action === 'toggle') {
+    toggleCard(btn);
+  } else if (btn.dataset.action === 'copy') {
     e.preventDefault();
     copyUrlFrom(btn.dataset.url);
   } else if (btn.dataset.action === 'preview') {
@@ -1044,9 +1200,36 @@ treeEl.addEventListener('click', (e) => {
   }
 });
 
+// 全部收起 / 展开
+toggleAllBtn.addEventListener('click', () => {
+  const anyExpanded = data.some(n => !collapsedSet.has(n.path));
+  document.querySelectorAll('#tree > .card').forEach(card => {
+    card.classList.toggle('collapsed', anyExpanded);
+  });
+  if (anyExpanded) {
+    data.forEach(n => collapsedSet.add(n.path));
+  } else {
+    collapsedSet.clear();
+  }
+  persistCollapsed();
+  updateToggleAllLabel();
+});
+
+// 返回顶部
+window.addEventListener('scroll', () => {
+  backTopBtn.classList.toggle('show', window.scrollY > 400);
+}, { passive: true });
+backTopBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
 document.addEventListener('keydown', (e) => {
+  const modalOpen = modalOverlay.classList.contains('active');
   if(e.key === 'Escape') {
-    if(modalOverlay.classList.contains('active')) {
+    // 全屏时先退全屏，再按一次才关闭弹窗
+    if(modalOpen && isFullscreen()) {
+      exitFullscreen();
+    } else if(modalOpen) {
       closePreview();
     } else if(document.activeElement === searchEl) {
       searchEl.value = '';
@@ -1054,7 +1237,10 @@ document.addEventListener('keydown', (e) => {
       render(data);
       searchEl.blur();
     }
-  } else if(e.key === '/' && document.activeElement !== searchEl && !modalOverlay.classList.contains('active')) {
+  } else if((e.key === 'f' || e.key === 'F') && modalOpen && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    toggleFullscreen();
+  } else if(e.key === '/' && document.activeElement !== searchEl && !modalOpen) {
     e.preventDefault();
     searchEl.focus();
   }
