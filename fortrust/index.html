@@ -366,7 +366,7 @@ h1{
   cursor:pointer;
   border:none;
 }
-/* 新标签打开 (HTML) */
+/* 打开（HTML，新标签页） */
 .btn-open{
   background:var(--primary-light);
   color:var(--primary);
@@ -384,7 +384,7 @@ h1{
   background:var(--green);
   color:#fff;
 }
-/* 启动下载 (Office, 压缩包等) */
+/* 下载（Office、压缩包等，浏览器无法直接预览） */
 .btn-download{
   background:var(--amber-light);
   color:var(--amber);
@@ -781,7 +781,7 @@ footer{
           <span id="modalTag" class="file-tag" style="margin-left: 4px;">PDF</span>
         </div>
         <div class="modal-actions">
-          <a id="modalNewTab" class="modal-btn" href="#" target="_blank" rel="noopener noreferrer">新标签打开 ↗</a>
+          <a id="modalNewTab" class="modal-btn" href="#" target="_blank" rel="noopener noreferrer">打开 ↗</a>
           <a id="modalDownload" class="modal-btn" href="#" download>下载 ⤓</a>
           <button id="modalFullscreen" class="modal-fullscreen" onclick="toggleFullscreen()" title="全屏预览 (F)">⛶</button>
           <button class="modal-close" onclick="closePreview()" title="关闭 (Esc)">✕</button>
@@ -799,7 +799,7 @@ footer{
   </footer>
 </div>
 
-<div id="toast" class="toast">已复制直观链接</div>
+<div id="toast" class="toast">已复制链接</div>
 <button id="backTop" title="返回顶部">↑</button>
 
 <script>
@@ -851,7 +851,7 @@ function showToast(msg) {
   setTimeout(() => toastEl.classList.remove('show'), 2000);
 }
 
-async function copyUrlFrom(url) {
+async function copyUrlFrom(url, kind) {
   const readablePath = decodeURIComponent(url);
   const fullUrl = window.location.origin + readablePath;
   try {
@@ -865,7 +865,7 @@ async function copyUrlFrom(url) {
       document.execCommand('copy');
       document.body.removeChild(input);
     }
-    showToast('已复制直观链接');
+    showToast(kind === 'download' ? '已复制下载链接' : '已复制预览链接');
   } catch (e) {
     showToast('复制失败，请手动复制');
   }
@@ -882,11 +882,7 @@ async function openPreview(f) {
   modalTag.textContent = extName + (f.size ? ` · ${f.size}` : '');
   // md/docx/xlsx/txt 浏览器原生打不开会触发下载，改经 /_view 查看器渲染；
   // pdf/图片/音视频/网页浏览器可直接预览，保持直链
-  const NEED_VIEWER = ['md', 'docx', 'xlsx', 'text'];
-  const rawUrl = NEED_VIEWER.includes(f.category)
-    ? '/_view?u=' + encodeURIComponent(f.url)
-    : f.url;
-  modalNewTab.href = rawUrl;
+  modalNewTab.href = previewLink(f);
   modalDownload.href = f.url;
   modalDownload.setAttribute('download', f.fileName);
   exitFullscreen(); // 每次新开预览从窗口模式开始，按钮图标复位
@@ -968,9 +964,7 @@ function ensureScript(globalName, src) {
 }
 
 function previewErrorHtml(f) {
-  const NEED_VIEWER = ['md', 'docx', 'xlsx', 'text'];
-  const url = NEED_VIEWER.includes(f.category) ? '/_view?u=' + encodeURIComponent(f.url) : f.url;
-  return `<div class="preview-status"><div style="font-size:32px;">😵</div><div>该文件类型暂不支持在线预览</div><a class="btn-action btn-open" href="${url}" target="_blank" rel="noopener noreferrer">尝试新标签打开 ↗</a></div>`;
+  return `<div class="preview-status"><div style="font-size:32px;">😵</div><div>该文件类型暂不支持在线预览</div><a class="btn-action btn-open" href="${previewLink(f)}" target="_blank" rel="noopener noreferrer">打开 ↗</a></div>`;
 }
 
 // Excel 多 Sheet 渲染与切换
@@ -1071,14 +1065,22 @@ function getStats(nodes){
   return { folders, files };
 }
 
+// 浏览器原生无法渲染、需经 /_view 查看器打开的类别
+const NEED_VIEWER_CATS = ['md', 'docx', 'xlsx', 'text'];
+
+// 预览打开/复制链接：md/docx/xlsx/txt 经查看器，其余走原直链
+function previewLink(f) {
+  return NEED_VIEWER_CATS.includes(f.category) ? '/_view?u=' + encodeURIComponent(f.url) : f.url;
+}
+
 function renderActionButton(f, fid) {
   if (f.actionType === 'new_tab') {
-    return `<a class="btn-action btn-open" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">新标签打开 ↗</a>`;
+    return `<a class="btn-action btn-open" href="${esc(previewLink(f))}" target="_blank" rel="noopener noreferrer">打开 ↗</a>`;
   }
   if (f.actionType === 'preview') {
     return `<button class="btn-action btn-preview" data-action="preview" data-fid="${fid}">预览</button>`;
   }
-  return `<a class="btn-action btn-download" href="${esc(f.url)}" download="${esc(f.fileName)}">启动下载 ⤓</a>`;
+  return `<a class="btn-action btn-download" href="${esc(f.url)}" download="${esc(f.fileName)}">下载 ⤓</a>`;
 }
 
 function renderNode(node){
@@ -1092,6 +1094,10 @@ function renderNode(node){
         const extText = (f.ext || '').replace(/^\./, '').toUpperCase() || 'FILE';
         const fid = 'f' + Object.keys(FILE_MAP).length;
         FILE_MAP[fid] = f;
+        // 可预览（含 html）→ 复制预览链接；仅可下载 → 复制下载链接
+        const isPreview = f.actionType === 'new_tab' || f.actionType === 'preview';
+        const copyLabel = isPreview ? '复制预览链接' : '复制下载链接';
+        const copyTarget = isPreview ? previewLink(f) : f.url;
         return `
         <div class="file-item">
           <div class="file-info">
@@ -1103,7 +1109,7 @@ function renderNode(node){
             </div>
           </div>
           <div class="action-group">
-            <button class="btn-copy" data-action="copy" data-url="${esc(f.url)}">复制链接</button>
+            <button class="btn-copy" data-action="copy" data-kind="${isPreview ? 'preview' : 'download'}" data-url="${esc(copyTarget)}">${copyLabel}</button>
             ${renderActionButton(f, fid)}
           </div>
         </div>
@@ -1221,7 +1227,7 @@ treeEl.addEventListener('click', (e) => {
     toggleCard(btn);
   } else if (btn.dataset.action === 'copy') {
     e.preventDefault();
-    copyUrlFrom(btn.dataset.url);
+    copyUrlFrom(btn.dataset.url, btn.dataset.kind);
   } else if (btn.dataset.action === 'preview') {
     const f = FILE_MAP[btn.dataset.fid];
     if (f) openPreview(f);
