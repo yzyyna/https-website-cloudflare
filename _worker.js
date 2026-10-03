@@ -32,9 +32,9 @@ function getSecret(env) {
   return env.AUTH_SECRET || 'ft-fallback::' + [...PASSWORD_HASHES].join('|');
 }
 
-function getPasswordHashes(env) {
-  // 环境变量密码优先；注意 Workers 中 env 每请求注入，此处按需计算
-  return env.AUTH_PASSWORD ? [env.AUTH_PASSWORD] : null;
+// 返回自定义明文密码（不是哈希），调用处需再 sha256 后比对
+function getCustomPassword(env) {
+  return env.AUTH_PASSWORD || null;
 }
 
 function getCookie(request, name) {
@@ -52,7 +52,16 @@ function safeNext(raw, fallback) {
   return fallback;
 }
 
+// HTML 转义：阻断属性/文本注入（next、error 均来自请求侧）
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
 function loginPage(error, next) {
+  const safeError = escapeHtml(error);
+  const safeNextParam = escapeHtml(next);
   const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -84,9 +93,9 @@ button:hover{background:#1d4ed8}
   <div class="box">
     <h2>🔐 请输入访问密钥</h2>
     <input type="password" name="password" placeholder="请输入访问密钥..." autocomplete="current-password" autofocus>
-    <div class="err">${error}</div>
+    <div class="err">${safeError}</div>
     <button type="submit">确认进入</button>
-    <input type="hidden" name="next" value="${next}">
+    <input type="hidden" name="next" value="${safeNextParam}">
   </div>
 </form>
 </body>
@@ -95,6 +104,16 @@ button:hover{background:#1d4ed8}
     status: error ? 401 : 200,
     headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }
   });
+}
+
+// 恒定时间比较，消除签名比对的时序侧信道
+function timingSafeEqual(a, b) {
+  const len = Math.max(a.length, b.length);
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < len; i++) {
+    diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  }
+  return diff === 0;
 }
 
 async function isAuthed(request, env) {
@@ -106,7 +125,7 @@ async function isAuthed(request, env) {
   const sig = token.slice(dot + 1);
   if (!Number.isFinite(exp) || exp * 1000 < Date.now()) return false;
   const expected = await sha256Hex(getSecret(env) + '.' + exp);
-  return sig === expected;
+  return timingSafeEqual(sig, expected);
 }
 
 async function handleAuth(request, env, url) {
@@ -128,11 +147,11 @@ async function handleAuth(request, env, url) {
   const password = String(form.get('password') || '');
   const next = safeNext(String(form.get('next') || '/fortrust/'), '/fortrust/');
 
-  const custom = getPasswordHashes(env);
+  const customPassword = getCustomPassword(env);
   const inputHash = await sha256Hex(password);
   let matched;
-  if (custom) {
-    matched = inputHash === (await sha256Hex(custom[0]));
+  if (customPassword) {
+    matched = inputHash === (await sha256Hex(customPassword));
   } else {
     matched = PASSWORD_HASHES.has(inputHash);
   }
@@ -248,17 +267,31 @@ function loadScript(src, check) {
   });
 }
 
+// 消毒：剔除 script/危险标签与 on* 事件属性、javascript: 协议，防 md/docx 内容注入 XSS
+function sanitizeHtml(dirty) {
+  const blockTags = ['script', 'iframe', 'object', 'embed', 'style', 'link', 'meta', 'form', 'base', 'svg', 'math'];
+  let out = String(dirty || '');
+  // 成对危险标签整体移除（闭合标签可复用同一名称）
+  for (const tag of blockTags) {
+    const pair = new RegExp('<\\s*' + tag + '\\b[^>]*>[\\s\\S]*?<\\s*/\\s*' + tag + '\\s*>', 'gi');
+    const single = new RegExp('<\\s*/?\\s*' + tag + '\\b[^>]*>', 'gi');
+    out = out.replace(pair, '').replace(single, '');
+  }
+  const onAttr = /\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
+  const badProto = /(href|src|xlink:href|data)\s*=\s*(?:["']?\s*(?:javascript|vbscript|data:text\/html)[^"'>]*)/gi;
+  return out.replace(onAttr, '').replace(badProto, '$1="#"');
+}
 async function render() {
   try {
     if (ext === '.md' || ext === '.markdown') {
       const txt = await (await fetch(TARGET)).text();
       await loadScript('https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js', () => window.marked);
-      main.innerHTML = '<div class="md">' + marked.parse(txt, { breaks: true, gfm: true }) + '</div>';
+      main.innerHTML = '<div class="md">' + sanitizeHtml(marked.parse(txt, { breaks: true, gfm: true })) + '</div>';
     } else if (ext === '.docx') {
       const buf = await (await fetch(TARGET)).arrayBuffer();
       await loadScript('https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js', () => window.mammoth);
       const r = await window.mammoth.convertToHtml({ arrayBuffer: buf });
-      main.innerHTML = '<div class="word">' + (r.value || '<p style="color:#94a3b8">此 Word 文档为空</p>') + '</div>';
+      main.innerHTML = '<div class="word">' + sanitizeHtml(r.value) + '</div>';
     } else if (ext === '.xlsx' || ext === '.xls') {
       const buf = await (await fetch(TARGET)).arrayBuffer();
       await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', () => window.XLSX);

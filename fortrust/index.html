@@ -852,7 +852,12 @@ function showToast(msg) {
 }
 
 async function copyUrlFrom(url, kind) {
-  const readablePath = decodeURIComponent(url);
+  // 只解码 pathname（让中文目录名可读），query 部分保留编码，
+  // 否则文件名含 & 或 # 时会被浏览器误判为参数分隔/fragment，导致链接失效
+  const qi = url.indexOf('?');
+  const pathPart = qi === -1 ? url : url.slice(0, qi);
+  const queryPart = qi === -1 ? '' : url.slice(qi);
+  const readablePath = decodeURI(pathPart) + queryPart;
   const fullUrl = window.location.origin + readablePath;
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -873,6 +878,20 @@ async function copyUrlFrom(url, kind) {
 
 function esc(s){
   return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// 消毒 marked/mammoth 输出：剔除危险标签、on* 事件与 javascript: 协议，防内容注入 XSS
+function sanitizeHtml(dirty) {
+  const blockTags = ['script', 'iframe', 'object', 'embed', 'style', 'link', 'meta', 'form', 'base', 'svg', 'math'];
+  let out = String(dirty || '');
+  for (const tag of blockTags) {
+    const pair = new RegExp('<\\s*' + tag + '\\b[^>]*>[\\s\\S]*?<\\s*/\\s*' + tag + '\\s*>', 'gi');
+    const single = new RegExp('<\\s*/?\\s*' + tag + '\\b[^>]*>', 'gi');
+    out = out.replace(pair, '').replace(single, '');
+  }
+  const onAttr = /\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
+  const badProto = /(href|src|xlink:href|data)\s*=\s*(?:["']?\s*(?:javascript|vbscript|data:text\/html)[^"'>]*)/gi;
+  return out.replace(onAttr, '').replace(badProto, '$1="#"');
 }
 
 async function openPreview(f) {
@@ -905,7 +924,7 @@ async function openPreview(f) {
       const res = await fetch(f.url);
       const txt = await res.text();
       await ensureScript('marked', 'https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js');
-      const html = marked.parse(txt, { breaks: true, gfm: true });
+      const html = sanitizeHtml(marked.parse(txt, { breaks: true, gfm: true }));
       modalBody.innerHTML = `<div class="doc-preview doc-preview-md">${html}</div>`;
     } catch(err) {
       console.error(err);
@@ -918,7 +937,8 @@ async function openPreview(f) {
       const res = await fetch(f.url);
       const arrayBuffer = await res.arrayBuffer();
       const result = await window.mammoth.convertToHtml({ arrayBuffer });
-      modalBody.innerHTML = `<div class="doc-preview doc-preview-word">${result.value || '<p style="color:#94a3b8;">此 Word 文档为空</p>'}</div>`;
+      const wordHtml = sanitizeHtml(result.value) || '<p style="color:#94a3b8;">此 Word 文档为空</p>';
+      modalBody.innerHTML = `<div class="doc-preview doc-preview-word">${wordHtml}</div>`;
     } catch(err) {
       console.error(err);
       modalBody.innerHTML = previewErrorHtml(f);
