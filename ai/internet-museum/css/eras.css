@@ -1118,6 +1118,53 @@
   }
 }
 
+@media (max-width: 600px) {
+  .crt-monitor-frame {
+    border-width: 4px;
+    padding: 4px;
+  }
+  .win98-desktop-area {
+    padding: 8px;
+  }
+  .win98-desktop-icons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .win98-icon-item {
+    padding: 2px 6px;
+  }
+  .icon-img-sim {
+    font-size: 24px;
+  }
+  .forum-floor-item {
+    grid-template-columns: 1fr;
+  }
+  .floor-sidebar {
+    border-right: none;
+    border-bottom: 1px solid #334155;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 8px 12px;
+  }
+  .floor-main {
+    padding: 12px;
+  }
+  .guestbook-form-card {
+    padding: 14px;
+  }
+  .space-header-banner {
+    padding: 14px;
+  }
+  .ruins-header-summary {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+}
+
 @media (max-height: 720px) {
   .crt-screen {
     min-height: 380px;

@@ -623,3 +623,49 @@ body.touch-mode #touch-controls:not(.hidden) {
     padding: 2px 4px;
   }
 }
+
+@media (max-width: 520px) {
+  body.touch-mode #hotbar {
+    bottom: max(96px, env(safe-area-inset-bottom));
+    max-width: calc(100vw - 16px);
+    padding: 2px;
+    gap: 2px;
+  }
+  body.touch-mode .hb-slot {
+    width: 38px;
+    height: 38px;
+  }
+  body.touch-mode .hb-slot canvas {
+    width: 26px;
+    height: 26px;
+  }
+  #touch-joystick-zone {
+    width: 120px;
+    height: 120px;
+    left: max(12px, env(safe-area-inset-left));
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  #joystick-knob {
+    width: 48px;
+    height: 48px;
+    margin-left: -24px;
+    margin-top: -24px;
+  }
+  #touch-action-btns {
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(10px, env(safe-area-inset-bottom));
+    grid-template-columns: repeat(2, 54px);
+    grid-template-rows: repeat(2, 54px);
+    gap: 8px;
+  }
+  .touch-btn {
+    width: 54px;
+    height: 54px;
+  }
+  .touch-btn .btn-icon {
+    font-size: 18px;
+  }
+  .touch-btn .btn-label {
+    font-size: 9px;
+  }
+}

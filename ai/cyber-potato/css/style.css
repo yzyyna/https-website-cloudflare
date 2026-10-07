@@ -658,24 +658,64 @@ body {
 
 /* 响应式调整 */
 @media (max-width: 480px) {
+  body {
+    padding: 10px 8px;
+    justify-content: flex-start;
+  }
+  .header-banner {
+    margin-bottom: 10px;
+  }
+  .header-banner h1 {
+    font-size: 18px;
+  }
+  .header-banner p {
+    font-size: 11.5px;
+  }
   .device-shell {
-    padding: 18px 14px 24px;
-    border-radius: 26px;
+    padding: 16px 12px 20px;
+    border-radius: 24px;
+    border-width: 3px;
+    max-width: 100%;
+    width: 100%;
+  }
+  .screen-bezel {
+    padding: 10px 8px;
   }
   .potato-stage {
-    width: 200px;
-    height: 200px;
+    width: 190px;
+    height: 180px;
   }
   .potato-character {
-    width: 140px;
-    height: 120px;
+    width: 130px;
+    height: 110px;
+  }
+  .dialogue-box {
+    padding: 8px 10px;
+    min-height: 46px;
+  }
+  .dialogue-text {
+    font-size: 11.5px;
   }
   .actions-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
   }
   .action-btn {
-    padding: 10px 4px;
+    padding: 10px 2px;
     font-size: 12px;
+    border-radius: 10px;
+  }
+  .action-btn .btn-icon {
+    font-size: 18px;
+  }
+  .action-btn .btn-desc {
+    font-size: 9.5px;
+  }
+  .key-badge {
+    display: none;
+  }
+  .wardrobe-grid {
+    grid-template-columns: 1fr;
+    max-height: 260px;
   }
 }
