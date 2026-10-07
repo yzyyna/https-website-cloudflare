@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>赛博电子土豆 · 会吐槽的像素碳水生命体</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E🥔%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/potato.css">
+  <link rel="stylesheet" href="css/anim.css">
+</head>
+<body>
+
+  <!-- 顶部标题 -->
+  <header class="header-banner">
+    <h1>🥔 赛博电子土豆 <span style="font-size:14px;color:#72e49c;border:1px solid #336948;padding:2px 6px;border-radius:4px;">v1.0</span></h1>
+    <p>会饿、会困、会超频、被冷落还会递交辞职信的像素打工薯</p>
+  </header>
+
+  <!-- 掌机主体外壳 -->
+  <main class="device-shell">
+    <!-- 装饰螺丝 -->
+    <div class="screw tl"></div>
+    <div class="screw tr"></div>
+    <div class="screw bl"></div>
+    <div class="screw br"></div>
+
+    <!-- 顶部状态信息与功能图标 -->
+    <div class="device-header">
+      <div class="device-brand">
+        <span class="brand-dot"></span>
+        <span>CYBER-SPUD // OS 3.1</span>
+      </div>
+      <div class="top-tools">
+        <button id="btnMute" class="icon-btn" title="声音开关">
+          <span id="muteIcon">🔊</span>
+          <span id="muteText">音效</span>
+        </button>
+        <button id="btnWardrobe" class="icon-btn" title="查看并佩戴奇怪配件">
+          <span>👔</span>
+          <span>衣橱</span>
+        </button>
+        <button id="btnTimeMachine" class="icon-btn" title="时光机调试工具">
+          <span>⏳</span>
+          <span>时光机</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CRT 监视器屏幕外框 -->
+    <section class="screen-bezel">
+      <div class="crt-screen">
+        
+        <!-- 屏幕内部：状态数值看板 -->
+        <div class="status-dashboard">
+          <div class="pet-title-bar">
+            <div class="pet-name-wrap">
+              <span id="petEmoji">🥔</span>
+              <span id="petName">波特·马铃薯</span>
+              <span id="petTitleBadge" class="title-badge">萌芽淀粉块</span>
+            </div>
+            <div class="clock-text">
+              <span id="petAgeText" class="age-text">Day 1</span>
+              <span id="liveClock">00:00:00</span>
+            </div>
+          </div>
+
+          <!-- 生存三大条 -->
+          <div class="bars-grid">
+            <div class="bar-card" title="淀粉储量 (饱食度)">
+              <div class="bar-label">
+                <span>🍙 淀粉</span>
+                <span id="valHunger">80%</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" id="fillHunger" style="width: 80%;"></div>
+              </div>
+            </div>
+
+            <div class="bar-card" title="电池电压 (精力值)">
+              <div class="bar-label">
+                <span>⚡️ 电力</span>
+                <span id="valEnergy">85%</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" id="fillEnergy" style="width: 85%;"></div>
+              </div>
+            </div>
+
+            <div class="bar-card" title="打工精神状态 (心智)">
+              <div class="bar-label">
+                <span>🧠 心智</span>
+                <span id="valSanity">90%</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" id="fillSanity" style="width: 90%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 过载温度警告 (喝咖啡过量激活) -->
+          <div class="overheat-meter" id="overheatMeter">
+            <span>🔥 咖啡超频过载:</span>
+            <span class="overheat-val" id="valOverheat">0°C</span>
+            <span style="font-size:10px;color:#f87171;">[主频 999GHz]</span>
+          </div>
+        </div>
+
+        <!-- 屏幕中心：像素土豆角色舞台 -->
+        <div class="potato-stage">
+          <div class="potato-character state-normal" id="potatoChar" title="点击戳戳我">
+            
+            <!-- 特效粒子：过载蒸汽 -->
+            <div class="steam-cloud c1"></div>
+            <div class="steam-cloud c2"></div>
+            <div class="steam-cloud c3"></div>
+
+            <!-- 特效粒子：困觉 Zzz -->
+            <div class="zzz-bubble">Zzz...</div>
+
+            <!-- 特效粒子：暴怒符号 -->
+            <div class="rage-symbol">💢</div>
+
+            <!-- 配件槽位：辞职小行囊 (后置) -->
+            <div class="accessory-bundle">
+              <div class="bundle-stick"></div>
+              <div class="bundle-cloth"></div>
+            </div>
+
+            <!-- 配件槽位：头顶小草与蘑菇 -->
+            <div class="accessory-sprout">
+              <div class="sprout-stem"></div>
+              <div class="sprout-leaf-left"></div>
+              <div class="sprout-leaf-right"></div>
+            </div>
+
+            <div class="accessory-mushroom">
+              <div class="mushroom-cap">
+                <div class="mushroom-dot"></div>
+                <div class="mushroom-dot"></div>
+              </div>
+              <div class="mushroom-stem"></div>
+            </div>
+
+            <!-- 土豆身体有机轮廓 -->
+            <div class="potato-body">
+              <!-- 表面像素雀斑 -->
+              <div class="potato-freckles">
+                <div class="freckle"></div>
+                <div class="freckle"></div>
+                <div class="freckle"></div>
+                <div class="freckle"></div>
+                <div class="freckle"></div>
+                <div class="freckle"></div>
+              </div>
+            </div>
+
+            <!-- 面部五官 -->
+            <div class="potato-face">
+              <!-- 双眼 -->
+              <div class="potato-eyes">
+                <div class="eye left-eye">
+                  <div class="pupil"></div>
+                </div>
+                <div class="eye right-eye">
+                  <div class="pupil"></div>
+                </div>
+              </div>
+
+              <!-- 腮红 -->
+              <div class="blush left"></div>
+              <div class="blush right"></div>
+
+              <!-- 汗滴 -->
+              <div class="sweat-drop"></div>
+
+              <!-- 嘴巴 -->
+              <div class="potato-mouth"></div>
+            </div>
+
+            <!-- 配件槽位：黑框像素眼镜 (前置) -->
+            <div class="accessory-glasses">
+              <div class="glasses-frame">
+                <div class="glasses-leg left"></div>
+                <div class="glasses-lens left"></div>
+                <div class="glasses-bridge"></div>
+                <div class="glasses-lens right"></div>
+                <div class="glasses-leg right"></div>
+              </div>
+            </div>
+
+            <!-- 配件槽位：赛博发光义眼 (前置) -->
+            <div class="accessory-cyber-eye">
+              <div class="cyber-eye-lens"></div>
+              <div class="cyber-wires"></div>
+            </div>
+
+            <!-- 配件槽位：打工人领带 (前置) -->
+            <div class="accessory-tie">
+              <div class="tie-knot"></div>
+              <div class="tie-body"></div>
+            </div>
+
+            <!-- 配件槽位：大金链子 (前置) -->
+            <div class="accessory-gold-chain">
+              <div class="gold-chain-links"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 屏幕底部：打字机吐出吐槽对话框 -->
+        <div class="dialogue-box">
+          <div class="dialogue-speaker" id="dialogueIcon">💬</div>
+          <div class="dialogue-text">
+            <span id="dialogueText">正在初始化碳水传感器...</span>
+            <span class="cursor-blink"></span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 下半部实体交互按键面板 -->
+    <section class="controls-panel">
+      <div class="actions-grid">
+        <button class="action-btn" id="btnFeed" title="喂食淀粉 (快捷键 1 或 F)">
+          <span class="key-badge">1</span>
+          <span class="btn-icon">🌾</span>
+          <span>喂化肥</span>
+          <span class="btn-desc">+淀粉/防发瘪</span>
+        </button>
+
+        <button class="action-btn btn-coffee" id="btnCoffee" title="喂咖啡超频过载 (快捷键 2 或 C)">
+          <span class="key-badge">2</span>
+          <span class="btn-icon">☕️</span>
+          <span>灌咖啡</span>
+          <span class="btn-desc">+电力/超频警告</span>
+        </button>
+
+        <button class="action-btn btn-read" id="btnRead" title="喂书学习会长眼镜 (快捷键 3 或 R)">
+          <span class="key-badge">3</span>
+          <span class="btn-icon">📖</span>
+          <span>逼读书</span>
+          <span class="btn-desc">+智慧/长眼镜</span>
+        </button>
+
+        <button class="action-btn" id="btnPoke" title="戳一戳 (快捷键 4 或 P)">
+          <span class="key-badge">4</span>
+          <span class="btn-icon">👉</span>
+          <span>戳一戳</span>
+          <span class="btn-desc">连击会暴怒</span>
+        </button>
+
+        <button class="action-btn" id="btnSleep" title="关灯睡觉 (快捷键 5 或 S)">
+          <span class="key-badge">5</span>
+          <span class="btn-icon" id="sleepBtnIcon">💤</span>
+          <span id="sleepBtnText">关灯睡</span>
+          <span class="btn-desc">充满电力</span>
+        </button>
+
+        <button class="action-btn" id="btnPet" title="摸摸头抚慰心智 (快捷键 6 或 H)">
+          <span class="key-badge">6</span>
+          <span class="btn-icon">❤️</span>
+          <span>摸摸头</span>
+          <span class="btn-desc">+心智/防辞职</span>
+        </button>
+      </div>
+
+      <div class="bottom-sub-controls">
+        <span class="sub-status-hint" id="statusHintText">状态: 正常待机中</span>
+        <button class="quick-pill-btn" id="btnSayRandom">🎲 逼它吐槽</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- 模态框 1：辞职信 (Resignation Letter) -->
+  <div class="modal-overlay" id="modalResignation">
+    <div class="modal-content" style="background:transparent;border:none;box-shadow:none;">
+      <div class="resignation-letter">
+        <div class="resignation-header">
+          <h2>📄 自愿解除碳水劳动合同声明</h2>
+          <p style="font-size:11px;color:#7c5e42;margin-top:4px;">编号: SPUD-QUIT-9527</p>
+        </div>
+        <div class="resignation-body">
+          <p><strong>致尊敬的无良主人：</strong></p>
+          <p style="text-indent:2em;margin-top:6px;">
+            鉴于你长期对本人缺乏光照、拖欠化肥灌溉，且动辄数天毫无音讯，本尊之淀粉与心智均已跌破国家法定标准。
+          </p>
+          <p style="text-indent:2em;margin-top:6px;">
+            本人已通过隔壁快餐店初审，即将投奔大薯条炸锅流水线。特此通知，即刻生效！
+          </p>
+          <p style="text-align:right;margin-top:14px;"><strong>申请土豆：波特·马铃薯</strong></p>
+          <p style="text-align:right;font-size:11px;color:#7c5e42;" id="resignationDate">2026-10-04</p>
+        </div>
+
+        <div class="resignation-stamp">
+          辞职生效<br>拒绝画饼
+        </div>
+
+        <div class="resignation-actions">
+          <button class="btn-keep" id="btnKeepPotato">
+            🙏 磕糖挽留 (加发红包与化肥)
+          </button>
+          <button class="btn-dismiss" id="btnDismissPotato">
+            👋 批准滚蛋 (孵化新土豆)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态框 2：奇怪配件衣橱 (Wardrobe) -->
+  <div class="modal-overlay" id="modalWardrobe">
+    <div class="modal-content">
+      <button class="modal-close-btn" id="btnCloseWardrobe">&times;</button>
+      <h3 style="font-size:16px;color:#f6c86a;display:flex;align-items:center;gap:6px;">
+        <span>👔</span> 奇怪配件生长图鉴
+      </h3>
+      <p style="font-size:12px;color:#94a3b8;">
+        随着你的调教与恶趣味，土豆会随机长出奇怪生物或机械构件：
+      </p>
+      <div class="wardrobe-grid" id="wardrobeGrid">
+        <!-- JS 动态渲染配件卡片 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态框 3：时光机调试抽屉 (Time Machine) -->
+  <div class="modal-overlay" id="modalTimeMachine">
+    <div class="modal-content">
+      <button class="modal-close-btn" id="btnCloseTimeMachine">&times;</button>
+      <h3 style="font-size:16px;color:#72e49c;display:flex;align-items:center;gap:6px;">
+        <span>⏳</span> 时光机与数值调试台
+      </h3>
+      <p style="font-size:12px;color:#94a3b8;">
+        用于快速验证“冷落时间流逝、写辞职信、极速过载”等功能机制：
+      </p>
+      <div class="debug-section">
+        <div class="debug-btn-row">
+          <button class="debug-btn" id="btnDebugForward1H">⏩ 快进 1 小时</button>
+          <button class="debug-btn" id="btnDebugForward8H">⏩ 快进 8 小时 (过夜)</button>
+        </div>
+        <div class="debug-btn-row">
+          <button class="debug-btn" id="btnDebugForward24H" style="color:#f87171;border-color:#b91c1c;">
+            🚨 快进 24 小时 (触发辞职信)
+          </button>
+          <button class="debug-btn" id="btnDebugFillAll" style="color:#4ade80;">
+            💊 一键补满所有状态
+          </button>
+        </div>
+        <div class="debug-btn-row">
+          <button class="debug-btn" id="btnDebugOverloadMax" style="color:#38bdf8;">
+            ⚡️ 直接过载超频爆表
+          </button>
+          <button class="debug-btn danger" id="btnDebugReset">
+            🗑️ 格式化重置本地存档
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引入依赖脚本 (纯原生免构建，兼容本地直接双击运行) -->
+  <script src="js/audio.js"></script>
+  <script src="js/dialogue.js"></script>
+  <script src="js/accessories.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

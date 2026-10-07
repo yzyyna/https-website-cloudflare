@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HELIOS & STELLAR · 3D 星际能源控制台 (AI 对标平台)</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%2302040a'/><circle cx='16' cy='16' r='8' fill='%2346e8ff'/><circle cx='16' cy='16' r='4' fill='%23fff'/></svg>">
+<style>
+:root {
+  --cyan: #46e8ff;
+  --teal: #2df0c8;
+  --amber: #ffb454;
+  --violet: #a78bff;
+  --bg-dark: #02040a;
+  --panel-bg: rgba(10, 22, 40, 0.75);
+  --panel-border: rgba(86, 200, 255, 0.22);
+  --text-main: #d7f2ff;
+  --text-dim: #7da5bf;
+  --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, Menlo, monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, var(--mono), sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: 
+    radial-gradient(ellipse at 50% 15%, rgba(30, 80, 140, 0.25) 0%, transparent 60%),
+    radial-gradient(circle at 10% 80%, rgba(167, 139, 255, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(45, 240, 200, 0.08) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+header {
+  padding: 36px 24px 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(86, 200, 255, 0.12);
+}
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(70, 232, 255, 0.12);
+  border: 1px solid rgba(70, 232, 255, 0.3);
+  color: var(--cyan);
+  font-size: 11px;
+  font-family: var(--mono);
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+h1 {
+  font-size: 28px;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(70, 232, 255, 0.4);
+  margin-bottom: 8px;
+}
+.subtitle {
+  color: var(--text-dim);
+  font-size: 14px;
+  max-width: 720px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 36px 20px 48px;
+  flex: 1;
+  width: 100%;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 24px;
+  margin-bottom: 36px;
+}
+.card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 16px rgba(70, 232, 255, 0.03);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.5;
+}
+.card.musespark::before {
+  background: linear-gradient(90deg, transparent, var(--violet), transparent);
+}
+.card.glm::before {
+  background: linear-gradient(90deg, transparent, var(--amber), transparent);
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(70, 232, 255, 0.45);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(70, 232, 255, 0.12);
+}
+.card.musespark:hover {
+  border-color: rgba(167, 139, 255, 0.45);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(167, 139, 255, 0.12);
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.card-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.tag-gemini { color: var(--cyan); border-color: rgba(70, 232, 255, 0.3); }
+.tag-musespark { color: var(--violet); border-color: rgba(167, 139, 255, 0.3); }
+.tag-glm { color: var(--amber); border-color: rgba(255, 180, 84, 0.3); }
+.card-title {
+  font-size: 20px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.card-subtitle {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+  font-family: var(--mono);
+}
+.card-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #c0daf0;
+  margin-bottom: 20px;
+  flex: 1;
+}
+.feature-list {
+  list-style: none;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.feature-list li::before {
+  content: "▹";
+  color: var(--cyan);
+}
+.card.musespark .feature-list li::before {
+  color: var(--violet);
+}
+.card.glm .feature-list li::before {
+  color: var(--amber);
+}
+.actions {
+  display: flex;
+  gap: 10px;
+}
+.btn {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-block;
+  border: 1px solid transparent;
+}
+.btn-primary {
+  background: rgba(70, 232, 255, 0.15);
+  border-color: rgba(70, 232, 255, 0.4);
+  color: var(--cyan);
+}
+.btn-primary:hover {
+  background: rgba(70, 232, 255, 0.28);
+  box-shadow: 0 0 16px rgba(70, 232, 255, 0.3);
+}
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #b5d5ed;
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+}
+.preview-section {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  height: 680px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.preview-bar {
+  padding: 12px 20px;
+  background: rgba(4, 12, 24, 0.85);
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.preview-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--cyan);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.preview-title span {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2df0c8;
+  box-shadow: 0 0 8px #2df0c8;
+}
+.preview-tabs {
+  display: flex;
+  gap: 8px;
+}
+.preview-tab {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  border: 1px solid rgba(86, 200, 255, 0.2);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--mono);
+}
+.preview-tab.active {
+  background: rgba(70, 232, 255, 0.15);
+  color: var(--cyan);
+  border-color: var(--cyan);
+}
+.preview-frame {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #000;
+}
+footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 12px;
+  color: rgba(125, 165, 191, 0.6);
+  border-top: 1px solid rgba(86, 200, 255, 0.08);
+  font-family: var(--mono);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">PROMPT DUAL-BENCHMARK · 纯原生 WEBGL 2.0</div>
+  <h1>HELIOS & STELLAR · 3D 星际能源控制台</h1>
+  <p class="subtitle">
+    由同一原始提示词分别由 <strong>Google Gemini</strong> 与 <strong>MuseSpark</strong> 生成的纯原生 3D 沉浸式太空能源指挥系统。零第三方 3D 引擎库，纯手写 GLSL 着色器与 FBO 泛光管线。
+  </p>
+</header>
+
+<main>
+  <div class="grid">
+    <!-- Gemini 版本 -->
+    <div class="card">
+      <div>
+        <div class="card-header">
+          <span class="card-tag tag-gemini">Google Gemini 版</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--cyan)">HELIOS-X</span>
+        </div>
+        <h2 class="card-title">HELIOS-X Command</h2>
+        <div class="card-subtitle">./gemini/index.html</div>
+        <p class="card-desc">
+          完全自封装 ShaderManager、Program 缓存与矩阵数学库。多 Pass FBO 泛光合成、写实地球大气散射、空间射线拾取（Raycaster）与 5 款高帧率 Canvas 仪表盘。
+        </p>
+        <ul class="feature-list">
+          <li>12 股螺旋等离子能量流与约束环</li>
+          <li>屏幕射线反投影精准 3D 节点拾取</li>
+          <li>时间旅行 60s 历史能量流状态回放</li>
+          <li>纯 Web Audio 合成科幻电磁音效</li>
+        </ul>
+      </div>
+      <div class="actions">
+        <a class="btn btn-primary" href="./gemini/index.html" target="_blank">新标签页打开 ↗</a>
+        <button class="btn btn-secondary" onclick="loadPreview('./gemini/index.html', 'Gemini 版 · HELIOS-X', this)">下方快速预览</button>
+      </div>
+    </div>
+
+    <!-- MuseSpark 版本 -->
+    <div class="card musespark">
+      <div>
+        <div class="card-header">
+          <span class="card-tag tag-musespark">MuseSpark 版</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--violet)">STELLAR CORE</span>
+        </div>
+        <h2 class="card-title">STELLAR CORE Fusion</h2>
+        <div class="card-subtitle">./musespark/index.html</div>
+        <p class="card-desc">
+          融合独创的青蓝/紫曜双色能量场调色板。三轴差速磁约束、多级 FBO 泛光降采样，内置自适应性能看门狗（检测丢帧自动动态降级），增强型响应式 HUD 抽屉。
+        </p>
+        <ul class="feature-list">
+          <li>青蓝/紫曜双色调高对比等离子核心</li>
+          <li>自适应性能看门狗（动态降采样防掉帧）</li>
+          <li>全球 30 枢纽节点与 18 条骨干干线</li>
+          <li>多层毛玻璃 Cyber 仪表与折线/柱状图表</li>
+        </ul>
+      </div>
+      <div class="actions">
+        <a class="btn btn-primary" href="./musespark/index.html" target="_blank" style="background:rgba(167,139,255,0.15);border-color:rgba(167,139,255,0.4);color:var(--violet)">新标签页打开 ↗</a>
+        <button class="btn btn-secondary" onclick="loadPreview('./musespark/index.html', 'MuseSpark 版 · STELLAR CORE', this)">下方快速预览</button>
+      </div>
+    </div>
+
+    <!-- GLM 标杆对照版 -->
+    <div class="card glm">
+      <div>
+        <div class="card-header">
+          <span class="card-tag tag-glm">经典标杆对照版</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--amber)">HELIOS-7</span>
+        </div>
+        <h2 class="card-title">HELIOS-7 Benchmark</h2>
+        <div class="card-subtitle">./musespark/IndexGLM.html</div>
+        <p class="card-desc">
+          保留原始技术对标基准版本。纯 WebGL 2.0 基础单文件实现，用于与 Gemini 及 MuseSpark 进行三方视觉风格与渲染性能的横向对比验证。
+        </p>
+        <ul class="feature-list">
+          <li>纯单文件自包含 HTML/WebGL 实现</li>
+          <li>横向技术架构基准对照</li>
+          <li>原版星际能量调度交互逻辑</li>
+        </ul>
+      </div>
+      <div class="actions">
+        <a class="btn btn-primary" href="./musespark/IndexGLM.html" target="_blank" style="background:rgba(255,180,84,0.15);border-color:rgba(255,180,84,0.4);color:var(--amber)">新标签页打开 ↗</a>
+        <button class="btn btn-secondary" onclick="loadPreview('./musespark/IndexGLM.html', '标杆对照版 · HELIOS-7', this)">下方快速预览</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内嵌预览区域 -->
+  <div class="preview-section">
+    <div class="preview-bar">
+      <div class="preview-title">
+        <span></span>
+        <strong id="previewTitle">当前预览：Gemini 版 · HELIOS-X</strong>
+      </div>
+      <div class="preview-tabs">
+        <button class="preview-tab active" id="tabGemini" onclick="switchPreview('./gemini/index.html', 'Gemini 版 · HELIOS-X', this)">Gemini 版</button>
+        <button class="preview-tab" id="tabMuseSpark" onclick="switchPreview('./musespark/index.html', 'MuseSpark 版 · STELLAR CORE', this)">MuseSpark 版</button>
+        <button class="preview-tab" id="tabGLM" onclick="switchPreview('./musespark/IndexGLM.html', '标杆对照版 · HELIOS-7', this)">HELIOS-7 标杆</button>
+      </div>
+    </div>
+    <iframe class="preview-frame" id="previewFrame" src="./gemini/index.html" loading="lazy"></iframe>
+  </div>
+</main>
+
+<footer>
+  AItestProjects · 纯前端零依赖测试集 · 双击 index.html 即可直接离线运行
+</footer>
+
+<script>
+function setPreview(url, title, tabEl, scrollToView) {
+  var frame = document.getElementById('previewFrame');
+  var titleEl = document.getElementById('previewTitle');
+  frame.src = url;
+  titleEl.textContent = '当前预览：' + title;
+
+  document.querySelectorAll('.preview-tab').forEach(function(tab) {
+    tab.classList.remove('active');
+    if (tab === tabEl || (!tabEl && tab.getAttribute('onclick') && tab.getAttribute('onclick').indexOf(url) !== -1)) {
+      tab.classList.add('active');
+    }
+  });
+
+  if (scrollToView) {
+    document.querySelector('.preview-section').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+function loadPreview(url, title, triggerBtn) {
+  setPreview(url, title, null, true);
+}
+
+function switchPreview(url, title, tabEl) {
+  setPreview(url, title, tabEl, false);
+}
+</script>
+
+</body>
+</html>

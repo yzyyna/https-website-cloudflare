@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LinguaJourney · 沉浸式多语种学习平台</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Desktop Sidebar -->
+    <aside class="sidebar">
+      <div class="brand" onclick="navigate('home')">
+        <div class="brand-logo">L</div>
+        <span class="brand-text">LinguaJourney</span>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-nav="home" onclick="navigate('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span>首页</span>
+        </button>
+
+        <button class="nav-item" data-nav="dashboard" onclick="navigate('dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="3" width="7" height="9"/>
+            <rect x="14" y="3" width="7" height="5"/>
+            <rect x="14" y="12" width="7" height="9"/>
+            <rect x="3" y="16" width="7" height="5"/>
+          </svg>
+          <span>学习中心</span>
+        </button>
+
+        <button class="nav-item" data-nav="course" onclick="navigate('course')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
+          <span>课程大纲</span>
+        </button>
+
+        <button class="nav-item" data-nav="community" onclick="navigate('community')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          </svg>
+          <span>社区交流</span>
+        </button>
+      </nav>
+
+      <div class="user-section">
+        <div id="sidebar-user-box" class="user-card" style="display: none;">
+          <img id="sidebar-avatar" class="user-avatar" src="" alt="Avatar">
+          <div class="user-info">
+            <div id="sidebar-name" class="user-name">学员</div>
+            <button class="logout-btn" onclick="logoutUser()">退出登录</button>
+          </div>
+        </div>
+
+        <button id="sidebar-login-btn" class="login-btn-sidebar" onclick="navigate('login')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="18" height="18">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          <span>登录 / 注册</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-wrapper">
+
+      <!-- ================= VIEW 1: HOME ================= -->
+      <section id="view-home" class="view-container active">
+        <div class="home-page">
+          <div class="hero-section">
+            <h1 class="hero-title">沉浸式多语种学习</h1>
+            <p class="hero-subtitle">个性化学习路径 · 互动训练 · 全球社区</p>
+
+            <div class="language-tags">
+              <span class="lang-tag">🇺🇸 英语</span>
+              <span class="lang-tag">🇯🇵 日语</span>
+              <span class="lang-tag">🇰🇷 韩语</span>
+              <span class="lang-tag">🇫🇷 法语</span>
+              <span class="lang-tag">🇩🇪 德语</span>
+              <span class="lang-tag">🇪🇸 西班牙语</span>
+            </div>
+
+            <div class="hero-buttons">
+              <button class="btn btn-primary" onclick="navigate('dashboard')">
+                <span>开始学习</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </button>
+              <button class="btn btn-outline" onclick="navigate('login')">
+                游客体验
+              </button>
+            </div>
+          </div>
+
+          <!-- Feature Grid -->
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="24" height="24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="2" y1="12" x2="22" y2="12"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              </div>
+              <h3>多语种支持</h3>
+              <p>英语、日语、韩语、法语等多主流语种全覆盖，随心切换。</p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="24" height="24">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                  <polyline points="2 17 12 22 22 17"/>
+                  <polyline points="2 12 12 17 22 12"/>
+                </svg>
+              </div>
+              <h3>分级课程体系</h3>
+              <p>从零基础初学者到进阶商务谈判，科学体系循序渐进。</p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="24" height="24">
+                  <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                  <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+                </svg>
+              </div>
+              <h3>互动训练闪卡</h3>
+              <p>单词、跟读、听力与 3D 翻转卡片，多维沉浸式记忆。</p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="24" height="24">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              <h3>社区交流激励</h3>
+              <p>与全球学友打卡讨论、排行榜挑战，学习路上不再孤单。</p>
+            </div>
+          </div>
+
+          <!-- Bottom CTA -->
+          <div class="cta-banner">
+            <h2>准备好开启新的语言旅程了吗？</h2>
+            <p>加入超过 10 万名学习者，零门槛随时随地免费学。</p>
+            <button class="btn btn-primary" onclick="navigate('dashboard')">
+              免费开始学习
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 2: DASHBOARD ================= -->
+      <section id="view-dashboard" class="view-container">
+        <div class="dashboard-page">
+          <div class="dashboard-header">
+            <div>
+              <h1 class="welcome-title">欢迎回来, <span id="dash-welcome-name" style="color:var(--primary)">学员</span> 👋</h1>
+              <p class="welcome-sub">今天是你连续学习的第 <span class="streak-badge">12</span> 天，继续保持！</p>
+            </div>
+
+            <div class="level-card">
+              <div class="trophy-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="24" height="24">
+                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+                  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+                  <path d="M4 22h16"/>
+                  <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                  <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                  <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+                </svg>
+              </div>
+              <div>
+                <div style="font-size:12px;color:var(--text-muted);font-weight:600">当前等级</div>
+                <div style="display:flex;align-items:baseline">
+                  <span id="dash-level-num" class="level-number">Lv.1</span>
+                  <span id="dash-exp-text" class="exp-text">45 / 100 EXP</span>
+                </div>
+                <div class="progress-bar-wrap">
+                  <div id="dash-exp-bar" class="progress-bar-fill" style="width: 45%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <!-- Left Col -->
+            <div>
+              <!-- Path Banner -->
+              <div class="path-banner" style="margin-bottom: 28px;">
+                <span class="badge-pill">核心主修 · 英语中级</span>
+                <h3 class="path-title">职场商务沟通进阶</h3>
+                <p class="path-desc">包含 5 个互动实战模块，重点提升主持会议、撰写公函与商务谈判沟通能力。</p>
+                <div class="path-action">
+                  <button class="btn-white" onclick="navigate('course')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="18" height="18">
+                      <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
+                    </svg>
+                    <span>进入课程</span>
+                  </button>
+                  <span style="font-size:13px;color:#dbeafe;display:flex;align-items:center;gap:4px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    预计 2.5 小时
+                  </span>
+                </div>
+              </div>
+
+              <!-- Activity Chart -->
+              <div class="panel-card">
+                <div class="panel-card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="20" height="20" style="color:var(--primary)">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                  </svg>
+                  <span>近 7 天学习活跃度趋势</span>
+                </div>
+                <div class="chart-container">
+                  <svg id="activity-chart-svg" class="svg-chart" viewBox="0 0 600 200"></svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Col -->
+            <div>
+              <!-- Tasks -->
+              <div class="panel-card">
+                <div class="panel-card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="20" height="20" style="color:var(--primary)">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                  </svg>
+                  <span>今日任务</span>
+                </div>
+
+                <div class="task-item">
+                  <div class="task-header">
+                    <span>完成 20 个新单词学习</span>
+                    <span style="color:var(--primary);font-weight:700">15 / 20</span>
+                  </div>
+                  <div class="task-progress-bar">
+                    <div class="task-progress-fill" style="width: 75%; background: var(--primary);"></div>
+                  </div>
+                </div>
+
+                <div class="task-item">
+                  <div class="task-header">
+                    <span>口语跟读练习 10 分钟</span>
+                    <span style="color:var(--accent-green);font-weight:700">已完成 ✓</span>
+                  </div>
+                  <div class="task-progress-bar">
+                    <div class="task-progress-fill" style="width: 100%; background: var(--accent-green);"></div>
+                  </div>
+                </div>
+
+                <div class="task-item">
+                  <div class="task-header">
+                    <span>阅读一篇外语新闻</span>
+                    <span style="color:var(--accent-orange);font-weight:700">0 / 1</span>
+                  </div>
+                  <div class="task-progress-bar">
+                    <div class="task-progress-fill" style="width: 10%; background: var(--accent-orange);"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Challenge Card -->
+              <div class="challenge-card" onclick="navigate('learn')">
+                <div style="font-size:12px;font-weight:700;color:var(--accent-orange);text-transform:uppercase;margin-bottom:6px">挑战模块</div>
+                <h4 style="font-size:17px;font-weight:800;margin-bottom:6px">3D 核心高频词汇翻转闪卡</h4>
+                <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">智能发音 + 3D 沉浸翻转，每完成一组即奖励 50 EXP！</p>
+                <div style="font-size:13px;font-weight:700;color:var(--accent-orange);display:flex;align-items:center;gap:4px">
+                  <span>立即挑战</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 3: COURSE ================= -->
+      <section id="view-course" class="view-container">
+        <div class="course-page">
+          <div class="course-header-banner">
+            <div class="course-tags">
+              <span class="course-tag blue">英语 · 实战</span>
+              <span class="course-tag orange">中级 B2</span>
+            </div>
+            <h1 class="course-title">职场商务沟通进阶</h1>
+            <p class="course-desc">专为职场人士设计，深度涵盖商务例会发言、英文规范邮件撰写、跨文化交际以及高效谈判博弈。</p>
+            <div class="course-meta">
+              <span>📚 共 5 个学习模块</span>
+              <span>⏱ 预计 2.5 小时学时</span>
+              <span>🏆 完成颁发 B2 徽章</span>
+            </div>
+          </div>
+
+          <h2 style="font-size:22px;font-weight:800;margin-bottom:20px;">课程大纲与模块</h2>
+          <div id="course-module-list">
+            <!-- Dynamically populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 4: LEARN (3D Flashcards) ================= -->
+      <section id="view-learn" class="view-container">
+        <div class="learn-page">
+          <!-- Active Flashcard State -->
+          <div id="learn-session-active">
+            <div class="learn-header">
+              <div style="display:flex;align-items:center;gap:10px">
+                <button class="btn btn-outline" style="padding:6px 12px;font-size:13px" onclick="navigate('course')">
+                  ← 返回
+                </button>
+                <span style="font-weight:700;font-size:18px;">核心词汇互动闪卡</span>
+              </div>
+
+              <div class="step-indicators">
+                <div id="step-dot-0" class="step-dot active"></div>
+                <div id="step-dot-1" class="step-dot"></div>
+                <div id="step-dot-2" class="step-dot"></div>
+              </div>
+            </div>
+
+            <!-- 3D Flashcard Scene -->
+            <div class="flashcard-scene">
+              <div id="flashcard" class="flashcard" onclick="toggleCardFlip()">
+                <!-- Front -->
+                <div class="card-face card-face-front">
+                  <button class="audio-btn" title="朗读单词" onclick="speakCurrentWord(event)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="22" height="22">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                    </svg>
+                  </button>
+                  <div id="card-word" class="card-word">Synergy</div>
+                  <div class="card-hint">💡 点击卡片翻转查看中文释义与例句</div>
+                </div>
+
+                <!-- Back -->
+                <div class="card-face card-face-back">
+                  <div id="card-translation" class="card-translation">协同作用</div>
+                  <div class="card-example-box">
+                    <p id="card-example" class="card-example-text">"We need to create synergy between the two departments."</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="learn-controls">
+              <button id="next-card-btn" class="btn btn-orange" style="padding:14px 40px;font-size:16px" onclick="nextCard()" disabled>
+                下一个单词
+              </button>
+            </div>
+          </div>
+
+          <!-- Complete Celebration State -->
+          <div id="learn-session-complete" class="learn-complete-box" style="display: none;">
+            <div class="success-badge-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="48" height="48">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <h2 style="font-size:32px;font-weight:800;margin-bottom:8px">太棒了！模块训练完成</h2>
+            <p style="font-size:18px;color:var(--text-muted);margin-bottom:28px">已成功掌握本组高频词汇，已为你奖励 <span style="color:var(--accent-orange);font-weight:700">+50 EXP</span>！</p>
+            <button class="btn btn-primary" style="padding:14px 36px;font-size:15px" onclick="navigate('dashboard')">
+              返回学习中心
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 5: COMMUNITY ================= -->
+      <section id="view-community" class="view-container">
+        <div class="community-page">
+          <!-- Main Discussions Feed -->
+          <div>
+            <div class="post-create-card">
+              <textarea id="new-post-content" class="post-textarea" rows="3" placeholder="分享今天的学习收获、心得或疑问..."></textarea>
+              <div class="post-create-footer">
+                <span style="font-size:12px;color:var(--text-muted)">文明交流 · 互相启发</span>
+                <button class="btn btn-primary" style="padding:8px 20px;font-size:13px" onclick="submitNewPost()">
+                  发布动态
+                </button>
+              </div>
+            </div>
+
+            <div class="post-feed-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="22" height="22" style="color:var(--accent-orange)">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+              </svg>
+              <span>热门研讨交流</span>
+            </div>
+
+            <div id="community-feed">
+              <!-- Dynamically populated by JS -->
+            </div>
+          </div>
+
+          <!-- Right Sidebar: Leaderboard & Challenge -->
+          <div>
+            <div class="panel-card" style="margin-bottom: 24px;">
+              <div class="panel-card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="20" height="20" style="color:var(--accent-yellow)">
+                  <circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+                </svg>
+                <span>全球学霸榜</span>
+              </div>
+
+              <div>
+                <div class="leaderboard-item">
+                  <div class="rank-badge rank-1">1</div>
+                  <div style="flex:1">
+                    <div style="font-weight:700;font-size:14px">Sarah 👑</div>
+                    <div style="font-size:12px;color:var(--text-light)">12,400 EXP</div>
+                  </div>
+                </div>
+
+                <div class="leaderboard-item">
+                  <div class="rank-badge rank-2">2</div>
+                  <div style="flex:1">
+                    <div style="font-weight:700;font-size:14px">Ken 🥈</div>
+                    <div style="font-size:12px;color:var(--text-light)">11,200 EXP</div>
+                  </div>
+                </div>
+
+                <div class="leaderboard-item">
+                  <div class="rank-badge rank-3">3</div>
+                  <div style="flex:1">
+                    <div style="font-weight:700;font-size:14px">Alex 🥉</div>
+                    <div style="font-size:12px;color:var(--text-light)">10,800 EXP</div>
+                  </div>
+                </div>
+
+                <div class="leaderboard-item">
+                  <div class="rank-badge rank-other">4</div>
+                  <div style="flex:1">
+                    <div style="font-weight:600;font-size:14px">Emily</div>
+                    <div style="font-size:12px;color:var(--text-light)">9,500 EXP</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Banner -->
+            <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-md)">
+              <div style="font-size:12px;font-weight:700;color:#93c5fd;text-transform:uppercase;margin-bottom:4px">每周打卡挑战</div>
+              <h4 style="font-size:17px;font-weight:800;margin-bottom:8px">口语跟读达人</h4>
+              <p style="font-size:13px;color:#bfdbfe;line-height:1.5;margin-bottom:14px">本周累计跟读练习达到 50 分钟，即可点亮限定金色勋章！</p>
+              <div style="background:rgba(255,255,255,0.2);height:6px;border-radius:99px;overflow:hidden;margin-bottom:8px">
+                <div style="background:#f97316;height:100%;width:40%"></div>
+              </div>
+              <div style="font-size:12px;color:#bfdbfe;text-align:right">已完成 20 / 50 分钟</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 6: LOGIN ================= -->
+      <section id="view-login" class="view-container">
+        <div class="login-page">
+          <div class="login-card">
+            <div class="login-logo-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="32" height="32">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </div>
+            <h2 class="login-title">欢迎来到 LinguaJourney</h2>
+            <p class="login-sub">开启你的沉浸式多语种学习之旅</p>
+
+            <form onsubmit="event.preventDefault(); loginUser(document.getElementById('login-name-input').value);">
+              <div class="form-group">
+                <label class="form-label" for="login-name-input">输入你的昵称</label>
+                <input id="login-name-input" class="form-input" type="text" placeholder="例如: Alex / 李华" required>
+
+                <div class="avatar-preview-box">
+                  <img id="login-preview-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='20' fill='%233b82f6'/%3E%3Ctext x='20' y='25' font-family='sans-serif' font-weight='700' font-size='18' fill='%23fff' text-anchor='middle'%3EG%3C/text%3E%3C/svg%3E" style="width:36px;height:36px;border-radius:50%" alt="Avatar">
+                  <span style="font-size:12px;color:var(--text-muted)">专属个性化头像本地实时生成</span>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;font-size:15px;margin-top:10px">
+                立即开始学习
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+                  <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-nav">
+      <button class="mobile-nav-item active" data-nav="home" onclick="navigate('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>首页</span>
+      </button>
+
+      <button class="mobile-nav-item" data-nav="dashboard" onclick="navigate('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="9"/>
+          <rect x="14" y="3" width="7" height="5"/>
+          <rect x="14" y="12" width="7" height="9"/>
+          <rect x="3" y="16" width="7" height="5"/>
+        </svg>
+        <span>学习</span>
+      </button>
+
+      <button class="mobile-nav-item" data-nav="course" onclick="navigate('course')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+        <span>课程</span>
+      </button>
+
+      <button class="mobile-nav-item" data-nav="community" onclick="navigate('community')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+        </svg>
+        <span>社区</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

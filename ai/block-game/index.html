@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MiniCraft · 方块世界</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='2' y='2' width='28' height='28' rx='4' fill='%235c8e32'/><rect x='2' y='2' width='28' height='10' rx='2' fill='%237ec850'/><rect x='6' y='18' width='8' height='8' fill='%23866043'/><rect x='18' y='18' width='8' height='8' fill='%23866043'/></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- HUD -->
+<div id="crosshair" class="hidden"></div>
+<div id="breakbar" class="hidden"><div id="breakbar-fill"></div></div>
+<div id="target-name"></div>
+<div id="stats" class="hidden"></div>
+<div id="hotbar" class="hidden"></div>
+<div id="toast"></div>
+<div id="underwater-overlay" class="hidden"></div>
+<div id="air-bubbles" class="hidden"></div>
+<div id="hand-viewmodel" class="hidden"><canvas id="hand-canvas" width="160" height="160"></canvas></div>
+
+<!-- 背包 -->
+<div id="inventory-panel" class="overlay hidden">
+  <div class="panel">
+    <div class="panel-title">背包与制作 <span class="panel-hint">按 E 关闭 · 点击格子与快捷栏交换 · 点击右侧配方直接制作</span></div>
+    <div class="inv-wrapper">
+      <div class="inv-left">
+        <div class="sub-title">我的存储（27格）</div>
+        <div id="inventory-grid"></div>
+      </div>
+      <div class="inv-right">
+        <div class="sub-title">快捷制作配方</div>
+        <div id="crafting-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 标题菜单 -->
+<div id="title-menu" class="overlay">
+  <div class="menu-box">
+    <h1>MINI<span>CRAFT</span></h1>
+    <p class="subtitle">方块世界 · 纯 HTML / CSS / JS + WebGL · 零依赖</p>
+    <div class="menu-buttons">
+      <button id="btn-start" class="mc-btn">开始游戏</button>
+      <button id="btn-new" class="mc-btn">新世界</button>
+    </div>
+    <div class="help">
+      <table>
+        <tr><td>W A S D / 方向键</td><td>移动（支持平滑自动跨越台阶）</td></tr>
+        <tr><td>空格</td><td>跳跃 / 游泳 / 飞行上升（连按两次切换飞行）</td></tr>
+        <tr><td>Shift</td><td>疾跑 / 飞行下降</td></tr>
+        <tr><td>F</td><td>切换飞行模式</td></tr>
+        <tr><td>鼠标左键（长按）</td><td>挖掘方块（手持镐子数倍速，带逐级碎裂）</td></tr>
+        <tr><td>鼠标右键</td><td>放置方块 · 右键 TNT 点燃引信连锁引爆</td></tr>
+        <tr><td>鼠标中键</td><td>选取指向的方块</td></tr>
+        <tr><td>1-9 / 滚轮</td><td>选择快捷栏（手持火把/萤石夜间自动照亮四周）</td></tr>
+        <tr><td>E</td><td>打开 / 关闭背包与合成制作工作台</td></tr>
+        <tr><td>掉落物拾取</td><td>挖掘爆出3D迷你方块，走近3.2米自动磁吸入包</td></tr>
+        <tr><td>M</td><td>静音开关</td></tr>
+        <tr><td>ESC</td><td>暂停菜单</td></tr>
+      </table>
+    </div>
+    <p class="menu-footer" id="title-seed"></p>
+  </div>
+</div>
+
+<!-- 暂停菜单 -->
+<div id="pause-menu" class="overlay hidden">
+  <div class="menu-box">
+    <h2>游戏暂停</h2>
+    <div class="menu-buttons">
+      <button id="btn-resume" class="mc-btn">继续游戏</button>
+      <button id="btn-sound" class="mc-btn">声音：开</button>
+      <button id="btn-new2" class="mc-btn">新世界（清除存档）</button>
+    </div>
+    <div class="row-setting">
+      <label>渲染距离
+        <select id="sel-dist">
+          <option value="2">2</option><option value="3">3</option>
+          <option value="4" selected>4</option><option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+      </label>
+      <span class="row-hint">（越大视野越远，越吃性能）</span>
+    </div>
+    <div class="help">
+      <table>
+        <tr><td>左键长按</td><td>挖掘 · 右键 放置 · 中键 选取</td></tr>
+        <tr><td>E</td><td>背包合成 · M 静音 · F 飞行</td></tr>
+        <tr><td>合成</td><td>木板/火把/镐子/TNT… 火把能照亮洞穴</td></tr>
+        <tr><td>小心</td><td>TNT 威力巨大且会连锁引爆</td></tr>
+      </table>
+    </div>
+    <p class="menu-footer" id="pause-seed"></p>
+  </div>
+</div>
+
+<div id="hint" class="hidden">点击画面锁定鼠标开始操作</div>
+<div id="gl-error" class="overlay hidden">
+  <div class="menu-box">
+    <h2>无法初始化 WebGL</h2>
+    <p>请使用支持 WebGL 的现代浏览器（Chrome / Edge / Safari / Firefox）打开本页面。</p>
+  </div>
+</div>
+
+<script src="js/noise.js?v=9"></script>
+<script src="js/blocks.js?v=9"></script>
+<script src="js/textures.js?v=9"></script>
+<script src="js/sound.js?v=9"></script>
+<script src="js/world.js?v=9"></script>
+<script src="js/mesher.js?v=9"></script>
+<script src="js/renderer.js?v=9"></script>
+<script src="js/raycast.js?v=9"></script>
+<script src="js/particles.js?v=9"></script>
+<script src="js/player.js?v=9"></script>
+<script src="js/inventory.js?v=9"></script>
+<script src="js/hud.js?v=9"></script>
+<script src="js/input.js?v=9"></script>
+<script src="js/save.js?v=9"></script>
+<script src="js/main.js?v=9"></script>
+</body>
+</html>

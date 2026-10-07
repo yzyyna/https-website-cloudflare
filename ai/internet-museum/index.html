@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《404 之前：互联网考古馆》- 穿越 1998~2099 的数字文明档案</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E🏛️%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/eras.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+  <div id="app">
+    <!-- ================= 顶部：年代定位器 ================= -->
+    <header class="top-locator">
+      <div class="locator-left">
+        <div class="museum-brand">
+          <span>🏛️</span>
+          <span>404 之前：互联网考古馆</span>
+          <span class="brand-badge">互动展厅</span>
+        </div>
+        <div id="current-era-display" class="era-year-pill">1998 · 拨号接入室</div>
+      </div>
+
+      <div class="locator-center">
+        <div class="speed-metric">
+          <span class="speed-pulse-dot"></span>
+          <span id="current-speed-display">33.6 kbps</span>
+        </div>
+        <div id="current-status-display" class="network-status-text">调制解调器已就绪，正在侦听电话线路</div>
+      </div>
+
+      <div class="locator-right">
+        <button id="btn-museum-intro" class="header-btn" title="查看考古馆导览指南">
+          <span>📖</span>
+          <span>导览说明</span>
+        </button>
+
+        <button id="sound-toggle-btn" class="header-btn sound-toggle sound-off" title="切换模拟音效开关（Web Audio 合成）">
+          <span id="sound-status-label">🔇 音效已静音</span>
+        </button>
+
+        <button id="eggs-widget-btn" class="header-btn eggs-widget" title="查看已发掘的数字遗物与彩蛋">
+          <span>🏆</span>
+          <span>考古发现：<strong id="eggs-count-display">0 / 6</strong></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ================= 主体：横向时间展区 ================= -->
+    <main class="gallery">
+      <!-- 1. 1998 拨号接入室 -->
+      <section id="era-1998" class="exhibit" data-year="1998">
+        <div class="crt-monitor-frame">
+          <div class="crt-screen">
+            <div class="win98-desktop-area">
+              <!-- 桌面图标列表 -->
+              <div class="win98-desktop-icons">
+                <div id="icon-1998-network" class="win98-icon-item" tabindex="0" role="button" aria-label="网上邻居" title="点击查看网上邻居">
+                  <div class="icon-img-sim">🌐</div>
+                  <div class="icon-label-sim">网上邻居</div>
+                </div>
+                <div id="icon-1998-floppy" class="win98-icon-item" tabindex="0" role="button" aria-label="3.5英寸软盘(A:)" title="点击读取 3.5 英寸软盘">
+                  <div class="icon-img-sim">💾</div>
+                  <div class="icon-label-sim">3.5英寸软盘(A:)</div>
+                </div>
+                <div id="icon-1998-cd" class="win98-icon-item" tabindex="0" role="button" aria-label="电脑光盘(D:)" title="点击查看光驱">
+                  <div class="icon-img-sim">💿</div>
+                  <div class="icon-label-sim">电脑光盘(D:)</div>
+                </div>
+                <div id="icon-1998-dontclick" class="win98-icon-item clickable" tabindex="0" role="button" aria-label="不要点.exe" title="【危险警告】禁止双击该程序！">
+                  <div class="icon-img-sim">⚠️</div>
+                  <div class="icon-label-sim">不要点.exe</div>
+                </div>
+              </div>
+
+              <!-- 拨号连接对话框 -->
+              <div id="win98-dial-window" class="win98-window">
+                <div class="win98-title-bar">
+                  <span>拨号网络 - 连接到 Telecom 163</span>
+                  <div class="win98-title-controls">
+                    <button>_</button>
+                    <button>X</button>
+                  </div>
+                </div>
+                <div class="win98-window-body">
+                  <div class="modem-panel">
+                    <span>USR Courier 56K V.90 外置调制解调器</span>
+                    <div class="modem-leds">
+                      <div class="led-indicator"><div id="modem-led-oh" class="led-lamp"></div><span>OH</span></div>
+                      <div class="led-indicator"><div id="modem-led-sd" class="led-lamp"></div><span>SD</span></div>
+                    </div>
+                  </div>
+
+                  <div id="dial-status-text" class="dialup-status-box">准备就绪。电话线路空闲，点击下方按钮开始连线。</div>
+                  <div class="dial-meter-bar">
+                    <div id="dial-progress-fill" class="dial-meter-fill"></div>
+                  </div>
+
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+                    <span style="font-size: 11px; color: #333;">电话号码：16300 | 费率：2.4元/小时</span>
+                    <button id="btn-1998-connect" class="win98-button">连接互联网 (Dial-up)</button>
+                  </div>
+
+                  <!-- 成功连接后的怀旧公告 -->
+                  <div id="win98-connected-card" class="hidden" style="margin-top: 14px; background: #ffffd0; border: 1px solid #c0c000; padding: 8px;">
+                    🎉 <strong>恭喜！您已成功接入 1998 年因特网！</strong><br>
+                    全国此时仅约数十万人在线。您已迈出人类数字文明迁徙的关键一步。
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 经典 98 任务栏 -->
+            <div class="win98-taskbar">
+              <div class="win98-start-btn">
+                <span>🪟</span>
+                <span>开始 (Start)</span>
+              </div>
+              <div class="win98-systray">
+                <span>🔈 12:00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 2003 个人主页花园 -->
+      <section id="era-2003" class="exhibit" data-year="2003">
+        <div class="y2k-homepage-container">
+          <div class="y2k-marquee-banner">
+            <span class="y2k-marquee-inner">
+              ★ 欢迎光临本站 ★ 建议使用 800x600 分辨率及 IE 6.0 浏览器浏览 ★ 本站建于 2003年3月14日 ★ 站长 QQ：8821039 ★ 今日阳光灿烂，祝每位访客天天开心！★
+            </span>
+          </div>
+
+          <h1 class="y2k-wordart-title">欢迎来到小雨的秘密花园</h1>
+          <div class="y2k-subtitle">★ Web Garden of Rain ★ 留驻千禧年最纯真的记忆 ★</div>
+
+          <div class="y2k-grid-layout">
+            <!-- 左侧信息栏 -->
+            <div class="y2k-sidebar-card">
+              <div>
+                <strong style="color: #ff69b4; font-size: 13px;">访客计数器：</strong>
+                <div id="visitor-counter-box" class="counter-digits-box" title="传说狂点计数器会有神秘彩蛋...">
+                  <span id="visitor-counter-digits">1314</span>
+                </div>
+                <small style="color: #cbd5e1; font-size: 11px; margin-top: 4px; display: block;">你是第 1314 位踏入花园的朋友</small>
+              </div>
+
+              <!-- 怀旧音乐盒播放器 -->
+              <div class="y2k-player-box">
+                <div style="font-size: 12px; color: #a5b4fc; margin-bottom: 6px;">🎵 Winamp 迷你播放盒</div>
+                <div id="bgm-2003-status" style="font-size: 11px; color: #38bdf8; margin-bottom: 8px;">就绪：千年之恋.mid</div>
+                <button id="btn-2003-bgm" class="y2k-btn-shiny">▶ 试听 8-bit 合成乐</button>
+              </div>
+
+              <div style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
+                站长公告：<br>
+                “期末考试终于结束啦！终于可以天天挂机升级 QQ 太阳了！留言板欢迎大家疯狂踩踩哦~”
+              </div>
+            </div>
+
+            <!-- 右侧主内容区 -->
+            <div class="y2k-main-panel">
+              <!-- 今日心情切换卡片 -->
+              <div class="y2k-mood-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <strong style="color: #f472b6; font-size: 14px;">🌸 今日站长心情日记</strong>
+                  <button id="btn-change-mood" class="y2k-btn-shiny">换个心情 ✨</button>
+                </div>
+                <div id="mood-text-2003" class="mood-quote-display">今天也要做闪闪发光的普通人。</div>
+              </div>
+
+              <!-- 互动留言板 -->
+              <div class="y2k-guestbook-box">
+                <strong style="color: #38bdf8; font-size: 14px; margin-bottom: 10px; display: block;">✎ 访客留言簿 (Guestbook)</strong>
+                <div class="guestbook-input-row">
+                  <input type="text" id="guestbook-name-input" placeholder="输入你的网名 (如: 轻舞飞扬)..." maxlength="12">
+                  <textarea id="guestbook-text-input" placeholder="留下你的脚印与祝福吧 (支持输入火星文与颜文字)..." rows="2"></textarea>
+                  <button id="btn-guestbook-submit" class="y2k-btn-shiny" style="align-self: flex-end;">签写留言 ✎</button>
+                </div>
+
+                <div id="guestbook-list" class="guestbook-list-container inner-scrollable">
+                  <!-- 留言动态渲染 -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 2008 深夜论坛 -->
+      <section id="era-2008" class="exhibit" data-year="2008">
+        <div class="forum-wrapper">
+          <div class="forum-header-bar">
+            <div class="forum-breadcrumb">
+              <a href="#" onclick="return false;">社区大厅</a> &gt; <a href="#" onclick="return false;">海阔天空</a> &gt; <span>深夜怪谈与技术探索</span>
+            </div>
+            <div class="forum-stats-widget">
+              今日发帖: <strong>842</strong> | 在线人数: <strong>1,894</strong> |
+              <span id="forum-ghost-online" class="ghost-online-indicator" title="点击查看这位神秘在线访客">在线幽灵: 1 人</span>
+            </div>
+          </div>
+
+          <!-- 主帖 -->
+          <div class="forum-main-post">
+            <h2 class="forum-thread-title">
+              <span>【求助悬疑】我的电脑每天凌晨会自动打开一个不存在的网站，怎么办？</span>
+              <span id="forum-hot-badge" class="hot-flame-tag hidden">🔥 HOT 火帖推荐</span>
+            </h2>
+            <div style="font-size: 12px; color: #94a3b8; display: flex; gap: 20px; align-items: center;">
+              <span>发帖人：午夜游民</span>
+              <span>查看：18,492 | 回复：89</span>
+              <button id="btn-forum-upvote" class="btn-forum-primary" style="padding: 4px 12px; font-size: 12px;">
+                👍 顶一下 (<span id="forum-upvote-count">3</span>)
+              </button>
+            </div>
+          </div>
+
+          <!-- 楼层列表 -->
+          <div id="forum-floors-list" class="forum-floors-list inner-scrollable" style="max-height: 400px; overflow-y: auto;">
+            <!-- 楼层卡片动态渲染 -->
+          </div>
+
+          <div style="text-align: center; padding: 12px; background: #182234; border-top: 1px solid #334155;">
+            <button id="btn-forum-load-more" class="header-btn" style="display: inline-block;">展开更多精彩回帖 ▽</button>
+          </div>
+
+          <!-- 发帖输入栏 -->
+          <div class="forum-reply-bar">
+            <textarea id="forum-reply-input" placeholder="发表你的高见（发帖请遵守论坛版规，文明交流）..."></textarea>
+            <button id="btn-forum-submit-reply" class="btn-forum-primary">快速发表回复 ↵</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. 2012 青春空间 -->
+      <section id="era-2012" class="exhibit skin-sakura" data-year="2012">
+        <div id="space-meteor-shower" class="space-meteor-shower hidden">
+          <div class="meteor-streak"></div>
+          <div class="meteor-streak"></div>
+          <div class="meteor-streak"></div>
+        </div>
+
+        <div class="space-wrapper">
+          <!-- 侧边栏：装扮值与个人资料 -->
+          <div class="space-sidebar-card">
+            <div style="text-align: center;">
+              <div style="font-size: 42px; margin-bottom: 6px;">👑</div>
+              <strong style="color: #f472b6; font-size: 15px;">唯美主义者丶</strong>
+              <div style="font-size: 11px; color: #facc15; margin-top: 4px;">💎 黄钻尊贵贵族 Lv.7</div>
+            </div>
+
+            <!-- 装扮值控制 -->
+            <div class="space-decor-bar">
+              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                <span>空间装扮指数</span>
+                <strong id="decor-score-value" style="color: #ec4899;">45 分</strong>
+              </div>
+              <div class="timeline-line-base" style="position: relative; height: 6px;">
+                <div id="decor-progress-fill" style="height: 100%; width: 45%; background: linear-gradient(90deg, #ec4899, #f43f5e); border-radius: 3px;"></div>
+              </div>
+              <div class="skin-switcher-pills">
+                <button class="btn-skin-choice active" data-skin="sakura">🌸 纯爱樱花</button>
+                <button class="btn-skin-choice" data-skin="blue">🌊 忧伤蓝调</button>
+                <button class="btn-skin-choice" data-skin="night">🌌 夜景流星</button>
+              </div>
+            </div>
+
+            <!-- 最近访客 -->
+            <div>
+              <strong style="font-size: 12px; color: #e2e8f0; display: block; margin-bottom: 8px;">最近访客 (共 89 人踩过)</strong>
+              <div class="visitors-grid">
+                <div class="visitor-item"><div>🐧</div><span>小明</span></div>
+                <div class="visitor-item"><div>🎸</div><span>阿杰</span></div>
+                <div class="visitor-item"><div>🍭</div><span>糖糖</span></div>
+                <div id="visitor-avatar-anonymous" class="visitor-item clickable" title="【匿名访客】仅主人可见，点击查看遗留草稿">
+                  <div style="filter: grayscale(1);">👤</div>
+                  <span style="color: #facc15;">神秘人</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 主流：写说说与动态流 -->
+          <div class="space-main-stream">
+            <div class="space-publish-box">
+              <strong style="color: #f472b6; font-size: 13px;">分享生活，留住感动 · 写说说</strong>
+              <textarea id="space-post-input" placeholder="在想什么呢？写下此刻的心情..."></textarea>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; color: #94a3b8;">自动附加机型小尾巴 · 同步发表至好友动态</span>
+                <button id="btn-space-publish" class="y2k-btn-shiny">发表动态 🚀</button>
+              </div>
+            </div>
+
+            <div id="space-posts-feed" class="space-posts-feed inner-scrollable" style="display: flex; flex-direction: column; gap: 14px; max-height: 420px; overflow-y: auto;">
+              <!-- 动态说说卡片渲染 -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 2024 算法走廊 -->
+      <section id="era-2024" class="exhibit" data-year="2024">
+        <div class="algo-wrapper">
+          <!-- 侧边栏：推荐画像与透明度 -->
+          <div class="algo-sidebar">
+            <div class="algo-metric-gauge">
+              <div class="gauge-header">
+                <span>系统对你的理解度</span>
+                <strong id="algorithm-insight-score">12%</strong>
+              </div>
+              <div class="gauge-track">
+                <div id="insight-progress-fill" class="gauge-fill"></div>
+              </div>
+              <small style="color: #64748b; font-size: 11px; margin-top: 6px; display: block;">
+                模型正在实时根据停留视线、点赞与划走反馈自适应调整
+              </small>
+            </div>
+
+            <div style="background: #020617; border: 1px solid #1e293b; padding: 14px; border-radius: 10px;">
+              <strong style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 6px;">实时推测画像标签：</strong>
+              <div id="algorithm-persona-text" style="font-size: 13px; color: #38bdf8; font-weight: bold;">
+                多维复合型探索者
+              </div>
+            </div>
+
+            <button id="btn-why-recommend" class="header-btn" style="justify-content: center;" title="查看系统为什么给你推送这些内容">
+              <span>👁️</span>
+              <span>为什么推荐给我？</span>
+            </button>
+
+            <!-- 达成 80% 理解度后解锁的时空虫洞入口 -->
+            <button id="btn-jump-to-2099" class="btn-primary-modal hidden" style="background: linear-gradient(135deg, #06b6d4, #3b82f6); margin-top: auto;">
+              🌀 跃迁至 2099 网页遗址修复中心 ↵
+            </button>
+          </div>
+
+          <!-- 主信息流 -->
+          <div class="algo-main-feed">
+            <div id="algorithm-alert-banner" class="algorithm-alert-banner hidden">
+              ⚠️ <strong>系统认知警告：</strong>“你以为你在主动浏览内容。实际上，算法正在训练如何永远留住你的注意力。”
+            </div>
+
+            <div id="algorithm-feed-list" class="algo-feed-stream inner-scrollable" style="max-height: 520px; overflow-y: auto;">
+              <!-- 推荐流卡片动态生成 -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. 2099 网页遗址修复中心 -->
+      <section id="era-2099" class="exhibit" data-year="2099">
+        <div class="ruins-wrapper">
+          <div class="ruins-header-summary">
+            <div>
+              <h2 style="font-size: 20px; color: #38bdf8; margin-bottom: 4px;">量子记忆重构工坊 · 网页遗址修复台</h2>
+              <p style="font-size: 13px; color: #94a3b8;">
+                收集 1998 ~ 2024 年代的 6 块核心文明记忆碎片，将其吸附对位，重构消逝在 404 浩劫中的人类互联网历史。
+              </p>
+            </div>
+            <div style="text-align: right; min-width: 140px;">
+              <span style="font-size: 12px; color: #94a3b8;">遗迹修复度</span>
+              <div id="restoration-percent" style="font-size: 26px; color: #10b981; font-weight: 900;">0%</div>
+              <div class="ruins-progress-bar" style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-top: 4px;">
+                <div id="restoration-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #06b6d4); transition: width 0.35s ease;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ruins-workspace-grid">
+            <!-- 左侧：6 个插槽 -->
+            <div id="restoration-slots-grid" class="restoration-slots-grid">
+              <!-- 插槽动态生成 -->
+            </div>
+
+            <!-- 右侧：漂浮碎片池 -->
+            <div class="fragments-floating-pool">
+              <strong style="color: #f8fafc; font-size: 13px;">漂浮的历史碎片 (可拖拽或点击吸附)：</strong>
+              <div id="fragments-floating-pool" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- 碎片动态生成 -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 全部修复成功后展开的终极档案卡片 -->
+          <div id="restoration-final-archive" class="restoration-final-archive hidden">
+            <h3 style="font-size: 22px; color: #34d399;">📜 终极档案：《你曾经留在互联网里的东西》</h3>
+            <div class="final-quote">
+              “我们保存下来的，不只是网页。<br>
+              还有每一个笨拙的昵称、<br>
+              每一句‘踩踩，已回访’，<br>
+              以及每一次等待对方头像亮起。”
+            </div>
+            <button id="btn-final-export-book" class="btn-primary-modal" style="background: linear-gradient(135deg, #059669, #10b981);">
+              💾 下载《你的考古发现册.html》永久数字留存
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================= 底部：时间轴导航 ================= -->
+    <footer class="bottom-timeline">
+      <button id="btn-prev-era" class="nav-direction-btn" title="切换到上一时代 (支持键盘方向键 ←)">
+        <span>←</span>
+        <span>上一站</span>
+      </button>
+
+      <div class="timeline-track-container">
+        <div class="timeline-line-base"></div>
+        <div class="timeline-progress-fill"></div>
+
+        <div class="timeline-nodes-wrapper">
+          <button type="button" class="timeline-node active" data-year="1998" aria-label="跳转到 1998 年代拨号接入室">
+            <span class="node-dot"></span>
+            <span class="node-year">1998</span>
+            <span class="node-label">拨号接入</span>
+          </button>
+          <button type="button" class="timeline-node" data-year="2003" aria-label="跳转到 2003 年代个人主页花园">
+            <span class="node-dot"></span>
+            <span class="node-year">2003</span>
+            <span class="node-label">主页花园</span>
+          </button>
+          <button type="button" class="timeline-node" data-year="2008" aria-label="跳转到 2008 年代深夜论坛">
+            <span class="node-dot"></span>
+            <span class="node-year">2008</span>
+            <span class="node-label">深夜论坛</span>
+          </button>
+          <button type="button" class="timeline-node" data-year="2012" aria-label="跳转到 2012 年代青春空间">
+            <span class="node-dot"></span>
+            <span class="node-year">2012</span>
+            <span class="node-label">青春空间</span>
+          </button>
+          <button type="button" class="timeline-node" data-year="2024" aria-label="跳转到 2024 年代算法走廊">
+            <span class="node-dot"></span>
+            <span class="node-year">2024</span>
+            <span class="node-label">算法走廊</span>
+          </button>
+          <button type="button" class="timeline-node" data-year="2099" aria-label="跳转到 2099 年代网页遗址修复中心">
+            <span class="node-dot"></span>
+            <span class="node-year">2099</span>
+            <span class="node-label">遗址修复</span>
+          </button>
+        </div>
+      </div>
+
+      <button id="btn-next-era" class="nav-direction-btn" title="切换到下一时代 (支持键盘方向键 →)">
+        <span>下一站</span>
+        <span>→</span>
+      </button>
+    </footer>
+
+    <!-- ================= 弹层：彩蛋发现提示 ================= -->
+    <div id="egg-unlock-modal" class="museum-modal-backdrop hidden">
+      <div class="museum-modal-content egg-unlock-box">
+        <div class="egg-modal-icon">✨</div>
+        <h3 class="egg-modal-title">发现彩蛋：未知遗物</h3>
+        <p class="egg-modal-desc">解密描述文本...</p>
+        <div class="egg-modal-location">遗址来源：1998 桌面不要点.exe</div>
+        <button id="btn-close-unlock-modal" class="btn-primary-modal">收入考古档案 🏆</button>
+      </div>
+    </div>
+
+    <!-- ================= 弹层：考古发现册抽屉 ================= -->
+    <aside id="archaeology-book-drawer" class="archaeology-drawer hidden">
+      <div class="drawer-header">
+        <h3>
+          <span>📜</span>
+          <span>考古发现册</span>
+          <span style="font-size: 13px; color: #facc15; font-weight: normal;">(发掘度: <span id="book-collected-count">0 / 6</span>)</span>
+        </h3>
+        <button id="btn-close-book" class="btn-modal-close">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div id="archaeology-grid" class="archaeology-grid">
+          <!-- 6 枚彩蛋展品动态渲染 -->
+        </div>
+
+        <div id="book-export-area" class="hidden" style="margin-top: 24px; padding: 16px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 8px; text-align: center;">
+          <p style="color: #6ee7b7; font-size: 13px; margin-bottom: 12px;">🎉 恭喜！您已发掘全套 6 枚历史遗迹彩蛋！</p>
+          <button id="btn-export-memory-html" class="btn-primary-modal" style="background: #10b981;">
+            导出《你的考古发现册.html》
+          </button>
+        </div>
+      </div>
+      <div class="drawer-footer">
+        <button id="btn-reset-progress" class="btn-secondary">⚠️ 重置所有进度与彩蛋</button>
+        <span style="font-size: 11px; color: #64748b;">数据自动保存在本地 localStorage</span>
+      </div>
+    </aside>
+
+    <!-- ================= 弹层：98 经典信息提示窗 ================= -->
+    <div id="win98-generic-dialog" class="museum-modal-backdrop hidden">
+      <div class="win98-window" style="margin: 0; max-width: 400px;">
+        <div class="win98-title-bar">
+          <span class="win98-dialog-title">系统提示</span>
+          <div class="win98-title-controls">
+            <button class="win98-dialog-close">X</button>
+          </div>
+        </div>
+        <div class="win98-window-body">
+          <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px;">
+            <div style="font-size: 32px;">💾</div>
+            <div class="win98-dialog-body" style="white-space: pre-line; line-height: 1.6;">内容详情...</div>
+          </div>
+          <div style="text-align: right;">
+            <button class="win98-button win98-dialog-ok">确定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 弹层：2024 算法透明度报告 ================= -->
+    <div id="algorithm-transparency-modal" class="museum-modal-backdrop hidden">
+      <div class="museum-modal-content">
+        <div class="modal-header-row">
+          <h3>👁️ 算法画像与透明度分析报告</h3>
+          <button class="btn-modal-close btn-close-transparency">✕</button>
+        </div>
+        <div style="font-size: 13px; color: #cbd5e1; line-height: 1.8;">
+          <p><strong>尊敬的受试人类编号 #404-User：</strong></p>
+          <p style="margin: 10px 0;">我们通过追踪您在上一毫秒内的鼠标滑行动量、对猫咪卡片的视线锁定以及对“凌晨四点起床”的不屑程度，已为您生成了 487 组标签。</p>
+          <ul style="padding-left: 20px; color: #94a3b8; margin-bottom: 14px;">
+            <li>推测情感易耗指数：87.4%</li>
+            <li>注意力疲惫阈值：约 4.2 秒</li>
+            <li>预期挽留策略：持续推送低成本多巴胺刺激</li>
+          </ul>
+          <p style="font-style: italic; color: #f43f5e;">“算法并不懂痛苦与爱，它只知道把下一个像素送到你瞳孔聚焦的地方。”</p>
+        </div>
+        <div style="text-align: right; margin-top: 18px;">
+          <button class="btn-primary-modal btn-close-transparency">我已了解这个事实</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 弹层：博物馆导览说明 ================= -->
+    <div id="museum-intro-modal" class="museum-modal-backdrop hidden">
+      <div class="museum-modal-content">
+        <div class="modal-header-row">
+          <h3>📖 《404 之前：互联网考古馆》漫游手册</h3>
+          <button id="btn-close-intro" class="btn-modal-close">✕</button>
+        </div>
+        <div style="font-size: 13px; color: #cbd5e1; line-height: 1.8;">
+          <p><strong>关于本展馆：</strong></p>
+          <p>您正在一个横向穿梭的时间长廊中。从 1998 年刺耳的拨号杂音，到 2003 年闪烁的个人主页，再到 2008 年温情的深夜论坛、2012 年梦幻的青春空间、2024 年严密的算法走廊，直至 2099 年被风化遗忘的量子记忆。</p>
+          <p style="margin: 12px 0;"><strong>浏览操作指南：</strong></p>
+          <ul style="padding-left: 20px; color: #94a3b8; margin-bottom: 12px;">
+            <li><strong>切换年代：</strong>可使用键盘左右键（← / →）、鼠标滚轮滑动、拖拽或点击底部时间轴。</li>
+            <li><strong>音效体验：</strong>右上角开启音效，体验由 Web Audio API 纯代码实时合成的拨号噪音与复古八音盒旋律。</li>
+            <li><strong>数字遗物：</strong>每个展厅均藏有 1 枚可收集的文明彩蛋，集齐 6 枚可解锁终极档案并下载离线纪念册！</li>
+          </ul>
+        </div>
+        <div style="text-align: right; margin-top: 18px;">
+          <button id="btn-start-explore" class="btn-primary-modal">开始探索之旅 🚀</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引入主逻辑打包脚本（兼容 file:// 本地直接双击免服务器打开与线上托管） -->
+  <script defer src="js/app.bundle.js"></script>
+</body>
+</html>

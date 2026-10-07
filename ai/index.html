@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 纯前端免构建项目集 · Cloudflare Hub</title>
+  <meta name="description" content="零依赖、零打包步骤，纯 HTML5 + CSS3 + 原生 JavaScript / WebGL 实现的 AI 前端原型与互动应用合集。">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+  <style>
+    :root {
+      --cf-orange: #f38020;
+      --cf-orange-hover: #fa8f32;
+      --cf-bg: #0b0f19;
+      --cf-card-bg: rgba(22, 28, 45, 0.75);
+      --cf-border: rgba(255, 255, 255, 0.08);
+      --cf-border-hover: rgba(243, 128, 32, 0.45);
+      --cf-text-primary: #ffffff;
+      --cf-text-secondary: #94a3b8;
+      --cf-blue: #3b82f6;
+      --cf-green: #10b981;
+      --cf-purple: #a855f7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background-color: var(--cf-bg);
+      color: var(--cf-text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(243, 128, 32, 0.18), transparent),
+        radial-gradient(ellipse 60% 40% at 85% 70%, rgba(59, 130, 246, 0.09), transparent),
+        radial-gradient(ellipse 50% 30% at 15% 40%, rgba(168, 85, 247, 0.08), transparent);
+    }
+
+    header {
+      border-bottom: 1px solid var(--cf-border);
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, var(--cf-orange), #ff5722);
+      color: #fff;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-link {
+      color: var(--cf-text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.15s ease;
+    }
+
+    .nav-link:hover {
+      color: #ffffff;
+    }
+
+    .btn-nav-primary {
+      background: rgba(243, 128, 32, 0.15);
+      border: 1px solid rgba(243, 128, 32, 0.35);
+      color: var(--cf-orange);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-nav-primary:hover {
+      background: var(--cf-orange);
+      color: #fff;
+    }
+
+    /* Hero */
+    .hero {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 24px 40px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(243, 128, 32, 0.1);
+      border: 1px solid rgba(243, 128, 32, 0.25);
+      color: var(--cf-orange);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    h1 .gradient-text {
+      background: linear-gradient(135deg, #ffffff 30%, #f38020 70%, #ff7643 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(15px, 2vw, 18px);
+      color: var(--cf-text-secondary);
+      max-width: 760px;
+      margin-bottom: 32px;
+    }
+
+    /* Grid */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto 80px;
+      padding: 0 24px;
+      width: 100%;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 24px;
+    }
+
+    .project-card {
+      background: var(--cf-card-bg);
+      border: 1px solid var(--cf-border);
+      border-radius: 16px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--cf-orange), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .project-card:hover {
+      border-color: var(--cf-border-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(243, 128, 32, 0.12);
+    }
+
+    .project-card:hover::before {
+      opacity: 1;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .project-icon {
+      font-size: 36px;
+      line-height: 1;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card-title-group h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .card-title-group .project-slug {
+      font-size: 12px;
+      color: #64748b;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .card-desc {
+      color: var(--cf-text-secondary);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      flex-grow: 1;
+    }
+
+    .tags-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .tag {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+    }
+
+    .tag.primary {
+      background: rgba(243, 128, 32, 0.1);
+      border-color: rgba(243, 128, 32, 0.25);
+      color: #fb923c;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .btn-launch {
+      flex: 1;
+      background: var(--cf-orange);
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 8px;
+      text-align: center;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-launch:hover {
+      background: var(--cf-orange-hover);
+      box-shadow: 0 4px 14px rgba(243, 128, 32, 0.35);
+    }
+
+    .btn-sublink {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--cf-text-secondary);
+      border: 1px solid var(--cf-border);
+      text-decoration: none;
+      font-size: 13px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-sublink:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    footer {
+      border-top: 1px solid var(--cf-border);
+      background: #080b13;
+      padding: 32px 24px;
+      margin-top: auto;
+      text-align: center;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero {
+        padding: 40px 16px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="nav-container">
+      <a href="/" class="logo-group">
+        <span>⚡ AI Project Hub</span>
+        <span class="logo-badge">Edge CDN</span>
+      </a>
+      <div class="nav-actions">
+        <a href="/" class="nav-link">站点首页</a>
+        <a href="/fortrust/" class="btn-nav-primary">静态资源中心 🔒</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="hero">
+    <div class="hero-badge">
+      <span>✨</span>
+      <span>Zero-Dependency Vanilla Web Applications</span>
+    </div>
+
+    <h1>
+      AI 原型与互动项目集<br>
+      <span class="gradient-text">纯前端 · 零依赖 · 极速离线体验</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      由多个前沿 AI 模型生成的独立纯前端应用。基于 HTML5、CSS3、原生 JavaScript 及 WebGL 构建，免打包编译，通过 Cloudflare 全球边缘网络即时交付。
+    </p>
+  </main>
+
+  <!-- Projects Grid -->
+  <div class="container">
+    <div class="projects-grid">
+
+      <!-- 1. block-game -->
+      <div class="project-card">
+        <div>
+          <div class="card-header">
+            <div class="project-icon">🧱</div>
+            <div class="card-title-group">
+              <h2>MiniCraft · 方块世界</h2>
+              <div class="project-slug">/ai/block-game/</div>
+            </div>
+          </div>
+          <p class="card-desc">
+            纯原生 WebGL 1.0 实现的 3D 沙盒世界（网页版我的世界）。支持三维噪声地形生成、方块放置与破坏、实时光影、粒子系统与游戏存档。
+          </p>
+          <div class="tags-list">
+            <span class="tag primary">WebGL 1.0</span>
+            <span class="tag">3D 沙盒</span>
+            <span class="tag">程序化生成</span>
+            <span class="tag">原生 JS</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a href="./block-game/" class="btn-launch" target="_blank">
+            <span>启动体验</span>
+            <span>→</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 2. cyber-potato -->
+      <div class="project-card">
+        <div>
+          <div class="card-header">
+            <div class="project-icon">🥔</div>
+            <div class="card-title-group">
+              <h2>赛博电子土豆</h2>
+              <div class="project-slug">/ai/cyber-potato/</div>
+            </div>
+          </div>
+          <p class="card-desc">
+            一颗会饿、会困、会超频过载，连续被冷落还会撰写辞职信的像素打工土豆。纯 CSS 像素动画与 Web Audio 原生合成音效，带状态持久化。
+          </p>
+          <div class="tags-list">
+            <span class="tag primary">CSS 像素动画</span>
+            <span class="tag">Web Audio</span>
+            <span class="tag">趣味互动</span>
+            <span class="tag">localStorage</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a href="./cyber-potato/" class="btn-launch" target="_blank">
+            <span>启动体验</span>
+            <span>→</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 3. internet-museum -->
+      <div class="project-card">
+        <div>
+          <div class="card-header">
+            <div class="project-icon">🏛️</div>
+            <div class="card-title-group">
+              <h2>404 之前：互联网考古馆</h2>
+              <div class="project-slug">/ai/internet-museum/</div>
+            </div>
+          </div>
+          <p class="card-desc">
+            横向穿越 1998、2003、2008、2012、2024、2099 六个互联网时代的单页互动遗址展馆。沉浸式复古 UI、时代彩蛋与动态声效。
+          </p>
+          <div class="tags-list">
+            <span class="tag primary">沉浸式多时代</span>
+            <span class="tag">复古拟物</span>
+            <span class="tag">数字考古</span>
+            <span class="tag">音效系统</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a href="./internet-museum/" class="btn-launch" target="_blank">
+            <span>启动体验</span>
+            <span>→</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 4. learn-lang -->
+      <div class="project-card">
+        <div>
+          <div class="card-header">
+            <div class="project-icon">🌍</div>
+            <div class="card-title-group">
+              <h2>LinguaJourney 语言学习</h2>
+              <div class="project-slug">/ai/learn-lang/</div>
+            </div>
+          </div>
+          <p class="card-desc">
+            沉浸式多语种学习单页应用（SPA）。集成 3D 拟真翻转闪卡、单词原声发音评测、词汇量记忆曲线及互动学习测试模块。
+          </p>
+          <div class="tags-list">
+            <span class="tag primary">SPA 学习平台</span>
+            <span class="tag">3D 闪卡</span>
+            <span class="tag">语音发音</span>
+            <span class="tag">纯原生</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a href="./learn-lang/" class="btn-launch" target="_blank">
+            <span>启动体验</span>
+            <span>→</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 5. iot-hub -->
+      <div class="project-card">
+        <div>
+          <div class="card-header">
+            <div class="project-icon">📡</div>
+            <div class="card-title-group">
+              <h2>IoT 实时数据调度控制台</h2>
+              <div class="project-slug">/ai/iot-hub/</div>
+            </div>
+          </div>
+          <p class="card-desc">
+            高性能单文件海量物联网设备调度与状态监控面板。包含万级设备虚拟滚动列表、多维告警过滤与动态拓扑数据可视化。
+          </p>
+          <div class="tags-list">
+            <span class="tag primary">海量数据调度</span>
+            <span class="tag">虚拟列表</span>
+            <span class="tag">单文件极简</span>
+            <span class="tag">IoT 监控</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a href="./iot-hub/" class="btn-launch" target="_blank">
+            <span>启动体验</span>
+            <span>→</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 6. stellar-fusion -->
+      <div class="project-card">
+        <div>
+          <div class="card-header">
+            <div class="project-icon">☀️</div>
+            <div class="card-title-group">
+              <h2>HELIOS & STELLAR 3D 聚变控制台</h2>
+              <div class="project-slug">/ai/stellar-fusion/</div>
+            </div>
+          </div>
+          <p class="card-desc">
+            纯 WebGL 2.0 (GLSL ES 3.00) 构建的 3D 星际能源监控系统。同一 Prompt 下 Google Gemini 与 MuseSpark 双模型生成的横向对比演示。
+          </p>
+          <div class="tags-list">
+            <span class="tag primary">WebGL 2.0</span>
+            <span class="tag">GLSL ES 3.0</span>
+            <span class="tag">双模型横评</span>
+            <span class="tag">3D 粒子流</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a href="./stellar-fusion/" class="btn-launch" target="_blank">
+            <span>聚合主页</span>
+            <span>→</span>
+          </a>
+          <a href="./stellar-fusion/gemini/" class="btn-sublink" target="_blank" title="Gemini 版本">Gemini</a>
+          <a href="./stellar-fusion/musespark/" class="btn-sublink" target="_blank" title="MuseSpark 版本">MuseSpark</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>Cloudflare Pages Edge Static Center &middot; Zero Build & Zero Dependency</p>
+  </footer>
+
+</body>
+</html>

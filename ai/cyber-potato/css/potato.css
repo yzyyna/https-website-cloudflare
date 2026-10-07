@@ -1,0 +1,677 @@
+/* potato.css - 纯 CSS 像素土豆形体、面部表情与配件系统 */
+
+:root {
+  --potato-base: #d19a5b;
+  --potato-dark: #a26b2e;
+  --potato-light: #eec185;
+  --potato-shadow: #76491a;
+  --potato-outline: #472608;
+  --pixel-size: 4px;
+}
+
+/* 土豆外层视口容器 */
+.potato-stage {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  user-select: none;
+}
+
+/* 土豆主体包装器 (承载所有动画和交互) */
+.potato-character {
+  position: relative;
+  width: 160px;
+  height: 140px;
+  cursor: pointer;
+  transition: filter 0.3s ease;
+  animation: potato-breathe 2.8s ease-in-out infinite;
+  transform-origin: center bottom;
+  touch-action: manipulation;
+}
+
+/* 受击形变类 (JS 动态追加) */
+.potato-character.is-squashing {
+  animation: potato-squash 0.36s cubic-bezier(0.25, 1.5, 0.5, 1) !important;
+}
+
+/* 状态：咖啡过载狂暴 */
+.potato-character.state-overload {
+  animation: coffee-jitter 0.08s infinite !important;
+  filter: drop-shadow(0 0 14px rgba(0, 220, 255, 0.85)) drop-shadow(0 0 6px #ff0055);
+}
+
+/* 状态：瞌睡打盹 */
+.potato-character.state-sleepy {
+  animation: potato-sleepy 4s ease-in-out infinite;
+}
+
+/* 状态：饥饿干瘪 */
+.potato-character.state-hungry {
+  animation: hungry-shiver 2s ease-in-out infinite;
+  filter: saturate(0.65) brightness(0.9);
+}
+
+/* 状态：暴怒 */
+.potato-character.state-rage {
+  animation: potato-rage 0.25s infinite;
+  filter: drop-shadow(0 0 10px #ff2a2a);
+}
+
+/* 状态：虚脱断电 */
+.potato-character.state-crash {
+  filter: grayscale(0.6) brightness(0.7);
+  transform: translateY(12px) scale(0.96, 0.85);
+  animation: none;
+}
+
+/* ===== 土豆身体主块 (纯 CSS 伪像素有机轮廓) ===== */
+.potato-body {
+  position: absolute;
+  inset: 0;
+  background-color: var(--potato-base);
+  border: 4px solid var(--potato-outline);
+  border-radius: 48% 52% 46% 54% / 54% 46% 54% 46%;
+  box-shadow: 
+    inset -8px -8px 0 var(--potato-shadow),
+    inset -14px -14px 0 var(--potato-dark),
+    inset 8px 8px 0 var(--potato-light),
+    0 10px 0 rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  image-rendering: pixelated;
+  transition: all 0.3s ease;
+}
+
+/* 饥饿时土豆凹陷发瘪 */
+.state-hungry .potato-body {
+  border-radius: 40% 60% 42% 58% / 60% 40% 60% 40%;
+  transform: scale(0.92, 0.88);
+}
+
+/* 暴怒发红 */
+.state-rage .potato-body {
+  background-color: #d86848;
+  box-shadow: 
+    inset -8px -8px 0 #9e2a15,
+    inset -14px -14px 0 #b83f23,
+    inset 8px 8px 0 #ffa388,
+    0 10px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* 土豆表面麻点雀斑 (像素感) */
+.potato-freckles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.freckle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: var(--potato-dark);
+  border-radius: 2px;
+}
+
+.freckle:nth-child(1) { top: 22px; left: 26px; width: 6px; height: 5px; }
+.freckle:nth-child(2) { top: 35px; left: 18px; width: 4px; height: 4px; }
+.freckle:nth-child(3) { bottom: 30px; left: 32px; width: 7px; height: 5px; }
+.freckle:nth-child(4) { top: 28px; right: 28px; width: 5px; height: 6px; }
+.freckle:nth-child(5) { bottom: 34px; right: 36px; width: 6px; height: 4px; }
+.freckle:nth-child(6) { bottom: 20px; right: 22px; width: 5px; height: 5px; }
+
+/* ===== 面部系统 (眼睛、瞳孔、嘴巴、腮红) ===== */
+.potato-face {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  width: 100%;
+  height: 65px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* 眼睛容器 */
+.potato-eyes {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+}
+
+.eye {
+  position: relative;
+  width: 18px;
+  height: 24px;
+  background: #ffffff;
+  border: 3px solid var(--potato-outline);
+  border-radius: 6px;
+  box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.12);
+  transform-origin: center;
+  animation: eye-blink 4.2s infinite;
+}
+
+/* 瞳孔 */
+.pupil {
+  position: absolute;
+  bottom: 3px;
+  left: 3px;
+  width: 7px;
+  height: 10px;
+  background-color: #111111;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+/* 瞳孔高光点 */
+.pupil::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 2px;
+  height: 3px;
+  background: #ffffff;
+}
+
+/* 死鱼眼/打工人厌世眼 (平常与疲惫) */
+.state-sleepy .eye,
+.state-normal .eye {
+  height: 18px;
+  border-radius: 4px;
+}
+.state-sleepy .eye::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  height: 9px;
+  background-color: var(--potato-outline);
+  z-index: 2;
+}
+
+/* 睡觉中：闭眼横线 */
+.state-sleeping .eye {
+  height: 4px;
+  background: var(--potato-outline);
+  border: none;
+  border-radius: 2px;
+  animation: none;
+}
+.state-sleeping .pupil {
+  display: none;
+}
+
+/* 饥饿：眼睛空洞下垂 */
+.state-hungry .eye {
+  height: 16px;
+  border-radius: 3px;
+}
+.state-hungry .pupil {
+  bottom: 1px;
+  left: 4px;
+  height: 6px;
+}
+
+/* 咖啡过载：双眼高频闪电蓝！ */
+.state-overload .eye {
+  background: #00f0ff;
+  border-color: #004466;
+  box-shadow: 0 0 10px #00f0ff;
+  animation: none;
+  transform: scale(1.15);
+}
+.state-overload .pupil {
+  width: 5px;
+  height: 5px;
+  left: 5px;
+  bottom: 6px;
+  background: #ffffff;
+  box-shadow: 0 0 6px #ffffff;
+}
+
+/* 暴怒：双眼发红，眼角斜立 */
+.state-rage .eye.left-eye {
+  transform: rotate(15deg);
+}
+.state-rage .eye.right-eye {
+  transform: rotate(-15deg);
+}
+.state-rage .eye {
+  background: #ffec80;
+  border-color: #550000;
+}
+.state-rage .pupil {
+  background: #d40000;
+}
+
+/* 嘴巴系统 */
+.potato-mouth {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 5px;
+  background-color: var(--potato-outline);
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+/* 正常状态嘴角微撇 (厌世) */
+.state-normal .potato-mouth {
+  width: 16px;
+  height: 4px;
+  transform: translateX(-50%) rotate(-3deg);
+}
+
+/* 饥饿时张大嘴求投喂 */
+.state-hungry .potato-mouth {
+  width: 18px;
+  height: 16px;
+  border-radius: 4px 4px 10px 10px;
+  background-color: #381206;
+  box-shadow: inset 0 -4px 0 #992222;
+}
+
+/* 咖啡过载咬牙切齿 */
+.state-overload .potato-mouth {
+  width: 22px;
+  height: 7px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    #ffffff,
+    #ffffff 3px,
+    var(--potato-outline) 3px,
+    var(--potato-outline) 5px
+  );
+  border: 2px solid var(--potato-outline);
+}
+
+/* 睡觉流口水 */
+.state-sleeping .potato-mouth {
+  width: 10px;
+  height: 6px;
+  border-radius: 0 0 6px 6px;
+}
+.state-sleeping .potato-mouth::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 0;
+  width: 4px;
+  height: 10px;
+  background-color: #64d3ff;
+  border-radius: 0 0 3px 3px;
+  opacity: 0.9;
+}
+
+/* 腮红 (好心情或害羞) */
+.blush {
+  position: absolute;
+  top: 26px;
+  width: 12px;
+  height: 6px;
+  background-color: #ff5577;
+  opacity: 0.35;
+  border-radius: 3px;
+  display: none;
+}
+.blush.left { left: 24px; }
+.blush.right { right: 24px; }
+.has-blush .blush { display: block; }
+
+/* 汗滴 (尴尬或无语) */
+.sweat-drop {
+  position: absolute;
+  top: 10px;
+  right: 28px;
+  width: 8px;
+  height: 12px;
+  background-color: #00d0ff;
+  border: 2px solid #005080;
+  border-radius: 50% 50% 50% 50% / 80% 80% 20% 20%;
+  display: none;
+  animation: zzz-float 2s infinite;
+}
+.is-sweating .sweat-drop { display: block; }
+
+/* ===== 奇怪配件槽位系统 (Accessories) ===== */
+
+/* 1. 配件：黑框像素眼镜 (喂书解锁) */
+.accessory-glasses {
+  position: absolute;
+  top: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 108px;
+  height: 28px;
+  z-index: 10;
+  pointer-events: none;
+  display: none;
+}
+.accessory-glasses.active {
+  display: block;
+}
+.glasses-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.glasses-lens {
+  position: absolute;
+  width: 32px;
+  height: 24px;
+  border: 4px solid #161616;
+  background-color: rgba(220, 245, 255, 0.45);
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+}
+.glasses-lens.left { left: 14px; }
+.glasses-lens.right { right: 14px; }
+.glasses-bridge {
+  position: absolute;
+  top: 10px;
+  left: 46px;
+  width: 16px;
+  height: 4px;
+  background-color: #161616;
+}
+.glasses-leg {
+  position: absolute;
+  top: 6px;
+  width: 14px;
+  height: 4px;
+  background-color: #161616;
+}
+.glasses-leg.left { left: 0; }
+.glasses-leg.right { right: 0; }
+
+/* 2. 配件：赛博机械义眼与排线 (咖啡过载解锁) */
+.accessory-cyber-eye {
+  position: absolute;
+  top: 38px;
+  right: 36px;
+  width: 24px;
+  height: 24px;
+  z-index: 12;
+  pointer-events: none;
+  display: none;
+}
+.accessory-cyber-eye.active {
+  display: block;
+}
+.cyber-eye-lens {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00ffff 20%, #0066aa 70%, #001122 100%);
+  border: 3px solid #ffcc00;
+  box-shadow: 0 0 10px #00f0ff, inset 0 0 4px #ffffff;
+}
+.cyber-wires {
+  position: absolute;
+  top: 8px;
+  right: -16px;
+  width: 20px;
+  height: 8px;
+  border-top: 2px solid #00f0ff;
+  border-bottom: 2px solid #ff0055;
+}
+
+/* 3. 配件：头顶嫩绿幼芽 (冷落/发霉解锁) */
+.accessory-sprout {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 30px;
+  z-index: 8;
+  pointer-events: none;
+  display: none;
+}
+.accessory-sprout.active {
+  display: block;
+  animation: plant-sway 2.4s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+.sprout-stem {
+  position: absolute;
+  bottom: 0;
+  left: 14px;
+  width: 4px;
+  height: 18px;
+  background-color: #3bb33b;
+  border: 2px solid #1a571a;
+  border-radius: 2px;
+}
+.sprout-leaf-left {
+  position: absolute;
+  top: 4px;
+  left: 2px;
+  width: 14px;
+  height: 10px;
+  background-color: #55d855;
+  border: 2px solid #1a571a;
+  border-radius: 10px 0 10px 0;
+  transform: rotate(-25deg);
+}
+.sprout-leaf-right {
+  position: absolute;
+  top: 0px;
+  right: 2px;
+  width: 14px;
+  height: 10px;
+  background-color: #55d855;
+  border: 2px solid #1a571a;
+  border-radius: 0 10px 0 10px;
+  transform: rotate(25deg);
+}
+
+/* 4. 配件：毒红伞蘑菇 (长时间弃养发霉) */
+.accessory-mushroom {
+  position: absolute;
+  top: -26px;
+  left: 32px;
+  width: 30px;
+  height: 32px;
+  z-index: 8;
+  pointer-events: none;
+  display: none;
+}
+.accessory-mushroom.active {
+  display: block;
+  animation: mushroom-bounce 2s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+.mushroom-cap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 18px;
+  background-color: #e52525;
+  border: 3px solid #660000;
+  border-radius: 16px 16px 4px 4px;
+}
+.mushroom-dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: #ffffff;
+  border-radius: 50%;
+}
+.mushroom-dot:nth-child(1) { top: 4px; left: 6px; }
+.mushroom-dot:nth-child(2) { top: 7px; right: 6px; }
+.mushroom-stem {
+  position: absolute;
+  bottom: 0;
+  left: 9px;
+  width: 10px;
+  height: 14px;
+  background-color: #f6e8cc;
+  border: 2px solid #660000;
+  border-radius: 2px;
+}
+
+/* 5. 配件：打工红领带 (打工模式) */
+.accessory-tie {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 36px;
+  z-index: 9;
+  pointer-events: none;
+  display: none;
+}
+.accessory-tie.active {
+  display: block;
+}
+.tie-knot {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  width: 12px;
+  height: 10px;
+  background-color: #d82020;
+  border: 2px solid #4a0000;
+  border-radius: 2px;
+}
+.tie-body {
+  position: absolute;
+  top: 8px;
+  left: 2px;
+  width: 16px;
+  height: 26px;
+  background: repeating-linear-gradient(
+    135deg,
+    #d82020,
+    #d82020 4px,
+    #333333 4px,
+    #333333 8px
+  );
+  border: 2px solid #4a0000;
+  clip-path: polygon(15% 0%, 85% 0%, 100% 75%, 50% 100%, 0% 75%);
+}
+
+/* 6. 配件：土豪粗金链子 (高好感度/暴富成就) */
+.accessory-gold-chain {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 22px;
+  z-index: 9;
+  pointer-events: none;
+  display: none;
+}
+.accessory-gold-chain.active {
+  display: block;
+}
+.gold-chain-links {
+  width: 100%;
+  height: 100%;
+  border-bottom: 5px dashed #ffd700;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  filter: drop-shadow(0 2px 0 #b38600);
+}
+
+/* 7. 配件：辞职小行囊 (背在身后) */
+.accessory-bundle {
+  position: absolute;
+  top: 14px;
+  left: -22px;
+  width: 44px;
+  height: 50px;
+  z-index: 2;
+  pointer-events: none;
+  display: none;
+}
+.accessory-bundle.active {
+  display: block;
+}
+.bundle-stick {
+  position: absolute;
+  top: 0;
+  left: 10px;
+  width: 6px;
+  height: 54px;
+  background-color: #7a481c;
+  border: 2px solid #3d240d;
+  transform: rotate(-35deg);
+  border-radius: 3px;
+}
+.bundle-cloth {
+  position: absolute;
+  top: -4px;
+  left: 0px;
+  width: 24px;
+  height: 24px;
+  background-color: #4a90e2;
+  border: 3px solid #1a365d;
+  border-radius: 50% 40% 60% 50%;
+  box-shadow: inset -3px -3px 0 #2b6cb0;
+}
+
+/* ===== 动态粒子与状态特效 ===== */
+/* 过载蒸汽云 */
+.steam-cloud {
+  position: absolute;
+  top: -16px;
+  width: 16px;
+  height: 16px;
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  box-shadow: 0 0 8px #ffffff;
+  pointer-events: none;
+  animation: steam-rise 1.2s ease-out infinite;
+  display: none;
+}
+.steam-cloud.c1 { left: 45px; animation-delay: 0s; }
+.steam-cloud.c2 { left: 80px; animation-delay: 0.4s; }
+.steam-cloud.c3 { left: 110px; animation-delay: 0.8s; }
+.state-overload .steam-cloud { display: block; }
+
+/* 瞌睡 Zzz 字符浮现 */
+.zzz-bubble {
+  position: absolute;
+  top: -8px;
+  right: 18px;
+  font-family: 'Courier New', monospace;
+  font-weight: 900;
+  color: #00d0ff;
+  font-size: 18px;
+  pointer-events: none;
+  display: none;
+  animation: zzz-float 2.4s infinite;
+  text-shadow: 2px 2px 0 #003355;
+}
+.state-sleepy .zzz-bubble,
+.state-sleeping .zzz-bubble {
+  display: block;
+}
+
+/* 怒气符号 💢 */
+.rage-symbol {
+  position: absolute;
+  top: -12px;
+  right: 10px;
+  font-size: 26px;
+  pointer-events: none;
+  display: none;
+  animation: heartbeat-fast 0.6s infinite;
+}
+.state-rage .rage-symbol { display: block; }
