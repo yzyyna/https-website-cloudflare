@@ -1,25 +1,31 @@
 /**
  * Cloudflare Pages Advanced Mode Worker
  *
- * 对 /fortrust/* 提供服务端密码门（真实防护直链访问），
- * 其余路径（如根 landing page）直接透传静态资源。
+ * 1. 对 /fortrust/* 提供服务端密码门（默认密码：fortrust / fortrust2026 / fortrust888，或环境变量 AUTH_PASSWORD）
+ * 2. 对 /ai/* 提供服务端密码门（默认密码：lpeng666 / Lpeng666，或环境变量 AI_AUTH_PASSWORD）
+ * 3. 其余路径（如根 landing page）直接透传静态资源。
  *
  * 可选环境变量（Dashboard → Pages 项目 → Settings → Environment variables）：
- *   AUTH_PASSWORD  自定义访问密码（设置后下方默认密码列表失效）
- *   AUTH_SECRET    Cookie 签名密钥（强烈建议设置；未设置时使用内置回退值，
- *                  公开仓库中回退值可被推算，设置后 Cookie 不可伪造）
- *
- * 默认访问密码：fortrust / fortrust2026 / fortrust888
- * 源码中仅存 SHA-256 哈希，不存明文。
+ *   AUTH_PASSWORD     自定义 fortrust 访问密码
+ *   AI_AUTH_PASSWORD  自定义 ai 访问密码
+ *   AUTH_SECRET       Cookie 签名密钥（强烈建议设置；未设置时使用内置回退值）
  */
 
-const PASSWORD_HASHES = new Set([
+// /fortrust/* 默认密码哈希 (fortrust, fortrust2026, fortrust888)
+const FT_PASSWORD_HASHES = new Set([
   '9fcf7d4dd3fb0caa2075c4ee18f58eea9cd7880506baf304661adce1bd0d14e2',
   'c5cd5203f92554630e21fb3ed1767107594875f2e0d20a151a267637d48860a9',
   '026ac107c02278c84985606fb002cc47801e6a4db00afdb02536e9af75643875'
 ]);
 
-const COOKIE_NAME = 'ft_auth';
+// /ai/* 默认密码哈希 (lpeng666, Lpeng666)
+const AI_PASSWORD_HASHES = new Set([
+  '61eb59bdd5fc7f3dba5e976dfbda56b35f2a1977cf7f301e4e1a87b451840b28', // lpeng666
+  '5332c6ce71b91b3cb303a57a52030406fb647532e63e59b6fbe3d8421542ad46'  // Lpeng666
+]);
+
+const FT_COOKIE_NAME = 'ft_auth';
+const AI_COOKIE_NAME = 'ai_auth';
 const TTL_SECONDS = 7 * 24 * 60 * 60;
 const encoder = new TextEncoder();
 
@@ -29,12 +35,7 @@ async function sha256Hex(str) {
 }
 
 function getSecret(env) {
-  return env.AUTH_SECRET || 'ft-fallback::' + [...PASSWORD_HASHES].join('|');
-}
-
-// 返回自定义明文密码（不是哈希），调用处需再 sha256 后比对
-function getCustomPassword(env) {
-  return env.AUTH_PASSWORD || null;
+  return env.AUTH_SECRET || 'ft-fallback::' + [...FT_PASSWORD_HASHES, ...AI_PASSWORD_HASHES].join('|');
 }
 
 function getCookie(request, name) {
@@ -52,7 +53,7 @@ function safeNext(raw, fallback) {
   return fallback;
 }
 
-// HTML 转义：阻断属性/文本注入（next、error 均来自请求侧）
+// HTML 转义：阻断属性/文本注入
 function escapeHtml(str) {
   return String(str || '').replace(/[&<>"']/g, c => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -62,12 +63,16 @@ function escapeHtml(str) {
 function loginPage(error, next) {
   const safeError = escapeHtml(error);
   const safeNextParam = escapeHtml(next);
+  const isAiScope = next.startsWith('/ai') || next === '/ai';
+  const pageTitle = isAiScope ? '🔐 AI 项目集 · 请输入访问密码' : '🔐 Fortrust 静态中心 · 请输入访问密码';
+  const hintText = isAiScope ? '请输入 AI 模块访问密钥' : '请输入 Fortrust 访问密钥';
+
   const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>🔐 请输入访问密钥</title>
+<title>${pageTitle}</title>
 <style>
 *{box-sizing:border-box}
 body{
@@ -86,16 +91,19 @@ input:focus{background:#fff;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99
 button{width:100%;padding:13px;border:none;border-radius:10px;background:#2563eb;color:#fff;
   font-size:14px;font-weight:700;cursor:pointer;transition:background .15s ease}
 button:hover{background:#1d4ed8}
+.back-link{margin-top:16px;display:inline-block;font-size:13px;color:#64748b;text-decoration:none}
+.back-link:hover{color:#2563eb}
 </style>
 </head>
 <body>
 <form method="POST" action="/_auth">
   <div class="box">
-    <h2>🔐 请输入访问密钥</h2>
-    <input type="password" name="password" placeholder="请输入访问密钥..." autocomplete="current-password" autofocus>
+    <h2>${pageTitle}</h2>
+    <input type="password" name="password" placeholder="${hintText}..." autocomplete="current-password" autofocus>
     <div class="err">${safeError}</div>
     <button type="submit">确认进入</button>
     <input type="hidden" name="next" value="${safeNextParam}">
+    <div><a href="/" class="back-link">← 返回站点首页</a></div>
   </div>
 </form>
 </body>
@@ -116,26 +124,29 @@ function timingSafeEqual(a, b) {
   return diff === 0;
 }
 
-async function isAuthed(request, env) {
-  const token = getCookie(request, COOKIE_NAME);
+async function isAuthed(request, env, scope = 'fortrust') {
+  const cookieName = scope === 'ai' ? AI_COOKIE_NAME : FT_COOKIE_NAME;
+  const token = getCookie(request, cookieName);
   if (!token) return false;
   const dot = token.indexOf('.');
   if (dot <= 0) return false;
   const exp = Number(token.slice(0, dot));
   const sig = token.slice(dot + 1);
   if (!Number.isFinite(exp) || exp * 1000 < Date.now()) return false;
-  const expected = await sha256Hex(getSecret(env) + '.' + exp);
+  const expected = await sha256Hex(getSecret(env) + '.' + scope + '.' + exp);
   return timingSafeEqual(sig, expected);
 }
 
 async function handleAuth(request, env, url) {
   // 登出
   if (url.searchParams.has('logout')) {
+    const scope = url.searchParams.get('scope') || '';
+    const redirectUrl = scope === 'ai' ? '/ai/' : '/fortrust/';
     return new Response(null, {
       status: 302,
       headers: {
-        'Location': '/fortrust/',
-        'Set-Cookie': `${COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`
+        'Location': redirectUrl,
+        'Set-Cookie': `${FT_COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax, ${AI_COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`
       }
     });
   }
@@ -146,14 +157,26 @@ async function handleAuth(request, env, url) {
   const form = await request.formData();
   const password = String(form.get('password') || '');
   const next = safeNext(String(form.get('next') || '/fortrust/'), '/fortrust/');
+  const isAiScope = next.startsWith('/ai') || next === '/ai';
+  const scope = isAiScope ? 'ai' : 'fortrust';
 
-  const customPassword = getCustomPassword(env);
   const inputHash = await sha256Hex(password);
-  let matched;
-  if (customPassword) {
-    matched = inputHash === (await sha256Hex(customPassword));
+  let matched = false;
+
+  if (isAiScope) {
+    const customAiPassword = env.AI_AUTH_PASSWORD || null;
+    if (customAiPassword) {
+      matched = inputHash === (await sha256Hex(customAiPassword));
+    } else {
+      matched = AI_PASSWORD_HASHES.has(inputHash);
+    }
   } else {
-    matched = PASSWORD_HASHES.has(inputHash);
+    const customFtPassword = env.AUTH_PASSWORD || null;
+    if (customFtPassword) {
+      matched = inputHash === (await sha256Hex(customFtPassword));
+    } else {
+      matched = FT_PASSWORD_HASHES.has(inputHash);
+    }
   }
 
   if (!matched) {
@@ -161,12 +184,14 @@ async function handleAuth(request, env, url) {
   }
 
   const exp = Math.floor(Date.now() / 1000) + TTL_SECONDS;
-  const sig = await sha256Hex(getSecret(env) + '.' + exp);
+  const sig = await sha256Hex(getSecret(env) + '.' + scope + '.' + exp);
+  const cookieName = isAiScope ? AI_COOKIE_NAME : FT_COOKIE_NAME;
+
   return new Response(null, {
     status: 302,
     headers: {
       'Location': next,
-      'Set-Cookie': `${COOKIE_NAME}=${exp}.${sig}; Max-Age=${TTL_SECONDS}; Path=/; HttpOnly; Secure; SameSite=Lax`
+      'Set-Cookie': `${cookieName}=${exp}.${sig}; Max-Age=${TTL_SECONDS}; Path=/; HttpOnly; Secure; SameSite=Lax`
     }
   });
 }
@@ -271,7 +296,6 @@ function loadScript(src, check) {
 function sanitizeHtml(dirty) {
   const blockTags = ['script', 'iframe', 'object', 'embed', 'style', 'link', 'meta', 'form', 'base', 'svg', 'math'];
   let out = String(dirty || '');
-  // 成对危险标签整体移除（闭合标签可复用同一名称）
   for (const tag of blockTags) {
     const pair = new RegExp('<\\s*' + tag + '\\b[^>]*>[\\s\\S]*?<\\s*/\\s*' + tag + '\\s*>', 'gi');
     const single = new RegExp('<\\s*/?\\s*' + tag + '\\b[^>]*>', 'gi');
@@ -338,26 +362,36 @@ export default {
 
     // 新标签页查看器：受密码保护，将不可原生预览的文件渲染为网页
     if (path === '/_view') {
-      if (!(await isAuthed(request, env))) {
-        return loginPage('', '/fortrust/');
-      }
       const target = safeNext(url.searchParams.get('u') || '', '/fortrust/');
+      const isAiTarget = target.startsWith('/ai/') || target === '/ai';
+      const scope = isAiTarget ? 'ai' : 'fortrust';
+
+      if (!(await isAuthed(request, env, scope))) {
+        return loginPage('', target);
+      }
+
       const ext = (target.match(/\.([^./]+)$/i) || [''])[0].toLowerCase();
-      if (!target.startsWith('/fortrust/') || !VIEWER_EXTS.has(ext)) {
-        // 非查看器类型直接回到原文件（浏览器可原生预览）
+      if (!VIEWER_EXTS.has(ext)) {
         return new Response(null, { status: 302, headers: { 'Location': target } });
       }
       return viewerPage(target);
     }
 
-    // 受保护区：/fortrust 及其下所有资源（含 directory.json、原型、文档）
+    // 受保护区 1：/fortrust 及其下所有资源
     if (path === '/fortrust' || path.startsWith('/fortrust/')) {
-      if (!(await isAuthed(request, env))) {
+      if (!(await isAuthed(request, env, 'fortrust'))) {
         return loginPage('', path + url.search);
       }
     }
 
-    // 其余请求透传静态资源
+    // 受保护区 2：/ai 及其下所有资源
+    if (path === '/ai' || path.startsWith('/ai/')) {
+      if (!(await isAuthed(request, env, 'ai'))) {
+        return loginPage('', path + url.search);
+      }
+    }
+
+    // 其余请求透传静态资源（如根目录 landing page）
     if (env.ASSETS) {
       return env.ASSETS.fetch(request);
     }
