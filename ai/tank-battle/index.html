@@ -1598,7 +1598,8 @@
         }
         this.player = new Tank(7.5, 11.5, true, 'player');
         this.player.level = 1;
-        this.player.angle = 0;
+        this.player.angle = Math.PI;
+        this.player.turretAngle = Math.PI;
         this.applyPlayerRankStats();
 
         // Sample showcase enemies
@@ -1846,7 +1847,8 @@
         const preservedLevel = this.player ? this.player.level : 1;
         this.player = new Tank(7.5, 11.5, true, 'player');
         this.player.level = preservedLevel;
-        this.player.angle = 0;
+        this.player.angle = Math.PI;
+        this.player.turretAngle = Math.PI;
         this.applyPlayerRankStats();
         this.player.shieldTime = 3.0; // 3s respawn shield
 
@@ -2220,14 +2222,18 @@
          8. Physics & Collision Handling
          ======================================================== */
       checkTileCollision(x, z, radius) {
-        const minC = Math.floor(x - radius);
-        const maxC = Math.floor(x + radius);
-        const minR = Math.floor(z - radius);
-        const maxR = Math.floor(z + radius);
+        // Map Bound Check with Margin
+        if (x - radius < 0.2 || x + radius > MAP_SIZE - 0.2 || z - radius < 0.2 || z + radius > MAP_SIZE - 0.2) {
+          return true;
+        }
+
+        const minC = Math.max(0, Math.floor(x - radius));
+        const maxC = Math.min(MAP_SIZE - 1, Math.floor(x + radius));
+        const minR = Math.max(0, Math.floor(z - radius));
+        const maxR = Math.min(MAP_SIZE - 1, Math.floor(z + radius));
 
         for (let r = minR; r <= maxR; r++) {
           for (let c = minC; c <= maxC; c++) {
-            if (r < 0 || r >= MAP_SIZE || c < 0 || c >= MAP_SIZE) return true; // Map bound
             const tile = this.map[r][c];
             if (tile === TILE_BRICK || tile === TILE_STEEL || tile === TILE_WATER || tile === TILE_BASE) {
               return true;
@@ -2235,6 +2241,36 @@
           }
         }
         return false;
+      }
+
+      // Smooth Sliding Axis-separated Collision
+      moveEntityWithCollision(entity, dirX, dirZ, speed, dt) {
+        const radius = entity.size * 0.42;
+        const dist = speed * dt;
+
+        const targetX = entity.x + dirX * dist;
+        const targetZ = entity.z + dirZ * dist;
+
+        // 1. Try full movement
+        if (!this.checkTileCollision(targetX, targetZ, radius)) {
+          entity.x = targetX;
+          entity.z = targetZ;
+        } else {
+          // 2. Sliding Collision: Try X-axis only
+          if (dirX !== 0 && !this.checkTileCollision(targetX, entity.z, radius)) {
+            entity.x = targetX;
+          }
+          // 3. Sliding Collision: Try Z-axis only
+          if (dirZ !== 0 && !this.checkTileCollision(entity.x, targetZ, radius)) {
+            entity.z = targetZ;
+          }
+        }
+
+        // 4. Absolute Hard Screen Boundary Clamp (100% immune to leaving map)
+        const minBound = radius + 0.3;
+        const maxBound = MAP_SIZE - radius - 0.3;
+        entity.x = Math.max(minBound, Math.min(maxBound, entity.x));
+        entity.z = Math.max(minBound, Math.min(maxBound, entity.z));
       }
 
       handleBulletCollisions(b) {
@@ -2294,6 +2330,13 @@
         }
       }
 
+      lerpAngle(current, target, factor) {
+        let diff = (target - current) % (Math.PI * 2);
+        if (diff < -Math.PI) diff += Math.PI * 2;
+        if (diff > Math.PI) diff -= Math.PI * 2;
+        return current + diff * factor;
+      }
+
       updateAI(enemy, dt) {
         if (this.freezeTime > 0) return; // EMP Frozen
 
@@ -2303,7 +2346,7 @@
 
           // Target Eagle or Player with probability
           if (Math.random() < 0.4 && !this.baseDestroyed) {
-            // Head towards Base
+            // Head towards Base (Z=13.5, X=7.5)
             const dx = this.baseX - enemy.x;
             const dz = this.baseZ - enemy.z;
             if (Math.abs(dx) > Math.abs(dz)) {
@@ -2317,26 +2360,24 @@
             const dz = this.player.z - enemy.z;
             enemy.targetDir = Math.atan2(dx, dz);
           } else {
-            // Random Direction (0, PI/2, PI, -PI/2)
+            // Random Direction (0:Down, PI/2:Right, PI:Up, -PI/2:Left)
             const dirs = [0, Math.PI * 0.5, Math.PI, -Math.PI * 0.5];
             enemy.targetDir = dirs[Math.floor(Math.random() * dirs.length)];
           }
         }
 
         // Smooth Turn
-        enemy.angle = enemy.targetDir;
+        enemy.angle = this.lerpAngle(enemy.angle, enemy.targetDir, Math.min(1.0, dt * 10.0));
         enemy.turretAngle = enemy.angle;
 
-        // Move
-        const moveDist = enemy.speed * dt;
-        const nextX = enemy.x + Math.sin(enemy.angle) * moveDist;
-        const nextZ = enemy.z + Math.cos(enemy.angle) * moveDist;
+        // Move with Collision
+        const dirX = Math.sin(enemy.angle);
+        const dirZ = Math.cos(enemy.angle);
+        const prevX = enemy.x, prevZ = enemy.z;
+        this.moveEntityWithCollision(enemy, dirX, dirZ, enemy.speed, dt);
 
-        if (!this.checkTileCollision(nextX, nextZ, enemy.size * 0.5)) {
-          enemy.x = nextX;
-          enemy.z = nextZ;
-        } else {
-          enemy.changeDirTimer = 0; // Hit obstacle, change dir
+        if (Math.hypot(enemy.x - prevX, enemy.z - prevZ) < 0.01) {
+          enemy.changeDirTimer = 0; // Hit obstacle, change direction
         }
 
         // Fire logic
@@ -2404,36 +2445,34 @@
         if (this.player && !this.player.dead) {
           this.player.update(dt);
 
-          // Keyboard Move vector
+          // Keyboard & Input Move vector (W:Up/-Z, S:Down/+Z, A:Left/-X, D:Right/+X)
           let dx = 0, dz = 0;
-          if (this.keys['KeyW'] || this.keys['ArrowUp']) dz += 1;
-          if (this.keys['KeyS'] || this.keys['ArrowDown']) dz -= 1;
+          if (this.keys['KeyW'] || this.keys['ArrowUp']) dz -= 1;
+          if (this.keys['KeyS'] || this.keys['ArrowDown']) dz += 1;
           if (this.keys['KeyA'] || this.keys['ArrowLeft']) dx -= 1;
           if (this.keys['KeyD'] || this.keys['ArrowRight']) dx += 1;
 
           if (dx !== 0 || dz !== 0) {
-            const moveAngle = Math.atan2(dx, dz);
-            this.player.angle = moveAngle;
+            // Normalize direction vector
+            const len = Math.hypot(dx, dz);
+            const normX = dx / len;
+            const normZ = dz / len;
+
+            const targetAngle = Math.atan2(normX, normZ);
+            this.player.angle = this.lerpAngle(this.player.angle, targetAngle, Math.min(1.0, dt * 14.0));
+            this.player.turretAngle = this.lerpAngle(this.player.turretAngle, targetAngle, Math.min(1.0, dt * 18.0));
 
             const spd = (this.keys['ShiftLeft'] || this.keys['ShiftRight']) ? this.player.speed * 1.35 : this.player.speed;
-            const dist = (this.player.speedBoostTime > 0 ? spd * 1.5 : spd) * dt;
+            const actualSpeed = this.player.speedBoostTime > 0 ? spd * 1.5 : spd;
 
-            const nextX = this.player.x + Math.sin(moveAngle) * dist;
-            const nextZ = this.player.z + Math.cos(moveAngle) * dist;
-
-            if (!this.checkTileCollision(nextX, nextZ, this.player.size * 0.45)) {
-              this.player.x = nextX;
-              this.player.z = nextZ;
-            }
+            // Smooth Sliding Axis-separated Move & Hard Screen Clamp
+            this.moveEntityWithCollision(this.player, normX, normZ, actualSpeed, dt);
           }
 
           // Turret Rotation (Follows Key/Mouse)
           if (this.keys['Space'] || this.keys['KeyJ'] || this.isMouseDown) {
             this.tryPlayerShoot();
           }
-
-          // In Isometric mode, turret faces mouse / move angle
-          this.player.turretAngle = this.player.angle;
 
           // Pick up powerups
           this.powerups.forEach(p => {
