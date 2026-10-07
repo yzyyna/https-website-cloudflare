@@ -2,138 +2,101 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI 纯前端免构建项目集 · Cloudflare Hub</title>
-  <meta name="description" content="零依赖、零打包步骤，纯 HTML5 + CSS3 + 原生 JavaScript / WebGL 实现的 AI 前端原型与交互应用合集。">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚀%3C/text%3E%3C/svg%3E">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Web Lab · 原生前端应用与交互作品集</title>
+  <meta name="description" content="基于纯原生 HTML5、CSS3、JavaScript 及 WebGL 构建的零依赖免打包前端应用合集。">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230071e3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'/><polyline points='2 17 12 22 22 17'/><polyline points='2 12 12 17 22 12'/></svg>">
   <style>
     :root {
-      --bg-dark: #060911;
-      --bg-darker: #03050a;
-      --bg-card: rgba(14, 20, 36, 0.75);
-      --bg-card-hover: rgba(20, 29, 52, 0.9);
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-hover: rgba(243, 128, 32, 0.45);
-      --primary-orange: #f38020;
-      --primary-orange-light: #fb923c;
-      --primary-glow: rgba(243, 128, 32, 0.25);
-      --accent-cyan: #38bdf8;
-      --accent-emerald: #34d399;
-      --accent-purple: #c084fc;
-      --accent-rose: #fb7185;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      --bg-body: #f5f5f7;
+      --bg-surface: #ffffff;
+      --bg-surface-secondary: #fbfbfd;
+      --text-primary: #1d1d1f;
+      --text-secondary: #86868b;
+      --text-tertiary: #a1a1a6;
+      --accent-blue: #0071e3;
+      --accent-blue-hover: #0077ed;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-hover: rgba(0, 0, 0, 0.16);
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      --card-shadow-hover: 0 16px 36px rgba(0, 0, 0, 0.08);
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
-      font-family: var(--font-sans);
-      background-color: var(--bg-dark);
-      color: var(--text-main);
+      font-family: var(--font-stack);
+      background-color: var(--bg-body);
+      color: var(--text-primary);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      line-height: 1.6;
-      overflow-x: hidden;
-      position: relative;
+      line-height: 1.5;
     }
 
-    /* Ambient Background Elements */
-    #bg-canvas {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.75;
-    }
-
-    .ambient-glow {
-      position: fixed;
-      top: -200px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 900px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(243, 128, 32, 0.15) 0%, rgba(56, 189, 248, 0.08) 50%, transparent 80%);
-      filter: blur(80px);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* Navigation Header */
+    /* Apple-style Global Nav */
     header {
       position: sticky;
       top: 0;
-      z-index: 50;
-      background: rgba(6, 9, 17, 0.82);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
       border-bottom: 1px solid var(--border-subtle);
-      transition: all 0.3s ease;
     }
 
     .nav-inner {
-      max-width: 1320px;
+      max-width: 1120px;
       margin: 0 auto;
-      padding: 12px 24px;
+      padding: 0 24px;
+      height: 52px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
     }
 
-    .brand {
+    .nav-brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       text-decoration: none;
-      color: #fff;
-    }
-
-    .brand-icon {
-      width: 38px;
-      height: 38px;
-      background: linear-gradient(135deg, #f38020, #e11d48);
-      border-radius: 11px;
-      display: grid;
-      place-items: center;
-      font-size: 21px;
-      box-shadow: 0 0 20px rgba(243, 128, 32, 0.45);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .brand:hover .brand-icon {
-      transform: scale(1.08) rotate(4deg);
-    }
-
-    .brand-name {
-      font-size: 17px;
-      font-weight: 800;
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 15px;
       letter-spacing: -0.01em;
+    }
+
+    .nav-brand svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--accent-blue);
+    }
+
+    .nav-links {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 24px;
+      list-style: none;
     }
 
-    .badge-edge {
-      background: rgba(243, 128, 32, 0.15);
-      border: 1px solid rgba(243, 128, 32, 0.3);
-      color: var(--primary-orange-light);
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 999px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 400;
+      transition: color 0.15s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
     }
 
     .nav-actions {
@@ -142,1752 +105,581 @@
       gap: 10px;
     }
 
-    .btn-nav-action {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-muted);
-      font-size: 13px;
+    .btn-pill {
+      font-size: 12px;
       font-weight: 500;
-      padding: 6px 12px;
-      border-radius: 8px;
-      cursor: pointer;
+      padding: 6px 14px;
+      border-radius: 980px;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-    .btn-nav-action:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
+      gap: 4px;
     }
 
-    .btn-sound-toggle.active {
-      color: var(--primary-orange-light);
-      border-color: rgba(243, 128, 32, 0.3);
+    .btn-pill-primary {
+      background: var(--text-primary);
+      color: #ffffff;
     }
 
-    .btn-nav-fortrust {
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      color: var(--accent-cyan);
-      font-weight: 600;
+    .btn-pill-primary:hover {
+      background: #333336;
     }
-    .btn-nav-fortrust:hover {
-      background: rgba(56, 189, 248, 0.22);
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
-      color: #fff;
+
+    .btn-pill-secondary {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text-primary);
+    }
+
+    .btn-pill-secondary:hover {
+      background: rgba(0, 0, 0, 0.08);
     }
 
     /* Main Container */
     main {
-      position: relative;
-      z-index: 10;
       flex: 1;
-      max-width: 1320px;
-      width: 100%;
+      max-width: 1120px;
       margin: 0 auto;
-      padding: 44px 24px 80px;
+      padding: 64px 24px 80px;
+      width: 100%;
     }
 
     /* Hero Section */
-    .hero-wrap {
+    .hero {
       text-align: center;
-      margin-bottom: 48px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      margin-bottom: 56px;
     }
 
-    .hero-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(243, 128, 32, 0.09);
-      border: 1px solid rgba(243, 128, 32, 0.26);
-      color: var(--primary-orange-light);
-      padding: 6px 18px;
-      border-radius: 999px;
-      font-size: 12.5px;
+    .hero-eyebrow {
+      font-size: 13px;
       font-weight: 600;
-      margin-bottom: 20px;
-      box-shadow: 0 0 20px rgba(243, 128, 32, 0.15);
-      animation: floatPill 4s ease-in-out infinite alternate;
-    }
-
-    @keyframes floatPill {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-4px); }
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
     }
 
     .hero-title {
-      font-size: clamp(34px, 5.8vw, 60px);
-      font-weight: 900;
-      line-height: 1.12;
-      letter-spacing: -0.035em;
-      margin-bottom: 18px;
-    }
-
-    .hero-title .gradient-text {
-      background: linear-gradient(135deg, #ffffff 15%, #f38020 55%, #fb7185 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 0 40px rgba(243, 128, 32, 0.3);
+      font-size: clamp(34px, 4.8vw, 50px);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      color: var(--text-primary);
+      margin-bottom: 16px;
     }
 
     .hero-subtitle {
-      font-size: clamp(15px, 2vw, 17.5px);
-      color: var(--text-muted);
-      max-width: 780px;
-      margin-bottom: 32px;
-      line-height: 1.65;
+      font-size: clamp(16px, 1.8vw, 19px);
+      font-weight: 400;
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin: 0 auto;
+      line-height: 1.45;
+      letter-spacing: -0.01em;
     }
 
-    .hero-cta-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      margin-bottom: 36px;
-    }
-
-    .btn-hero-random {
-      background: linear-gradient(135deg, var(--primary-orange), #ea580c);
-      color: #fff;
-      border: none;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 700;
-      padding: 11px 22px;
-      border-radius: 12px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 6px 24px rgba(243, 128, 32, 0.4);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .btn-hero-random:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(243, 128, 32, 0.6);
-      background: linear-gradient(135deg, var(--primary-orange-light), #f97316);
-    }
-
-    .btn-hero-cmd {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      color: #fff;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 11px 20px;
-      border-radius: 12px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      backdrop-filter: blur(10px);
-      transition: all 0.2s;
-    }
-    .btn-hero-cmd:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.25);
-    }
-
-    .kbd-tag {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 5px;
-      color: var(--text-dim);
-    }
-
-    /* Metrics Ribbon */
-    .metrics-ribbon {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 16px 32px;
-      padding: 14px 28px;
-      background: rgba(15, 23, 42, 0.55);
-      border: 1px solid var(--border-subtle);
-      border-radius: 16px;
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-    }
-
-    .metric-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-    }
-    .metric-item b {
-      color: #fff;
-      font-family: var(--font-mono);
-      font-size: 14px;
-    }
-    .metric-item span {
-      color: var(--text-dim);
-    }
-    .metric-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--accent-emerald);
-      box-shadow: 0 0 10px var(--accent-emerald);
-      animation: pulseDot 2s infinite;
-    }
-    @keyframes pulseDot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
-    }
-
-    /* Filter & Search Bar */
+    /* Filter / Category Bar */
     .filter-bar {
       display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 40px;
       flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 36px;
-      background: rgba(14, 20, 36, 0.65);
-      padding: 10px 14px;
-      border-radius: 16px;
+    }
+
+    .filter-btn {
+      background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
-      backdrop-filter: blur(16px);
-    }
-
-    .category-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .cat-btn {
-      background: transparent;
-      border: 1px solid transparent;
-      color: var(--text-muted);
-      font-family: inherit;
+      color: var(--text-secondary);
       font-size: 13px;
       font-weight: 500;
-      padding: 7px 16px;
-      border-radius: 999px;
+      padding: 6px 16px;
+      border-radius: 980px;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      user-select: none;
-    }
-    .cat-btn:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.06);
-    }
-    .cat-btn.active {
-      background: rgba(243, 128, 32, 0.16);
-      border-color: rgba(243, 128, 32, 0.4);
-      color: var(--primary-orange-light);
-      font-weight: 600;
-      box-shadow: 0 0 16px rgba(243, 128, 32, 0.2);
+      transition: all 0.2s ease;
     }
 
-    .search-box {
-      position: relative;
-      display: flex;
-      align-items: center;
-      min-width: 260px;
-      flex: 0 1 320px;
+    .filter-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--border-hover);
     }
-    .search-input {
-      width: 100%;
-      background: rgba(8, 12, 22, 0.85);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 8px 36px 8px 12px;
-      color: #fff;
-      font-size: 13px;
-      outline: none;
-      transition: all 0.2s;
-    }
-    .search-input:focus {
-      border-color: var(--primary-orange);
-      box-shadow: 0 0 16px rgba(243, 128, 32, 0.25);
-    }
-    .search-kbd {
-      position: absolute;
-      right: 10px;
-      font-size: 11px;
-      font-family: var(--font-mono);
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: var(--text-dim);
-      padding: 1px 6px;
-      border-radius: 4px;
-      pointer-events: none;
+
+    .filter-btn.active {
+      background: var(--text-primary);
+      color: #ffffff;
+      border-color: var(--text-primary);
     }
 
     /* Projects Grid */
     .projects-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-      gap: 26px;
+      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      gap: 24px;
     }
 
-    /* Dynamic Spotlight Card */
     .project-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
       border-radius: 20px;
-      padding: 28px;
+      padding: 32px 28px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--card-shadow);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-      --mouse-x: 50%;
-      --mouse-y: 50%;
-    }
-
-    /* Cursor Spotlight Glow Effect */
-    .project-card::before {
-      content: "";
-      position: absolute;
-      inset: -1px;
-      border-radius: inherit;
-      background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(243, 128, 32, 0.18), transparent 80%);
-      opacity: 0;
-      transition: opacity 0.4s ease;
-      pointer-events: none;
-      z-index: 1;
     }
 
     .project-card:hover {
-      transform: translateY(-6px);
+      transform: translateY(-3px);
+      box-shadow: var(--card-shadow-hover);
       border-color: var(--border-hover);
-      background: var(--bg-card-hover);
-      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5), 0 0 28px rgba(243, 128, 32, 0.14);
-    }
-
-    .project-card:hover::before {
-      opacity: 1;
-    }
-
-    .card-content-wrap {
-      position: relative;
-      z-index: 2;
     }
 
     .card-top {
       display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .card-icon-wrap {
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      display: grid;
-      place-items: center;
-      font-size: 28px;
-      flex-shrink: 0;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .project-card:hover .card-icon-wrap {
-      transform: scale(1.1) rotate(4deg);
-    }
-
-    .card-heading {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .card-title-row {
-      display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-
-    .card-title {
-      font-size: 20px;
-      font-weight: 800;
-      color: #fff;
-      line-height: 1.25;
-      letter-spacing: -0.01em;
-    }
-
-    .card-num-chip {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      color: var(--text-dim);
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 1px 7px;
-      border-radius: 6px;
-    }
-
-    .card-slug {
-      font-size: 12.5px;
-      font-family: var(--font-mono);
-      color: var(--text-dim);
-    }
-
-    .card-desc {
-      color: var(--text-muted);
-      font-size: 14px;
-      line-height: 1.65;
       margin-bottom: 20px;
     }
 
-    .card-tags {
+    .project-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--bg-body);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-primary);
+    }
+
+    .project-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--text-primary);
+    }
+
+    .project-slug {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+
+    .project-name {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      margin-bottom: 10px;
+      color: var(--text-primary);
+    }
+
+    .project-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin-bottom: 24px;
+      flex-grow: 1;
+    }
+
+    .tag-group {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-bottom: 22px;
+      margin-bottom: 28px;
     }
 
-    .tag-pill {
-      font-size: 11.5px;
-      font-weight: 500;
-      padding: 3px 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      color: #cbd5e1;
-      transition: all 0.2s;
-    }
-
-    .tag-pill.featured {
-      background: rgba(243, 128, 32, 0.12);
-      border-color: rgba(243, 128, 32, 0.3);
-      color: var(--primary-orange-light);
-      font-weight: 600;
-    }
-
-    .tag-pill.model {
-      background: rgba(192, 132, 252, 0.12);
-      border-color: rgba(192, 132, 252, 0.3);
-      color: var(--accent-purple);
-      font-family: var(--font-mono);
+    .tag {
       font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--bg-body);
+      padding: 3px 8px;
+      border-radius: 5px;
     }
 
-    /* Actions Bottom */
+    .tag.highlight {
+      color: var(--accent-blue);
+      background: #eff6ff;
+    }
+
     .card-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding-top: 16px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      position: relative;
-      z-index: 2;
-    }
-
-    .btn-preview {
-      flex: 1;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #fff;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 10px 14px;
-      border-radius: 12px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-    .btn-preview:hover {
-      background: rgba(255, 255, 255, 0.14);
-      border-color: rgba(255, 255, 255, 0.28);
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border-subtle);
     }
 
     .btn-launch {
-      flex: 1.25;
-      background: linear-gradient(135deg, var(--primary-orange), #ea580c);
-      border: none;
-      color: #fff;
+      flex: 1;
+      background: var(--accent-blue);
+      color: #ffffff;
       text-decoration: none;
       font-size: 13px;
-      font-weight: 700;
-      padding: 10px 16px;
-      border-radius: 12px;
+      font-weight: 500;
+      padding: 9px 16px;
+      border-radius: 980px;
       text-align: center;
+      transition: background 0.15s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      transition: all 0.2s;
-      box-shadow: 0 4px 16px rgba(243, 128, 32, 0.3);
-    }
-    .btn-launch:hover {
-      background: linear-gradient(135deg, var(--primary-orange-light), #f97316);
-      box-shadow: 0 6px 22px rgba(243, 128, 32, 0.48);
-      transform: translateY(-1px);
-    }
-
-    .sublinks-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 12px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .btn-sublink {
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text-dim);
-      border: 1px solid var(--border-subtle);
-      text-decoration: none;
-      font-size: 11.5px;
-      font-family: var(--font-mono);
-      padding: 4px 10px;
-      border-radius: 8px;
-      transition: all 0.18s;
-    }
-    .btn-sublink:hover {
-      color: #fff;
-      border-color: rgba(255, 255, 255, 0.22);
-      background: rgba(255, 255, 255, 0.09);
-    }
-
-    /* Architecture Features Section */
-    .arch-section {
-      margin-top: 64px;
-      padding: 36px 32px;
-      background: rgba(14, 20, 36, 0.45);
-      border: 1px solid var(--border-subtle);
-      border-radius: 24px;
-      backdrop-filter: blur(16px);
-    }
-
-    .arch-header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-    .arch-header h3 {
-      font-size: 22px;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 8px;
-    }
-    .arch-header p {
-      font-size: 14px;
-      color: var(--text-muted);
-    }
-
-    .arch-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 20px;
-    }
-
-    .arch-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border-subtle);
-      padding: 20px;
-      border-radius: 16px;
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      transition: all 0.2s;
-    }
-    .arch-card:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(255, 255, 255, 0.15);
-    }
-    .arch-icon {
-      font-size: 24px;
-      line-height: 1;
-    }
-    .arch-card h4 {
-      font-size: 15px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 4px;
-    }
-    .arch-card p {
-      font-size: 12.5px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    /* ========================================================
-       PREVIEW MODAL
-       ======================================================== */
-    .preview-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(3, 5, 10, 0.88);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
-    }
-
-    .preview-modal.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .modal-header {
-      background: rgba(14, 20, 36, 0.98);
-      border-bottom: 1px solid var(--border-subtle);
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .modal-title-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-    .modal-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #fff;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .modal-url {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-dim);
-    }
-
-    .modal-controls {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .viewport-switch {
-      display: flex;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 2px;
-    }
-    .viewport-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 12px;
-      padding: 5px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .viewport-btn.active {
-      background: var(--primary-orange);
-      color: #fff;
-      font-weight: 600;
-    }
-
-    .btn-modal-action {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border-subtle);
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
       gap: 4px;
-      transition: all 0.2s;
-    }
-    .btn-modal-action:hover {
-      background: rgba(255, 255, 255, 0.12);
     }
 
-    .btn-modal-close {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      color: #f87171;
-      padding: 6px 14px;
-      border-radius: 8px;
+    .btn-launch:hover {
+      background: var(--accent-blue-hover);
+    }
+
+    .btn-subitem {
+      background: var(--bg-body);
+      color: var(--text-secondary);
+      text-decoration: none;
       font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-modal-close:hover {
-      background: #ef4444;
-      color: #fff;
+      font-weight: 500;
+      padding: 9px 12px;
+      border-radius: 980px;
+      transition: all 0.15s ease;
     }
 
-    .modal-iframe-wrap {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 12px;
-      overflow: hidden;
-      background: #03050a;
-      position: relative;
-    }
-
-    .preview-frame {
-      width: 100%;
-      height: 100%;
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      background: #000;
-      transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.35s;
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
-    }
-
-    .preview-frame.mobile-view {
-      width: 420px;
-      border-radius: 32px;
-      border-width: 6px;
-      border-color: #334155;
-    }
-
-    /* ========================================================
-       COMMAND PALETTE (Cmd+K)
-       ======================================================== */
-    .cmd-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(3, 5, 10, 0.8);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      z-index: 120;
-      display: grid;
-      place-items: center;
-      padding: 20px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-    }
-
-    .cmd-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .cmd-dialog {
-      width: min(640px, 94vw);
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(243, 128, 32, 0.2);
-    }
-
-    .cmd-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .cmd-input {
-      flex: 1;
-      background: none;
-      border: none;
-      outline: none;
-      color: #fff;
-      font-size: 16px;
-      font-family: inherit;
-    }
-
-    .cmd-list {
-      max-height: 380px;
-      overflow-y: auto;
-      padding: 8px;
-    }
-
-    .cmd-item {
-      padding: 12px 16px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      cursor: pointer;
-      color: var(--text-muted);
-      transition: all 0.15s;
-    }
-    .cmd-item:hover, .cmd-item.active {
-      background: rgba(243, 128, 32, 0.16);
-      color: #fff;
-    }
-    .cmd-item-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .cmd-item-icon {
-      font-size: 20px;
-    }
-    .cmd-item-name {
-      font-weight: 600;
-      font-size: 14px;
-    }
-    .cmd-item-slug {
-      font-size: 12px;
-      color: var(--text-dim);
-      font-family: var(--font-mono);
+    .btn-subitem:hover {
+      color: var(--text-primary);
+      background: rgba(0, 0, 0, 0.08);
     }
 
     /* Footer */
     footer {
-      position: relative;
-      z-index: 10;
       border-top: 1px solid var(--border-subtle);
-      background: rgba(6, 9, 17, 0.95);
+      background: var(--bg-surface);
       padding: 32px 24px;
-      text-align: center;
-      color: var(--text-dim);
-      font-size: 13px;
-    }
-    footer a {
-      color: var(--text-muted);
-      text-decoration: none;
-      margin: 0 8px;
-      transition: color 0.2s;
-    }
-    footer a:hover {
-      color: var(--primary-orange-light);
+      margin-top: auto;
     }
 
-    @media (max-width: 860px) {
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
       .projects-grid {
         grid-template-columns: 1fr;
       }
-      .filter-bar {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .search-box {
-        width: 100%;
-      }
-      .viewport-switch {
+      .nav-links {
         display: none;
+      }
+      .footer-inner {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+      main {
+        padding: 48px 20px 60px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Ambient Glow & Particle Canvas -->
-  <div class="ambient-glow"></div>
-  <canvas id="bg-canvas"></canvas>
-
   <!-- Navigation Bar -->
   <header>
     <div class="nav-inner">
-      <a href="./" class="brand">
-        <div class="brand-icon">⚡</div>
-        <div class="brand-name">
-          <span>AI Project Hub</span>
-          <span class="badge-edge">Cloudflare CDN</span>
-        </div>
+      <a href="/" class="nav-brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <span>Web Lab</span>
       </a>
+
+      <ul class="nav-links">
+        <li><a href="/">站点首页</a></li>
+        <li><a href="/fortrust/">资源中心 🔒</a></li>
+      </ul>
+
       <div class="nav-actions">
-        <button id="soundToggle" class="btn-nav-action btn-sound-toggle active" title="音效开关">
-          <span>🔊</span>
-          <span style="font-size:12px">音效</span>
-        </button>
-        <button class="btn-nav-action" onclick="openCmdPalette()" title="快捷指令 (Cmd+K)">
-          <span>⌘K</span>
-        </button>
-        <a href="/" class="btn-nav-action">站点首页</a>
-        <a href="/fortrust/" class="btn-nav-action btn-nav-fortrust">静态资源中心 🔒</a>
+        <a href="/" class="btn-pill btn-pill-secondary">← 首页</a>
+        <a href="/_auth?logout=1&scope=ai" class="btn-pill btn-pill-secondary">退出登录</a>
       </div>
     </div>
   </header>
 
-  <!-- Main Showcase Container -->
+  <!-- Main Content -->
   <main>
     <!-- Hero Section -->
-    <section class="hero-wrap">
-      <div class="hero-pill">
-        <span>✨</span>
-        <span>Zero Build · Zero Node.js · Pure Web Standards</span>
-      </div>
-
-      <h1 class="hero-title">
-        AI 原型与前沿互动项目集<br>
-        <span class="gradient-text">纯原生 · 零构建 · 极速离线体验</span>
-      </h1>
-
+    <section class="hero">
+      <div class="hero-eyebrow">Zero-Build Native Web Apps</div>
+      <h1 class="hero-title">原生前端应用作品集</h1>
       <p class="hero-subtitle">
-        收录由多个前沿 AI 模型（Claude 3.7 Sonnet / Gemini / GLM-4 / Kimi）深度生成的纯前端高拟真应用。基于 HTML5、CSS3、原生 JavaScript 及 WebGL 构建，免打包编译，支持直接离线运行与全球边缘网络即时交付。
+        探索基于纯 HTML5、CSS3、原生 JavaScript 与 WebGL 构建的免打包交互应用。
       </p>
-
-      <!-- Hero Interactive Buttons -->
-      <div class="hero-cta-row">
-        <button class="btn-hero-random" onclick="launchRandomProject()">
-          <span>🎲 随便挑一个体验 (Random)</span>
-        </button>
-        <button class="btn-hero-cmd" onclick="openCmdPalette()">
-          <span>搜索与快速跳转</span>
-          <span class="kbd-tag">⌘K</span>
-        </button>
-      </div>
-
-      <!-- Quick Metrics Ribbon -->
-      <div class="metrics-ribbon">
-        <div class="metric-item">
-          <div class="metric-dot"></div>
-          <span>收录项目:</span>
-          <b>7 款完整应用</b>
-        </div>
-        <div class="metric-item">
-          <span>构建依赖:</span>
-          <b style="color:var(--accent-emerald)">0 个 (100% 免编译)</b>
-        </div>
-        <div class="metric-item">
-          <span>核心技术:</span>
-          <b>WebGL 1/2 · Web Audio · Canvas</b>
-        </div>
-        <div class="metric-item">
-          <span>离线脱机:</span>
-          <b style="color:var(--accent-cyan)">100% 离线自愈可用</b>
-        </div>
-      </div>
     </section>
 
-    <!-- Filter & Search Controls -->
-    <section class="filter-bar">
-      <div class="category-pills" id="categoryFilter">
-        <button class="cat-btn active" data-cat="all">全部展示 (7)</button>
-        <button class="cat-btn" data-cat="3d">3D 渲染与物理 (3)</button>
-        <button class="cat-btn" data-cat="interactive">创意互动与游戏 (2)</button>
-        <button class="cat-btn" data-cat="tools">数据中台与监控 (1)</button>
-        <button class="cat-btn" data-cat="edu">语言与教育 (1)</button>
-      </div>
-
-      <div class="search-box">
-        <input type="text" id="searchInput" class="search-input" placeholder="搜索项目、技术栈或特性 (按 / 聚焦)...">
-        <span class="search-kbd">/</span>
-      </div>
-    </section>
+    <!-- Filter Buttons -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">全部应用</button>
+      <button class="filter-btn" data-filter="webgl">3D & WebGL</button>
+      <button class="filter-btn" data-filter="interactive">趣味交互</button>
+      <button class="filter-btn" data-filter="productivity">数据与效率</button>
+    </div>
 
     <!-- Projects Grid -->
-    <section class="projects-grid" id="projectsGrid">
+    <div class="projects-grid">
 
       <!-- 1. block-game -->
-      <div class="project-card" data-cat="3d" data-slug="block-game" data-url="./block-game/" data-title="MiniCraft · 体素沙盒世界" data-keywords="minicraft block game 3d webgl sandbox voxel 我的世界 体素 沙盒 物理 爆炸 昼夜 贪心网格">
-        <div class="card-content-wrap">
+      <div class="project-card" data-category="webgl">
+        <div>
           <div class="card-top">
-            <div class="card-icon-wrap">🧱</div>
-            <div class="card-heading">
-              <div class="card-title-row">
-                <span class="card-title">MiniCraft · 体素沙盒</span>
-                <span class="card-num-chip">#1</span>
-              </div>
-              <div class="card-slug">/ai/block-game/</div>
+            <div class="project-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
             </div>
+            <span class="project-slug">block-game</span>
           </div>
-          <p class="card-desc">
-            纯原生 WebGL 1.0 实现的高性能 3D 体素沙盒。支持程序化三维柏林噪声地形生成、贪心网格渲染加速、昼夜动态光照、方块破坏/放置、TNT 物理引爆与 3D 浮空掉落物磁吸入包。
+          <h2 class="project-name">MiniCraft · 3D 方块世界</h2>
+          <p class="project-desc">
+            纯原生 WebGL 1.0 实现的体素沙盒世界。包含贪心网格生成、三维柏林噪声地形、动态光影与游戏存档。
           </p>
-          <div class="card-tags">
-            <span class="tag-pill featured">WebGL 1.0</span>
-            <span class="tag-pill">3D 体素沙盒</span>
-            <span class="tag-pill">贪心网格加速</span>
-            <span class="tag-pill">物理防穿透</span>
-            <span class="tag-pill">离线存档</span>
-            <span class="tag-pill model">Claude 3.7 / GLM-4</span>
+          <div class="tag-group">
+            <span class="tag highlight">WebGL 1.0</span>
+            <span class="tag">3D 沙盒</span>
+            <span class="tag">程序化生成</span>
           </div>
         </div>
-        <div>
-          <div class="card-actions">
-            <button class="btn-preview" onclick="openPreview('./block-game/', 'MiniCraft · 体素沙盒世界')">
-              <span>⚡ 快速预览</span>
-            </button>
-            <a href="./block-game/" class="btn-launch" target="_blank">
-              <span>🚀 全屏进入</span>
-            </a>
-          </div>
+        <div class="card-actions">
+          <a href="./block-game/" class="btn-launch" target="_blank">
+            <span>启动应用</span>
+            <span>↗</span>
+          </a>
         </div>
       </div>
 
       <!-- 2. cyber-potato -->
-      <div class="project-card" data-cat="interactive" data-slug="cyber-potato" data-url="./cyber-potato/" data-title="赛博电子土豆" data-keywords="cyber potato 电子土豆 像素 宠物 辞职信 打工 状态机 web audio 快捷键 离线推演">
-        <div class="card-content-wrap">
+      <div class="project-card" data-category="interactive">
+        <div>
           <div class="card-top">
-            <div class="card-icon-wrap">🥔</div>
-            <div class="card-heading">
-              <div class="card-title-row">
-                <span class="card-title">赛博电子土豆</span>
-                <span class="card-num-chip">#2</span>
-              </div>
-              <div class="card-slug">/ai/cyber-potato/</div>
+            <div class="project-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                <circle cx="9" cy="9" r="1"></circle>
+                <circle cx="15" cy="9" r="1"></circle>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+              </svg>
             </div>
+            <span class="project-slug">cyber-potato</span>
           </div>
-          <p class="card-desc">
-            一颗会饿、会困、会超频过载，连续被冷落还会撰写辞职信的像素打工薯。纯 CSS 像素级动效、Web Audio 原生合成声效、状态机离线推演与换装衣柜系统，支持全键盘快捷键盲打。
+          <h2 class="project-name">赛博电子土豆</h2>
+          <p class="project-desc">
+            像素风打工土豆状态机。具备饥饿、困倦、超频及辞职机制，支持纯 CSS 像素动画与 Web Audio 原生合成音效。
           </p>
-          <div class="card-tags">
-            <span class="tag-pill featured">CSS 像素动效</span>
-            <span class="tag-pill">Web Audio 合成</span>
-            <span class="tag-pill">状态机推演</span>
-            <span class="tag-pill">全键盘快捷键</span>
-            <span class="tag-pill model">Claude 3.7 / DeepSeek</span>
+          <div class="tag-group">
+            <span class="tag highlight">CSS 像素动画</span>
+            <span class="tag">Web Audio</span>
+            <span class="tag">状态机推演</span>
           </div>
         </div>
-        <div>
-          <div class="card-actions">
-            <button class="btn-preview" onclick="openPreview('./cyber-potato/', '赛博电子土豆')">
-              <span>⚡ 快速预览</span>
-            </button>
-            <a href="./cyber-potato/" class="btn-launch" target="_blank">
-              <span>🚀 全屏进入</span>
-            </a>
-          </div>
+        <div class="card-actions">
+          <a href="./cyber-potato/" class="btn-launch" target="_blank">
+            <span>启动应用</span>
+            <span>↗</span>
+          </a>
         </div>
       </div>
 
       <!-- 3. internet-museum -->
-      <div class="project-card" data-cat="interactive" data-slug="internet-museum" data-url="./internet-museum/" data-title="404 之前：互联网考古馆" data-keywords="internet museum 互联网 考古 1998 2003 2008 2012 2024 2099 拨号 midi 空间 算法 遗迹修复 展馆">
-        <div class="card-content-wrap">
+      <div class="project-card" data-category="interactive">
+        <div>
           <div class="card-top">
-            <div class="card-icon-wrap">🏛️</div>
-            <div class="card-heading">
-              <div class="card-title-row">
-                <span class="card-title">404 之前：互联网考古馆</span>
-                <span class="card-num-chip">#3</span>
-              </div>
-              <div class="card-slug">/ai/internet-museum/</div>
+            <div class="project-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+              </svg>
             </div>
+            <span class="project-slug">internet-museum</span>
           </div>
-          <p class="card-desc">
-            横向穿越 1998、2003、2008、2012、2024、2099 六个互联网时代的沉浸式互动展馆。包含 1998 双音多频拨号握手音效模拟、2003 八音盒留言板、2008 天涯论坛、2012 QQ 空间与 2099 遗迹拼图修复。
+          <h2 class="project-name">404 之前：互联网考古馆</h2>
+          <p class="project-desc">
+            横跨 1998、2003、2008、2012、2024、2099 六个互联网时代的单页互动遗址展馆，复古拟物美学。
           </p>
-          <div class="card-tags">
-            <span class="tag-pill featured">6 时代沉浸穿越</span>
-            <span class="tag-pill">DTMF 拨号音效</span>
-            <span class="tag-pill">复古拟物 UI</span>
-            <span class="tag-pill">彩蛋收集系统</span>
-            <span class="tag-pill model">Claude 3.7 / Kimi</span>
+          <div class="tag-group">
+            <span class="tag highlight">沉浸式多时代</span>
+            <span class="tag">数字考古</span>
+            <span class="tag">复古拟物</span>
           </div>
         </div>
-        <div>
-          <div class="card-actions">
-            <button class="btn-preview" onclick="openPreview('./internet-museum/', '404 之前：互联网考古馆')">
-              <span>⚡ 快速预览</span>
-            </button>
-            <a href="./internet-museum/" class="btn-launch" target="_blank">
-              <span>🚀 全屏进入</span>
-            </a>
-          </div>
+        <div class="card-actions">
+          <a href="./internet-museum/" class="btn-launch" target="_blank">
+            <span>启动应用</span>
+            <span>↗</span>
+          </a>
         </div>
       </div>
 
       <!-- 4. learn-lang -->
-      <div class="project-card" data-cat="edu" data-slug="learn-lang" data-url="./learn-lang/" data-title="LinguaJourney 多语种学习平台" data-keywords="linguajourney learn language 语言 学习 英语 3d 闪卡 翻转 speech 语音 svg 图表 本地头像">
-        <div class="card-content-wrap">
+      <div class="project-card" data-category="productivity">
+        <div>
           <div class="card-top">
-            <div class="card-icon-wrap">🌍</div>
-            <div class="card-heading">
-              <div class="card-title-row">
-                <span class="card-title">LinguaJourney 语言学习</span>
-                <span class="card-num-chip">#4</span>
-              </div>
-              <div class="card-slug">/ai/learn-lang/</div>
+            <div class="project-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M2 12h20"></path>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
             </div>
+            <span class="project-slug">learn-lang</span>
           </div>
-          <p class="card-desc">
-            现代化沉浸式语言学习平台 SPA。集成 3D 真实透视翻转记忆闪卡、Web Speech 原生单词发音合成、近 7 天学习活跃度 SVG 折线趋势图、确定性哈希本地安全矢量头像与学员社群动态。
+          <h2 class="project-name">LinguaJourney 语言学习</h2>
+          <p class="project-desc">
+            沉浸式多语种学习单页应用。集成 3D 拟真翻转闪卡、单词原声发音评测、记忆曲线与互动测试。
           </p>
-          <div class="card-tags">
-            <span class="tag-pill featured">3D 透视闪卡</span>
-            <span class="tag-pill">Web Speech API</span>
-            <span class="tag-pill">SVG 动态图表</span>
-            <span class="tag-pill">纯本地矢量头像</span>
-            <span class="tag-pill model">Gemini 2.5 / Claude 3.7</span>
+          <div class="tag-group">
+            <span class="tag highlight">SPA 平台</span>
+            <span class="tag">3D 闪卡</span>
+            <span class="tag">原声发音</span>
           </div>
         </div>
-        <div>
-          <div class="card-actions">
-            <button class="btn-preview" onclick="openPreview('./learn-lang/', 'LinguaJourney 多语种学习平台')">
-              <span>⚡ 快速预览</span>
-            </button>
-            <a href="./learn-lang/" class="btn-launch" target="_blank">
-              <span>🚀 全屏进入</span>
-            </a>
-          </div>
+        <div class="card-actions">
+          <a href="./learn-lang/" class="btn-launch" target="_blank">
+            <span>启动应用</span>
+            <span>↗</span>
+          </a>
         </div>
       </div>
 
       <!-- 5. iot-hub -->
-      <div class="project-card" data-cat="tools" data-slug="iot-hub" data-url="./iot-hub/" data-title="IoT 实时数据调度控制台" data-keywords="iot hub 物联网 5万 50000 虚拟列表 实时 数据调度 控制台 状态机 命令模式 canvas 图表">
-        <div class="card-content-wrap">
+      <div class="project-card" data-category="productivity">
+        <div>
           <div class="card-top">
-            <div class="card-icon-wrap">📡</div>
-            <div class="card-heading">
-              <div class="card-title-row">
-                <span class="card-title">IoT 实时数据调度控制台</span>
-                <span class="card-num-chip">#5</span>
-              </div>
-              <div class="card-slug">/ai/iot-hub/</div>
+            <div class="project-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+              </svg>
             </div>
+            <span class="project-slug">iot-hub</span>
           </div>
-          <p class="card-desc">
-            高性能单文件海量设备调度中台。支持 50,000 台设备 60fps 极速虚拟滚动列表、乱序/重复消息丢弃防护、动态告警自动去重、多字段稳定排序与命令模式（Command Pattern）撤销/重做支持。
+          <h2 class="project-name">IoT 实时数据调度控制台</h2>
+          <p class="project-desc">
+            高性能单文件海量物联网设备调度与状态监控面板。包含 5 万级设备虚拟滚动列表与动态拓扑。
           </p>
-          <div class="card-tags">
-            <span class="tag-pill featured">50,000 设备调度</span>
-            <span class="tag-pill">虚拟列表 60fps</span>
-            <span class="tag-pill">乱序防抖</span>
-            <span class="tag-pill">命令模式 Undo/Redo</span>
-            <span class="tag-pill model">Claude 3.7 / GLM-4</span>
+          <div class="tag-group">
+            <span class="tag highlight">虚拟滚动</span>
+            <span class="tag">海量设备</span>
+            <span class="tag">单文件极简</span>
           </div>
         </div>
-        <div>
-          <div class="card-actions">
-            <button class="btn-preview" onclick="openPreview('./iot-hub/', 'IoT 实时数据调度控制台')">
-              <span>⚡ 快速预览</span>
-            </button>
-            <a href="./iot-hub/" class="btn-launch" target="_blank">
-              <span>🚀 全屏进入</span>
-            </a>
-          </div>
+        <div class="card-actions">
+          <a href="./iot-hub/" class="btn-launch" target="_blank">
+            <span>启动应用</span>
+            <span>↗</span>
+          </a>
         </div>
       </div>
 
       <!-- 6. stellar-fusion -->
-      <div class="project-card" data-cat="3d" data-slug="stellar-fusion" data-url="./stellar-fusion/" data-title="HELIOS & STELLAR 3D 聚变控制台" data-keywords="stellar fusion helios 3d webgl2 glsl 恒星 聚变 星际 能源 控制台 戴森球 粒子 gemini musespark glm 对标">
-        <div class="card-content-wrap">
-          <div class="card-top">
-            <div class="card-icon-wrap">☀️</div>
-            <div class="card-heading">
-              <div class="card-title-row">
-                <span class="card-title">HELIOS 3D 聚变控制台</span>
-                <span class="card-num-chip">#6</span>
-              </div>
-              <div class="card-slug">/ai/stellar-fusion/</div>
-            </div>
-          </div>
-          <p class="card-desc">
-            纯 WebGL 2.0 (GLSL ES 3.00) 构建的星际戴森球能源监控中枢。同一 Prompt 下 Google Gemini 与 MuseSpark 双模型生成的横向对比演示，包含历史遥测时间轴回放与粒子光流渲染。
-          </p>
-          <div class="card-tags">
-            <span class="tag-pill featured">WebGL 2.0</span>
-            <span class="tag-pill">GLSL ES 3.0</span>
-            <span class="tag-pill">双模型横评</span>
-            <span class="tag-pill">粒子光流</span>
-            <span class="tag-pill model">Gemini 2.5 / MuseSpark</span>
-          </div>
-        </div>
+      <div class="project-card" data-category="webgl">
         <div>
-          <div class="card-actions">
-            <button class="btn-preview" onclick="openPreview('./stellar-fusion/', 'HELIOS & STELLAR 3D 聚变控制台')">
-              <span>⚡ 聚合预览</span>
-            </button>
-            <a href="./stellar-fusion/" class="btn-launch" target="_blank">
-              <span>🚀 全屏进入</span>
-            </a>
-          </div>
-          <div class="sublinks-row">
-            <a href="./stellar-fusion/gemini/" class="btn-sublink" target="_blank" title="Gemini 独立版本">Gemini 版</a>
-            <a href="./stellar-fusion/musespark/" class="btn-sublink" target="_blank" title="MuseSpark 独立版本">MuseSpark 版</a>
-            <a href="./stellar-fusion/musespark/IndexGLM.html" class="btn-sublink" target="_blank" title="GLM 标杆对照版本">GLM 标杆版</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- 7. tank-battle -->
-      <div class="project-card" data-cat="3d" data-slug="tank-battle" data-url="./tank-battle/" data-title="3D Tank Clash · 钢铁风暴" data-keywords="3d tank clash 坦克大战 3d webgl 钢铁风暴 经典 游戏 boss 战车 炮火 战役 视角切换 道具">
-        <div class="card-content-wrap">
           <div class="card-top">
-            <div class="card-icon-wrap">🛡️</div>
-            <div class="card-heading">
-              <div class="card-title-row">
-                <span class="card-title">3D Tank Clash · 钢铁风暴</span>
-                <span class="card-num-chip">#7</span>
-              </div>
-              <div class="card-slug">/ai/tank-battle/</div>
+            <div class="project-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
             </div>
+            <span class="project-slug">stellar-fusion</span>
           </div>
-          <p class="card-desc">
-            纯原生 WebGL 1.0 与 Web Audio 构建的经典坦克大战 3D 进化版。支持等轴 3D/追尾视角实时无缝切换、5 大特色战区推进、终极泰坦巨兽 BOSS 决战、多兵种敌人、4 级战车升级与丰富战地道具系统。
+          <h2 class="project-name">HELIOS 3D 聚变控制台</h2>
+          <p class="project-desc">
+            原生 WebGL 2.0 (GLSL ES 3.00) 构建的 3D 星际能源监控系统。支持 Gemini 与 MuseSpark 双模型实现横向对照。
           </p>
-          <div class="card-tags">
-            <span class="tag-pill featured">WebGL 1.0</span>
-            <span class="tag-pill">3D 战场渲染</span>
-            <span class="tag-pill">多视角切换</span>
-            <span class="tag-pill">5大关卡/BOSS战</span>
-            <span class="tag-pill">Web Audio 合成</span>
-            <span class="tag-pill model">Claude 3.7 / Gemini</span>
+          <div class="tag-group">
+            <span class="tag highlight">WebGL 2.0</span>
+            <span class="tag">GLSL ES 3.0</span>
+            <span class="tag">双版本对比</span>
           </div>
         </div>
-        <div>
-          <div class="card-actions">
-            <button class="btn-preview" onclick="openPreview('./tank-battle/', '3D Tank Clash · 钢铁风暴')">
-              <span>⚡ 快速预览</span>
-            </button>
-            <a href="./tank-battle/" class="btn-launch" target="_blank">
-              <span>🚀 全屏进入</span>
-            </a>
-          </div>
+        <div class="card-actions">
+          <a href="./stellar-fusion/" class="btn-launch" target="_blank">
+            <span>主控台</span>
+            <span>↗</span>
+          </a>
+          <a href="./stellar-fusion/gemini/" class="btn-subitem" target="_blank">Gemini</a>
+          <a href="./stellar-fusion/musespark/" class="btn-subitem" target="_blank">MuseSpark</a>
         </div>
       </div>
 
-    </section>
-
-    <!-- Pure Native Architecture Highlights -->
-    <section class="arch-section">
-      <div class="arch-header">
-        <h3>⚡ 纯原生免构建设计哲学</h3>
-        <p>每一款应用均严格遵循 Web 原生标准，杜绝沉重的外置打包编译链条</p>
-      </div>
-
-      <div class="arch-grid">
-        <div class="arch-card">
-          <div class="arch-icon">🚀</div>
-          <div>
-            <h4>零构建 · 即开即用</h4>
-            <p>摒弃 Webpack / Vite / Rollup 等重型依赖，双击 index.html 或静态 CDN 托管即可 100% 流畅运行。</p>
-          </div>
-        </div>
-
-        <div class="arch-card">
-          <div class="arch-icon">🔒</div>
-          <div>
-            <h4>零外链 · 100% 离线自包含</h4>
-            <p>头像、音频、材质均采用程序化 SVG、Web Audio 与三维噪声算法实时合成，断网环境下依然完全可用。</p>
-          </div>
-        </div>
-
-        <div class="arch-card">
-          <div class="arch-icon">🧠</div>
-          <div>
-            <h4>多模型架构对标</h4>
-            <p>支持同 Prompt 在不同 LLM（Gemini / Claude / GLM）下的横向代码实现与视觉表现对比。</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
   </main>
-
-  <!-- Slide-in / Fullscreen Preview Modal -->
-  <div class="preview-modal" id="previewModal" aria-hidden="true">
-    <div class="modal-header">
-      <div class="modal-title-group">
-        <span style="font-size:18px">🖥️</span>
-        <div>
-          <div class="modal-title" id="modalProjectTitle">项目预览</div>
-          <div class="modal-url" id="modalProjectUrl">about:blank</div>
-        </div>
-      </div>
-
-      <div class="modal-controls">
-        <div class="viewport-switch">
-          <button class="viewport-btn active" id="vpDesktop" onclick="setViewportMode('desktop')">🖥️ 桌面视图</button>
-          <button class="viewport-btn" id="vpMobile" onclick="setViewportMode('mobile')">📱 移动端</button>
-        </div>
-        <button class="btn-modal-action" onclick="reloadPreview()" title="重新加载当前页面">
-          <span>🔄 刷新</span>
-        </button>
-        <a id="btnModalPopout" href="#" target="_blank" class="btn-modal-action" title="在新窗口独立打开">
-          <span>↗️ 独立标签</span>
-        </a>
-        <button class="btn-modal-close" onclick="closePreview()">
-          <span>✕ 关闭 (Esc)</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="modal-iframe-wrap">
-      <iframe id="modalFrame" class="preview-frame" src="about:blank" frameborder="0"></iframe>
-    </div>
-  </div>
-
-  <!-- Command Palette Modal (Cmd+K) -->
-  <div class="cmd-overlay" id="cmdOverlay" onclick="if(event.target===this) closeCmdPalette()">
-    <div class="cmd-dialog">
-      <div class="cmd-header">
-        <span style="font-size:18px">🔍</span>
-        <input type="text" id="cmdInput" class="cmd-input" placeholder="输入项目名称或拼音进行快速跳转 (↑↓ 选择，Enter 启动)...">
-        <span class="kbd-tag">ESC 关闭</span>
-      </div>
-      <div class="cmd-list" id="cmdList">
-        <!-- Dynamically rendered -->
-      </div>
-    </div>
-  </div>
 
   <!-- Footer -->
   <footer>
-    <p>AItestProjects &middot; Cloudflare Pages Edge Static Center &middot; Zero Build & Zero Dependency</p>
-    <div style="margin-top:8px;font-size:12px;color:var(--text-dim)">
-      <span>纯原生三件套 (HTML5/CSS3/JavaScript)</span> &bull;
-      <span>100% 离线可用</span> &bull;
-      <a href="./AGENTS.md" target="_blank">开发规范 (AGENTS.md)</a>
+    <div class="footer-inner">
+      <div>Web Lab &middot; Pure Native JavaScript & WebGL Applications</div>
+      <ul class="footer-links">
+        <li><a href="/">平台首页</a></li>
+        <li><a href="/fortrust/">Fortrust 资源中心</a></li>
+        <li><a href="/_auth?logout=1&scope=ai">退出登录</a></li>
+      </ul>
     </div>
   </footer>
 
+  <!-- Filter Script -->
   <script>
-  (() => {
-    'use strict';
-
-    /* ========================================================
-       1. Synthesized UI Audio System (Web Audio API)
-       ======================================================== */
-    class SoundFX {
-      constructor() {
-        this.ctx = null;
-        this.enabled = localStorage.getItem('ai_hub_sound') !== 'false';
-      }
-
-      init() {
-        if (this.ctx) return;
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (AC) this.ctx = new AC();
-      }
-
-      toggle() {
-        this.enabled = !this.enabled;
-        localStorage.setItem('ai_hub_sound', String(this.enabled));
-        updateSoundUI();
-        if (this.enabled) this.playTone(520, 0.08, 'sine');
-      }
-
-      playTone(freq, dur = 0.08, type = 'sine', gainVal = 0.08) {
-        if (!this.enabled) return;
-        try {
-          this.init();
-          if (!this.ctx) return;
-          if (this.ctx.state === 'suspended') this.ctx.resume();
-
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          const now = this.ctx.currentTime;
-
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, now);
-
-          gain.gain.setValueAtTime(gainVal, now);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-
-          osc.start(now);
-          osc.stop(now + dur);
-        } catch (e) {}
-      }
-
-      hover() { this.playTone(380, 0.04, 'sine', 0.03); }
-      click() { this.playTone(640, 0.06, 'triangle', 0.06); }
-      launch() {
-        this.playTone(440, 0.06, 'sine', 0.06);
-        setTimeout(() => this.playTone(880, 0.12, 'triangle', 0.08), 50);
-      }
-    }
-
-    const sound = new SoundFX();
-    const soundToggleBtn = document.getElementById('soundToggle');
-
-    function updateSoundUI() {
-      if (soundToggleBtn) {
-        soundToggleBtn.classList.toggle('active', sound.enabled);
-        soundToggleBtn.innerHTML = `<span>${sound.enabled ? '🔊' : '🔇'}</span><span style="font-size:12px">${sound.enabled ? '音效' : '静音'}</span>`;
-      }
-    }
-    soundToggleBtn.addEventListener('click', () => sound.toggle());
-    updateSoundUI();
-
-    /* ========================================================
-       2. Dynamic Particle Canvas Background
-       ======================================================== */
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-    let width = 0, height = 0;
-    let particles = [];
-    let mouse = { x: -1000, y: -1000 };
-
-    function resizeCanvas() {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-      initParticles();
-    }
-
-    function initParticles() {
-      const count = Math.min(65, Math.floor((width * height) / 20000));
-      particles = [];
-      for (let i = 0; i < count; i++) {
-        particles.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 0.45,
-          vy: (Math.random() - 0.5) * 0.45,
-          radius: Math.random() * 1.6 + 0.6,
-          alpha: Math.random() * 0.45 + 0.2,
-          color: Math.random() > 0.45 ? '#f38020' : '#38bdf8'
-        });
-      }
-    }
-
-    function renderParticles() {
-      ctx.clearRect(0, 0, width, height);
-
-      for (let i = 0; i < particles.length; i++) {
-        const p1 = particles[i];
-        p1.x += p1.vx;
-        p1.y += p1.vy;
-
-        if (p1.x < 0) p1.x = width;
-        if (p1.x > width) p1.x = 0;
-        if (p1.y < 0) p1.y = height;
-        if (p1.y > height) p1.y = 0;
-
-        ctx.beginPath();
-        ctx.arc(p1.x, p1.y, p1.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p1.color;
-        ctx.globalAlpha = p1.alpha;
-        ctx.fill();
-
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const dx = p1.x - p2.x;
-          const dy = p1.y - p2.y;
-          const dist = Math.hypot(dx, dy);
-
-          if (dist < 130) {
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = '#f38020';
-            ctx.globalAlpha = (1 - dist / 130) * 0.14;
-            ctx.lineWidth = 0.75;
-            ctx.stroke();
-          }
-        }
-      }
-      ctx.globalAlpha = 1.0;
-      requestAnimationFrame(renderParticles);
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('mousemove', e => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    });
-
-    resizeCanvas();
-    renderParticles();
-
-    /* ========================================================
-       3. Dynamic Cursor Spotlight & 3D Tilt on Cards
-       ======================================================== */
+    const filterBtns = document.querySelectorAll('.filter-btn');
     const cards = document.querySelectorAll('.project-card');
 
-    cards.forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        card.style.setProperty('--mouse-x', `${x}px`);
-        card.style.setProperty('--mouse-y', `${y}px`);
-      });
-
-      card.addEventListener('mouseenter', () => sound.hover());
-    });
-
-    /* ========================================================
-       4. Category & Search Filtering
-       ======================================================== */
-    const catButtons = document.querySelectorAll('.cat-btn');
-    const searchInput = document.getElementById('searchInput');
-    const grid = document.getElementById('projectsGrid');
-
-    let activeCat = 'all';
-    let searchQuery = '';
-
-    function applyFilters() {
-      let visibleCount = 0;
-      const q = searchQuery.toLowerCase().trim();
-
-      cards.forEach(card => {
-        const cat = card.dataset.cat;
-        const keywords = (card.dataset.keywords || '').toLowerCase();
-        const text = card.textContent.toLowerCase();
-
-        const matchCat = activeCat === 'all' || cat === activeCat;
-        const matchSearch = !q || keywords.includes(q) || text.includes(q);
-
-        if (matchCat && matchSearch) {
-          card.style.display = 'flex';
-          visibleCount++;
-        } else {
-          card.style.display = 'none';
-        }
-      });
-
-      let emptyEl = document.getElementById('emptySearchState');
-      if (visibleCount === 0) {
-        if (!emptyEl) {
-          emptyEl = document.createElement('div');
-          emptyEl.id = 'emptySearchState';
-          emptyEl.className = 'empty-search';
-          emptyEl.style.gridColumn = '1 / -1';
-          emptyEl.style.textAlign = 'center';
-          emptyEl.style.padding = '60px 20px';
-          emptyEl.style.color = 'var(--text-dim)';
-          emptyEl.innerHTML = `<i style="font-size:40px;display:block;margin-bottom:12px;font-style:normal">🔍</i><p>未找到与 "<b>${escapeHtml(searchQuery)}</b>" 匹配的项目</p><button class="cat-btn active" style="margin-top:14px" onclick="clearSearch()">重置筛选条件</button>`;
-          grid.appendChild(emptyEl);
-        }
-      } else if (emptyEl) {
-        emptyEl.remove();
-      }
-    }
-
-    function escapeHtml(s) {
-      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    catButtons.forEach(btn => {
+    filterBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        sound.click();
-        catButtons.forEach(b => b.classList.remove('active'));
+        filterBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        activeCat = btn.dataset.cat;
-        applyFilters();
+
+        const filter = btn.dataset.filter;
+        cards.forEach(card => {
+          if (filter === 'all' || card.dataset.category === filter) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
       });
     });
-
-    searchInput.addEventListener('input', e => {
-      searchQuery = e.target.value;
-      applyFilters();
-    });
-
-    window.clearSearch = () => {
-      sound.click();
-      searchInput.value = '';
-      searchQuery = '';
-      activeCat = 'all';
-      catButtons.forEach(b => b.classList.toggle('active', b.dataset.cat === 'all'));
-      applyFilters();
-    };
-
-    /* ========================================================
-       5. Interactive Live Preview Modal
-       ======================================================== */
-    const modal = document.getElementById('previewModal');
-    const modalFrame = document.getElementById('modalFrame');
-    const modalTitle = document.getElementById('modalProjectTitle');
-    const modalUrl = document.getElementById('modalProjectUrl');
-    const btnPopout = document.getElementById('btnModalPopout');
-    const vpDesktop = document.getElementById('vpDesktop');
-    const vpMobile = document.getElementById('vpMobile');
-
-    let currentPreviewUrl = '';
-
-    window.openPreview = (url, title) => {
-      sound.launch();
-      currentPreviewUrl = url;
-      modalTitle.textContent = title;
-      modalUrl.textContent = url;
-      btnPopout.href = url;
-      modalFrame.src = url;
-      modal.classList.add('active');
-      modal.setAttribute('aria-hidden', 'false');
-      setViewportMode('desktop');
-    };
-
-    window.closePreview = () => {
-      sound.click();
-      modal.classList.remove('active');
-      modal.setAttribute('aria-hidden', 'true');
-      modalFrame.src = 'about:blank';
-    };
-
-    window.reloadPreview = () => {
-      sound.click();
-      if (currentPreviewUrl) {
-        modalFrame.src = currentPreviewUrl;
-      }
-    };
-
-    window.setViewportMode = (mode) => {
-      sound.click();
-      if (mode === 'mobile') {
-        modalFrame.classList.add('mobile-view');
-        vpMobile.classList.add('active');
-        vpDesktop.classList.remove('active');
-      } else {
-        modalFrame.classList.remove('mobile-view');
-        vpDesktop.classList.add('active');
-        vpMobile.classList.remove('active');
-      }
-    };
-
-    /* ========================================================
-       6. "Random Pick" Feature
-       ======================================================== */
-    const projectList = [
-      { url: './block-game/', title: 'MiniCraft · 体素沙盒世界' },
-      { url: './cyber-potato/', title: '赛博电子土豆' },
-      { url: './internet-museum/', title: '404 之前：互联网考古馆' },
-      { url: './learn-lang/', title: 'LinguaJourney 多语种学习平台' },
-      { url: './iot-hub/', title: 'IoT 实时数据调度控制台' },
-      { url: './stellar-fusion/', title: 'HELIOS & STELLAR 3D 聚变控制台' },
-      { url: './tank-battle/', title: '3D Tank Clash · 钢铁风暴' }
-    ];
-
-    window.launchRandomProject = () => {
-      sound.launch();
-      const picked = projectList[Math.floor(Math.random() * projectList.length)];
-      openPreview(picked.url, picked.title);
-    };
-
-    /* ========================================================
-       7. Command Palette (Cmd+K)
-       ======================================================== */
-    const cmdOverlay = document.getElementById('cmdOverlay');
-    const cmdInput = document.getElementById('cmdInput');
-    const cmdList = document.getElementById('cmdList');
-    let selectedCmdIndex = 0;
-
-    const cmdData = [
-      { name: 'MiniCraft · 体素沙盒世界', slug: '/ai/block-game/', icon: '🧱', url: './block-game/' },
-      { name: '赛博电子土豆', slug: '/ai/cyber-potato/', icon: '🥔', url: './cyber-potato/' },
-      { name: '404 之前：互联网考古馆', slug: '/ai/internet-museum/', icon: '🏛️', url: './internet-museum/' },
-      { name: 'LinguaJourney 多语种学习平台', slug: '/ai/learn-lang/', icon: '🌍', url: './learn-lang/' },
-      { name: 'IoT 实时数据调度控制台', slug: '/ai/iot-hub/', icon: '📡', url: './iot-hub/' },
-      { name: 'HELIOS 3D 聚变控制台 (Gemini/GLM)', slug: '/ai/stellar-fusion/', icon: '☀️', url: './stellar-fusion/' },
-      { name: '3D Tank Clash · 钢铁风暴 (3D 坦克大战)', slug: '/ai/tank-battle/', icon: '🛡️', url: './tank-battle/' },
-      { name: '🎲 随便挑一个项目体验', slug: 'random', icon: '🎲', action: () => launchRandomProject() },
-      { name: '🔊 切换音效开关', slug: 'toggle-sound', icon: '🎵', action: () => sound.toggle() }
-    ];
-
-    window.openCmdPalette = () => {
-      sound.click();
-      cmdOverlay.classList.add('active');
-      cmdInput.value = '';
-      selectedCmdIndex = 0;
-      renderCmdList('');
-      cmdInput.focus();
-    };
-
-    window.closeCmdPalette = () => {
-      cmdOverlay.classList.remove('active');
-    };
-
-    function renderCmdList(q) {
-      const query = q.toLowerCase().trim();
-      const filtered = cmdData.filter(item => !query || item.name.toLowerCase().includes(query) || item.slug.toLowerCase().includes(query));
-
-      if (filtered.length === 0) {
-        cmdList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-dim)">未找到匹配项目</div>';
-        return;
-      }
-
-      cmdList.innerHTML = filtered.map((item, idx) => `
-        <div class="cmd-item ${idx === selectedCmdIndex ? 'active' : ''}" data-idx="${idx}" onclick="executeCmd(${idx})">
-          <div class="cmd-item-left">
-            <span class="cmd-item-icon">${item.icon}</span>
-            <div>
-              <div class="cmd-item-name">${escapeHtml(item.name)}</div>
-              <div class="cmd-item-slug">${item.slug}</div>
-            </div>
-          </div>
-          <span class="kbd-tag">Enter 启动</span>
-        </div>
-      `).join('');
-      cmdList._items = filtered;
-    }
-
-    window.executeCmd = (index) => {
-      const items = cmdList._items || cmdData;
-      const target = items[index];
-      if (!target) return;
-      closeCmdPalette();
-      if (target.action) {
-        target.action();
-      } else if (target.url) {
-        openPreview(target.url, target.name);
-      }
-    };
-
-    cmdInput.addEventListener('input', e => {
-      selectedCmdIndex = 0;
-      renderCmdList(e.target.value);
-    });
-
-    cmdInput.addEventListener('keydown', e => {
-      const items = cmdList._items || [];
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        selectedCmdIndex = (selectedCmdIndex + 1) % items.length;
-        renderCmdList(cmdInput.value);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        selectedCmdIndex = (selectedCmdIndex - 1 + items.length) % items.length;
-        renderCmdList(cmdInput.value);
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        executeCmd(selectedCmdIndex);
-      }
-    });
-
-    /* ========================================================
-       8. Global Keyboard Shortcuts
-       ======================================================== */
-    document.addEventListener('keydown', e => {
-      // Cmd/Ctrl + K
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        if (cmdOverlay.classList.contains('active')) {
-          closeCmdPalette();
-        } else {
-          openCmdPalette();
-        }
-        return;
-      }
-
-      // / to focus search
-      if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
-        e.preventDefault();
-        searchInput.focus();
-        return;
-      }
-
-      // Escape
-      if (e.key === 'Escape') {
-        if (cmdOverlay.classList.contains('active')) {
-          closeCmdPalette();
-        } else if (modal.classList.contains('active')) {
-          closePreview();
-        }
-      }
-    });
-
-  })();
   </script>
+
 </body>
 </html>

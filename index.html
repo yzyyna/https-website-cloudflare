@@ -1,74 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cloudflare Pages | Fast, Secure & Free Static Site Hosting</title>
-  <meta name="description" content="Deploy your website on Cloudflare Pages. Get blazing-fast performance, unlimited bandwidth, automatic SSL, and seamless Git integration on the global connectivity cloud.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path fill='%23F38020' d='M35.6 28.5c-.1-.7-.4-1.3-.7-1.8-.4-.7-1-1.3-1.8-1.7-.8-.4-1.7-.7-2.7-.7-.3 0-.6 0-.8.1-.9-2.2-2.7-3.9-5-4.7-1.1-.4-2.3-.5-3.5-.4-2.1.3-4 1.3-5.3 2.9-1.2 1.4-1.8 3.3-1.8 5.2 0 .4 0 .7.1 1.1-.9.4-1.7 1-2.2 1.8-.6.8-.9 1.8-.9 2.8 0 1.2.5 2.4 1.3 3.2.9.9 2 1.3 3.2 1.3h19.5c1.4 0 2.7-.6 3.7-1.5 1-1 1.5-2.3 1.5-3.7 0-1.8-.9-3.4-2.4-4z'/></svg>">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Fortrust · 静态资源中心与前端实验平台</title>
+  <meta name="description" content="Fortrust 产品原型系统、技术文档与原生 Web 交互实验集的统一静态分发平台。">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230071e3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='3' width='20' height='14' rx='2' ry='2'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='12' y1='17' x2='12' y2='21'/></svg>">
   <style>
     :root {
-      --cf-orange: #f38020;
-      --cf-orange-hover: #fa8f32;
-      --cf-bg: #0b0f19;
-      --cf-card-bg: rgba(22, 28, 45, 0.7);
-      --cf-border: rgba(255, 255, 255, 0.08);
-      --cf-border-hover: rgba(243, 128, 32, 0.35);
-      --cf-text-primary: #ffffff;
-      --cf-text-secondary: #94a3b8;
-      --cf-blue: #3b82f6;
-      --cf-green: #10b981;
+      --bg-body: #f5f5f7;
+      --bg-surface: #ffffff;
+      --bg-surface-secondary: #fbfbfd;
+      --text-primary: #1d1d1f;
+      --text-secondary: #86868b;
+      --text-tertiary: #a1a1a6;
+      --accent-blue: #0071e3;
+      --accent-blue-hover: #0077ed;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-hover: rgba(0, 0, 0, 0.16);
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      --card-shadow-hover: 0 16px 36px rgba(0, 0, 0, 0.08);
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--cf-bg);
-      color: var(--cf-text-primary);
+      font-family: var(--font-stack);
+      background-color: var(--bg-body);
+      color: var(--text-primary);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      line-height: 1.6;
-      overflow-x: hidden;
-      background-image: 
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(243, 128, 32, 0.18), transparent),
-        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59, 130, 246, 0.08), transparent);
+      line-height: 1.5;
     }
 
-    /* Navigation */
+    /* Apple-style Global Nav */
     header {
-      border-bottom: 1px solid var(--cf-border);
-      background: rgba(11, 15, 25, 0.8);
-      backdrop-filter: blur(16px);
       position: sticky;
       top: 0;
-      z-index: 50;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
     }
 
-    .nav-container {
-      max-width: 1200px;
+    .nav-inner {
+      max-width: 1024px;
       margin: 0 auto;
-      padding: 16px 24px;
+      padding: 0 24px;
+      height: 52px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .logo-group {
+    .nav-brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: -0.01em;
     }
 
-    .cf-svg-logo {
-      height: 30px;
-      width: auto;
+    .nav-brand svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--accent-blue);
     }
 
     .nav-links {
@@ -79,15 +88,15 @@
     }
 
     .nav-links a {
-      color: var(--cf-text-secondary);
+      color: var(--text-secondary);
       text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
+      font-size: 13px;
+      font-weight: 400;
       transition: color 0.15s ease;
     }
 
     .nav-links a:hover {
-      color: #ffffff;
+      color: var(--text-primary);
     }
 
     .nav-actions {
@@ -96,535 +105,459 @@
       gap: 12px;
     }
 
-    .btn-ghost {
-      color: var(--cf-text-secondary);
-      text-decoration: none;
-      font-size: 14px;
+    .btn-pill {
+      font-size: 12px;
       font-weight: 500;
-      padding: 8px 14px;
-      border-radius: 6px;
-      transition: all 0.15s ease;
-    }
-
-    .btn-ghost:hover {
-      color: #ffffff;
-    }
-
-    .btn-primary {
-      background: var(--cf-orange);
-      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 980px;
       text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 8px 18px;
-      border-radius: 6px;
-      transition: background 0.15s ease, transform 0.1s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      border: none;
-      cursor: pointer;
+      gap: 4px;
     }
 
-    .btn-primary:hover {
-      background: var(--cf-orange-hover);
+    .btn-pill-primary {
+      background: var(--accent-blue);
+      color: #ffffff;
     }
 
-    .btn-primary:active {
-      transform: scale(0.98);
+    .btn-pill-primary:hover {
+      background: var(--accent-blue-hover);
+    }
+
+    .btn-pill-secondary {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text-primary);
+    }
+
+    .btn-pill-secondary:hover {
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 1024px;
+      margin: 0 auto;
+      padding: 72px 24px 80px;
+      width: 100%;
     }
 
     /* Hero Section */
     .hero {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 80px 24px 60px;
       text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      margin-bottom: 64px;
     }
 
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(243, 128, 32, 0.1);
-      border: 1px solid rgba(243, 128, 32, 0.25);
-      color: var(--cf-orange);
-      padding: 6px 16px;
-      border-radius: 30px;
+    .hero-eyebrow {
       font-size: 13px;
       font-weight: 600;
-      margin-bottom: 24px;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
     }
 
-    .hero-badge .sparkle {
-      font-size: 14px;
-    }
-
-    h1 {
-      font-size: clamp(38px, 6vw, 64px);
-      font-weight: 800;
+    .hero-title {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+      letter-spacing: -0.025em;
       line-height: 1.1;
-      letter-spacing: -0.03em;
-      margin-bottom: 22px;
-      max-width: 900px;
-    }
-
-    h1 .gradient-text {
-      background: linear-gradient(135deg, #ffffff 30%, #f38020 70%, #ff7643 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: var(--text-primary);
+      margin-bottom: 18px;
     }
 
     .hero-subtitle {
-      font-size: clamp(16px, 2.2vw, 20px);
-      color: var(--cf-text-secondary);
-      max-width: 720px;
-      margin-bottom: 40px;
+      font-size: clamp(17px, 2vw, 20px);
       font-weight: 400;
+      color: var(--text-secondary);
+      max-width: 680px;
+      margin: 0 auto 32px;
+      line-height: 1.45;
+      letter-spacing: -0.01em;
     }
 
-    .cta-group {
+    .hero-cta {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 64px;
-      flex-wrap: wrap;
       justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
-    .btn-large {
-      padding: 14px 28px;
-      font-size: 16px;
-      border-radius: 8px;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--cf-border);
+    .btn-cta-primary {
+      background: var(--text-primary);
       color: #ffffff;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 980px;
       text-decoration: none;
-      font-size: 16px;
-      font-weight: 600;
-      padding: 14px 28px;
-      border-radius: 8px;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.2);
+    .btn-cta-primary:hover {
+      background: #333336;
+      transform: scale(1.01);
     }
 
-    /* Stats Bar */
-    .stats-bar {
+    .btn-cta-secondary {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 980px;
+      text-decoration: none;
+      border: 1px solid var(--border-subtle);
+      transition: all 0.2s ease;
+    }
+
+    .btn-cta-secondary:hover {
+      background: #fdfdfd;
+      border-color: var(--border-hover);
+    }
+
+    /* Core Modules Grid (Bento Grid) */
+    .bento-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 24px;
-      width: 100%;
-      max-width: 1000px;
-      padding: 28px;
-      background: var(--cf-card-bg);
-      border: 1px solid var(--cf-border);
-      border-radius: 16px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      margin-bottom: 48px;
     }
 
-    .stat-item {
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 32px;
-      font-weight: 800;
-      color: #ffffff;
-      letter-spacing: -0.02em;
-    }
-
-    .stat-value span {
-      color: var(--cf-orange);
-    }
-
-    .stat-label {
-      font-size: 13px;
-      color: var(--cf-text-secondary);
-      margin-top: 4px;
-    }
-
-    /* Features Section */
-    .section-container {
-      max-width: 1200px;
-      margin: 40px auto 100px;
-      padding: 0 24px;
-      width: 100%;
-    }
-
-    .section-header {
-      text-align: center;
-      margin-bottom: 56px;
-    }
-
-    .section-title {
-      font-size: 32px;
-      font-weight: 800;
-      margin-bottom: 12px;
-      letter-spacing: -0.02em;
-    }
-
-    .section-desc {
-      color: var(--cf-text-secondary);
-      font-size: 16px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 24px;
-    }
-
-    .feature-card {
-      background: var(--cf-card-bg);
-      border: 1px solid var(--cf-border);
-      border-radius: 14px;
-      padding: 32px;
-      transition: all 0.25s ease;
+    .bento-card {
+      background: var(--bg-surface);
+      border-radius: 22px;
+      padding: 40px 36px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
       overflow: hidden;
     }
 
-    .feature-card:hover {
-      border-color: var(--cf-border-hover);
+    .bento-card:hover {
       transform: translateY(-3px);
-      box-shadow: 0 12px 30px rgba(243, 128, 32, 0.08);
+      box-shadow: var(--card-shadow-hover);
+      border-color: var(--border-hover);
     }
 
-    .feature-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 10px;
-      background: rgba(243, 128, 32, 0.1);
-      border: 1px solid rgba(243, 128, 32, 0.2);
+    .card-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg-body);
+      padding: 4px 10px;
+      border-radius: 980px;
+      margin-bottom: 20px;
+      width: fit-content;
+    }
+
+    .card-badge.secure {
+      color: #d97706;
+      background: #fffbeb;
+    }
+
+    .card-badge.lab {
+      color: var(--accent-blue);
+      background: #eff6ff;
+    }
+
+    .card-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .card-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 28px;
+      flex-grow: 1;
+    }
+
+    .feature-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .tag-item {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--bg-body);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 400;
+    }
+
+    .card-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent-blue);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: gap 0.15s ease;
+    }
+
+    .card-link:hover {
+      gap: 10px;
+    }
+
+    /* Sub Features 3-column Grid */
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .spec-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 24px 22px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .spec-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--bg-body);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      margin-bottom: 20px;
+      margin-bottom: 14px;
     }
 
-    .feature-name {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: #ffffff;
+    .spec-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--text-primary);
     }
 
-    .feature-text {
-      color: var(--cf-text-secondary);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    /* Banner CTA */
-    .banner {
-      max-width: 1140px;
-      margin: 0 auto 80px;
-      padding: 56px 36px;
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(243, 128, 32, 0.15) 0%, rgba(22, 28, 45, 0.9) 100%);
-      border: 1px solid rgba(243, 128, 32, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 32px;
-    }
-
-    .banner-content h2 {
-      font-size: 28px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .banner-content p {
-      color: var(--cf-text-secondary);
+    .spec-title {
       font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+    }
+
+    .spec-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
     }
 
     /* Footer */
     footer {
-      border-top: 1px solid var(--cf-border);
-      background: #080b13;
-      padding: 60px 24px 40px;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      padding: 32px 24px;
       margin-top: auto;
     }
 
-    .footer-container {
-      max-width: 1200px;
+    .footer-inner {
+      max-width: 1024px;
       margin: 0 auto;
-      display: grid;
-      grid-template-columns: 2fr repeat(3, 1fr);
-      gap: 48px;
-      margin-bottom: 48px;
-    }
-
-    .footer-brand p {
-      color: var(--cf-text-secondary);
-      font-size: 14px;
-      margin-top: 12px;
-      max-width: 300px;
-    }
-
-    .footer-col h4 {
-      font-size: 14px;
-      font-weight: 700;
-      color: #ffffff;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 16px;
-    }
-
-    .footer-col ul {
-      list-style: none;
-    }
-
-    .footer-col li {
-      margin-bottom: 10px;
-    }
-
-    .footer-col a {
-      color: var(--cf-text-secondary);
-      text-decoration: none;
-      font-size: 13px;
-      transition: color 0.15s ease;
-    }
-
-    .footer-col a:hover {
-      color: var(--cf-orange);
-    }
-
-    .footer-bottom {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding-top: 24px;
-      border-top: 1px solid var(--cf-border);
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 12px;
-      color: #64748b;
+      color: var(--text-secondary);
     }
 
-    @media (max-width: 860px) {
-      .stats-bar {
-        grid-template-columns: repeat(2, 1fr);
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+      .bento-grid {
+        grid-template-columns: 1fr;
       }
-      .footer-container {
-        grid-template-columns: 1fr 1fr;
-      }
-      .banner {
-        flex-direction: column;
-        text-align: center;
+      .specs-grid {
+        grid-template-columns: 1fr;
       }
       .nav-links {
         display: none;
       }
-    }
-
-    @media (max-width: 540px) {
-      .stats-bar {
-        grid-template-columns: 1fr;
-      }
-      .footer-container {
-        grid-template-columns: 1fr;
-      }
-      .footer-bottom {
+      .footer-inner {
         flex-direction: column;
         gap: 12px;
+        text-align: center;
+      }
+      main {
+        padding: 48px 20px 60px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Navigation -->
+  <!-- Navigation Bar -->
   <header>
-    <div class="nav-container">
-      <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" class="logo-group">
-        <svg class="cf-svg-logo" viewBox="0 0 150 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M29.8 24.2c-.1-.7-.4-1.3-.7-1.8-.4-.7-1-1.3-1.8-1.7-.8-.4-1.7-.7-2.7-.7-.3 0-.6 0-.8.1-.9-2.2-2.7-3.9-5-4.7-1.1-.4-2.3-.5-3.5-.4-2.1.3-4 1.3-5.3 2.9-1.2 1.4-1.8 3.3-1.8 5.2 0 .4 0 .7.1 1.1-.9.4-1.7 1-2.2 1.8-.6.8-.9 1.8-.9 2.8 0 1.2.5 2.4 1.3 3.2.9.9 2 1.3 3.2 1.3h19.5c1.4 0 2.7-.6 3.7-1.5 1-1 1.5-2.3 1.5-3.7 0-1.8-.9-3.4-2.4-4z" fill="#F38020"/>
-          <text x="36" y="27" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-weight="800" font-size="16" fill="#FFFFFF" letter-spacing="0.5">CLOUDFLARE</text>
+    <div class="nav-inner">
+      <a href="/" class="nav-brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+          <line x1="12" y1="17" x2="12" y2="21"></line>
         </svg>
+        <span>Fortrust Hub</span>
       </a>
 
       <ul class="nav-links">
-        <li><a href="/ai/">AI Projects</a></li>
-        <li><a href="/fortrust/">Resource Center</a></li>
-        <li><a href="https://developers.cloudflare.com/pages/" target="_blank" rel="noopener noreferrer">Pages</a></li>
-        <li><a href="https://workers.cloudflare.com" target="_blank" rel="noopener noreferrer">Workers</a></li>
-        <li><a href="https://developers.cloudflare.com/" target="_blank" rel="noopener noreferrer">Docs</a></li>
+        <li><a href="/fortrust/">资源中心</a></li>
+        <li><a href="/ai/">交互实验集</a></li>
+        <li><a href="https://developers.cloudflare.com/pages/" target="_blank" rel="noopener noreferrer">边缘网络</a></li>
       </ul>
 
       <div class="nav-actions">
-        <a href="/ai/" class="btn-ghost">✨ AI Projects</a>
-        <a href="/fortrust/" class="btn-primary">静态中心 🔒</a>
+        <a href="/ai/" class="btn-pill btn-pill-secondary">实验集</a>
+        <a href="/fortrust/" class="btn-pill btn-pill-primary">资源中心 🔒</a>
       </div>
     </div>
   </header>
 
-  <!-- Hero -->
-  <main class="hero">
-    <div class="hero-badge">
-      <span class="sparkle">⚡</span>
-      <span>Cloudflare Pages & Workers Platform</span>
-    </div>
-
-    <h1>
-      Build fast.<br>
-      <span class="gradient-text">Deploy globally.</span>
-    </h1>
-
-    <p class="hero-subtitle">
-      Cloudflare Pages is a Jamstack platform for frontend developers to collaborate and deploy websites. Powered by the world's most connected global edge network.
-    </p>
-
-    <div class="cta-group">
-      <a href="https://dash.cloudflare.com/sign-up/pages" target="_blank" rel="noopener noreferrer" class="btn-primary btn-large">
-        <span>Get Started in Seconds</span>
-        <span>→</span>
-      </a>
-      <a href="https://developers.cloudflare.com/pages/" target="_blank" rel="noopener noreferrer" class="btn-secondary">
-        <span>Read Documentation</span>
-      </a>
-    </div>
-
-    <!-- Stats Matrix -->
-    <div class="stats-bar">
-      <div class="stat-item">
-        <div class="stat-value">330<span>+</span></div>
-        <div class="stat-label">Cities in 120+ Countries</div>
+  <!-- Main Content -->
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-eyebrow">Static Center & Interactive Lab</div>
+      <h1 class="hero-title">纯粹、克制、全局可达。</h1>
+      <p class="hero-subtitle">
+        集成本地产品设计原型、技术文档管理中心，以及基于纯原生 WebGL 架构的前端交互实验集。
+      </p>
+      <div class="hero-cta">
+        <a href="/ai/" class="btn-cta-primary">
+          <span>探索交互实验集</span>
+          <span>→</span>
+        </a>
+        <a href="/fortrust/" class="btn-cta-secondary">
+          <span>进入 Fortrust 资源中心</span>
+        </a>
       </div>
-      <div class="stat-item">
-        <div class="stat-value">321<span>Tbps</span></div>
-        <div class="stat-label">Global Network Capacity</div>
+    </section>
+
+    <!-- Bento Grid Section -->
+    <section class="bento-grid">
+      <!-- Card 1: Fortrust Resource Center -->
+      <div class="bento-card">
+        <div>
+          <div class="card-badge secure">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span>安全受控访问</span>
+          </div>
+          <h2 class="card-title">Fortrust 静态资源中心</h2>
+          <p class="card-desc">
+            统一归档与展示 App 2.0、三一、沃达、维保批次等系列产品交互原型、规范说明书及设计资料。内置文档在线解析与客户端 XSS 拦截机制。
+          </p>
+          <div class="feature-tags">
+            <span class="tag-item">产品原型系统</span>
+            <span class="tag-item">Markdown / Word / Excel 预览</span>
+            <span class="tag-item">7天签名凭证</span>
+          </div>
+        </div>
+        <div>
+          <a href="/fortrust/" class="card-link">
+            <span>进入资源中心</span>
+            <span>→</span>
+          </a>
+        </div>
       </div>
-      <div class="stat-item">
-        <div class="stat-value">0<span>ms</span></div>
-        <div class="stat-label">Cold Starts with Workers</div>
+
+      <!-- Card 2: AI / Web Lab -->
+      <div class="bento-card">
+        <div>
+          <div class="card-badge lab">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            <span>零构建免打包</span>
+          </div>
+          <h2 class="card-title">Web Lab 交互实验集</h2>
+          <p class="card-desc">
+            收录 6 个纯原生免构建前端应用：3D 体素沙盒世界、碳水宠物状态机、跨时代互联网考古馆、沉浸式语言学习、IoT 万级数据调度及 WebGL 2.0 星际能源。
+          </p>
+          <div class="feature-tags">
+            <span class="tag-item">原生 WebGL 1.0 / 2.0</span>
+            <span class="tag-item">Web Audio 声音合成</span>
+            <span class="tag-item">极速离线运行</span>
+          </div>
+        </div>
+        <div>
+          <a href="/ai/" class="card-link">
+            <span>浏览全部项目</span>
+            <span>→</span>
+          </a>
+        </div>
       </div>
-      <div class="stat-item">
-        <div class="stat-value">100<span>%</span></div>
-        <div class="stat-label">Global Anycast Availability</div>
+    </section>
+
+    <!-- Sub Specs Grid -->
+    <section class="specs-grid">
+      <div class="spec-item">
+        <div class="spec-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        </div>
+        <div class="spec-title">边缘全球直出</div>
+        <div class="spec-text">借助 Cloudflare Anycast 全球网络，无冷启动延迟，静态资源就近交付。</div>
       </div>
-    </div>
+
+      <div class="spec-item">
+        <div class="spec-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        </div>
+        <div class="spec-title">双域隔离鉴权</div>
+        <div class="spec-text">基于 HMAC-SHA256 签名 Cookie，为资源中心与实验集提供独立安全门禁。</div>
+      </div>
+
+      <div class="spec-item">
+        <div class="spec-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+        </div>
+        <div class="spec-title">纯粹原生架构</div>
+        <div class="spec-text">坚持标准 Web 开放规范，零重型框架依赖，轻盈、高效、历久弥新。</div>
+      </div>
+    </section>
   </main>
-
-  <!-- Feature Grid -->
-  <section class="section-container">
-    <div class="section-header">
-      <h2 class="section-title">Everything you need to ship instantly</h2>
-      <p class="section-desc">Develop full-stack web applications with native Git integration, infinite scale, and enterprise-grade security built-in.</p>
-    </div>
-
-    <div class="feature-grid">
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3 class="feature-name">Global CDN & Edge Compute</h3>
-        <p class="feature-text">Serve your static assets and serverless functions directly from Cloudflare’s 330+ data centers within milliseconds of your users worldwide.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🔄</div>
-        <h3 class="feature-name">Seamless Git Integration</h3>
-        <p class="feature-text">Connect your GitHub or GitLab repository. Every commit automatically builds, runs previews, and deploys to production effortlessly.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🛡️</div>
-        <h3 class="feature-name">Automatic SSL & DDoS Protection</h3>
-        <p class="feature-text">Enjoy unmetered DDoS mitigation, automatic TLS 1.3 certificate provisioning, and HTTP/3 support out of the box at zero cost.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🚀</div>
-        <h3 class="feature-name">Unlimited Bandwidth</h3>
-        <p class="feature-text">Scale fearlessly. Cloudflare Pages offers unlimited requests and bandwidth with predictable pricing and no surprise overages.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🧩</div>
-        <h3 class="feature-name">Full-Stack Framework Ready</h3>
-        <p class="feature-text">First-class support for Next.js, Remix, Astro, Vue, Nuxt, SvelteKit, and standard static HTML/CSS/JS export workflows.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🌐</div>
-        <h3 class="feature-name">Custom Domains & Apex Support</h3>
-        <p class="feature-text">Easily bind apex and subdomains with single-click CNAME flattening and automatic DNS routing configuration.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Bottom CTA Banner -->
-  <div class="banner">
-    <div class="banner-content">
-      <h2>Ready to deploy your next project?</h2>
-      <p>Join millions of developers building on the Cloudflare Developer Platform today.</p>
-    </div>
-    <a href="https://dash.cloudflare.com/sign-up" target="_blank" rel="noopener noreferrer" class="btn-primary btn-large">
-      <span>Start Building for Free</span>
-      <span>→</span>
-    </a>
-  </div>
 
   <!-- Footer -->
   <footer>
-    <div class="footer-container">
-      <div class="footer-brand">
-        <svg class="cf-svg-logo" viewBox="0 0 150 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M29.8 24.2c-.1-.7-.4-1.3-.7-1.8-.4-.7-1-1.3-1.8-1.7-.8-.4-1.7-.7-2.7-.7-.3 0-.6 0-.8.1-.9-2.2-2.7-3.9-5-4.7-1.1-.4-2.3-.5-3.5-.4-2.1.3-4 1.3-5.3 2.9-1.2 1.4-1.8 3.3-1.8 5.2 0 .4 0 .7.1 1.1-.9.4-1.7 1-2.2 1.8-.6.8-.9 1.8-.9 2.8 0 1.2.5 2.4 1.3 3.2.9.9 2 1.3 3.2 1.3h19.5c1.4 0 2.7-.6 3.7-1.5 1-1 1.5-2.3 1.5-3.7 0-1.8-.9-3.4-2.4-4z" fill="#F38020"/>
-          <text x="36" y="27" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-weight="800" font-size="16" fill="#FFFFFF" letter-spacing="0.5">CLOUDFLARE</text>
-        </svg>
-        <p>The Connectivity Cloud. Connecting and protecting millions of digital properties around the world.</p>
-      </div>
-
-      <div class="footer-col">
-        <h4>Products</h4>
-        <ul>
-          <li><a href="https://developers.cloudflare.com/pages/" target="_blank" rel="noopener noreferrer">Pages</a></li>
-          <li><a href="https://workers.cloudflare.com" target="_blank" rel="noopener noreferrer">Workers</a></li>
-          <li><a href="https://www.cloudflare.com/products/r2/" target="_blank" rel="noopener noreferrer">R2 Storage</a></li>
-          <li><a href="https://www.cloudflare.com/products/d1/" target="_blank" rel="noopener noreferrer">D1 Database</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col">
-        <h4>Developers</h4>
-        <ul>
-          <li><a href="https://developers.cloudflare.com/" target="_blank" rel="noopener noreferrer">Documentation</a></li>
-          <li><a href="https://github.com/cloudflare" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-          <li><a href="https://discord.cloudflare.com/" target="_blank" rel="noopener noreferrer">Discord Community</a></li>
-          <li><a href="https://blog.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare Blog</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col">
-        <h4>Company</h4>
-        <ul>
-          <li><a href="https://www.cloudflare.com/about-overview/" target="_blank" rel="noopener noreferrer">About Cloudflare</a></li>
-          <li><a href="https://www.cloudflare.com/network/" target="_blank" rel="noopener noreferrer">Our Network</a></li>
-          <li><a href="https://www.cloudflare.com/trust-hub/" target="_blank" rel="noopener noreferrer">Trust & Safety</a></li>
-          <li><a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <span>© 2026 Cloudflare, Inc. All rights reserved.</span>
-      <span>Privacy Policy · Terms of Use · Report Security Vulnerability</span>
+    <div class="footer-inner">
+      <div>Fortrust Static Center &middot; Designed for Clarity and Longevity</div>
+      <ul class="footer-links">
+        <li><a href="/fortrust/">Fortrust</a></li>
+        <li><a href="/ai/">Web Lab</a></li>
+        <li><a href="/_auth?logout=1">退出登录</a></li>
+      </ul>
     </div>
   </footer>
 
