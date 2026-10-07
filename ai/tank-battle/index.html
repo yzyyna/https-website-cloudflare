@@ -242,73 +242,80 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      z-index: 12;
+      z-index: 25;
       display: none;
     }
 
     .touch-joystick-zone {
       position: absolute;
-      bottom: 24px;
-      left: 24px;
-      width: 130px;
-      height: 130px;
+      bottom: max(20px, env(safe-area-inset-bottom, 20px));
+      left: max(20px, env(safe-area-inset-left, 20px));
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.06);
-      border: 2px dashed rgba(255, 255, 255, 0.25);
+      background: radial-gradient(circle, rgba(34, 197, 94, 0.12) 0%, rgba(15, 23, 42, 0.55) 70%);
+      border: 2px solid rgba(34, 197, 94, 0.35);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(34, 197, 94, 0.15);
       pointer-events: auto;
       touch-action: none;
       display: flex;
       align-items: center;
       justify-content: center;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .touch-joystick-thumb {
-      width: 50px;
-      height: 50px;
+      width: 54px;
+      height: 54px;
       border-radius: 50%;
-      background: rgba(34, 197, 94, 0.7);
-      box-shadow: 0 0 16px rgba(34, 197, 94, 0.8);
+      background: radial-gradient(circle, #4ade80 20%, #22c55e 80%);
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.9), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+      border: 2px solid #fff;
       position: absolute;
       transform: translate(0, 0);
       pointer-events: none;
+      transition: transform 0.04s ease-out;
     }
 
     .touch-action-group {
       position: absolute;
-      bottom: 24px;
-      right: 24px;
+      bottom: max(20px, env(safe-area-inset-bottom, 20px));
+      right: max(20px, env(safe-area-inset-right, 20px));
       display: flex;
+      align-items: flex-end;
       gap: 14px;
       pointer-events: auto;
     }
 
     .btn-touch-action {
-      width: 70px;
-      height: 70px;
+      width: 76px;
+      height: 76px;
       border-radius: 50%;
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.8), rgba(220, 38, 38, 0.9));
-      border: 2px solid rgba(255, 255, 255, 0.4);
+      background: radial-gradient(circle at 35% 35%, #f87171, #ef4444 60%, #b91c1c 100%);
+      border: 2.5px solid rgba(255, 255, 255, 0.6);
       color: #fff;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 800;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+      box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6), inset 0 2px 6px rgba(255, 255, 255, 0.5);
       touch-action: none;
+      transition: transform 0.1s;
     }
     .btn-touch-action:active {
-      transform: scale(0.92);
+      transform: scale(0.90);
     }
 
     .btn-touch-sub {
-      width: 52px;
-      height: 52px;
-      align-self: flex-end;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1.5px solid var(--border);
-      color: var(--accent-cyan);
-      font-size: 18px;
+      width: 56px;
+      height: 56px;
+      background: radial-gradient(circle at 35% 35%, #38bdf8, #0284c7);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      color: #fff;
+      font-size: 20px;
+      box-shadow: 0 6px 18px rgba(2, 132, 199, 0.5);
     }
 
     /* Overlays / Modals */
@@ -504,6 +511,7 @@
             <span class="stat-val" id="hud-rank" style="color:var(--primary)">Lv.1 轻坦</span>
           </div>
         </div>
+        <div id="hud-buff-bar" style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"></div>
       </div>
 
       <div class="hud-card">
@@ -1287,7 +1295,7 @@
         enemyTypes: ['scout', 'speed'],
         layout: [
           '000000000000000',
-          '010101010101010',
+          '000101000101000',
           '010101010101010',
           '010101020101010',
           '010101000101010',
@@ -1312,7 +1320,7 @@
         enemyTypes: ['scout', 'speed', 'heavy'],
         layout: [
           '000000000000000',
-          '011033303330110',
+          '001033303330100',
           '011033303330110',
           '000044404440000',
           '010044404440010',
@@ -1337,7 +1345,7 @@
         enemyTypes: ['speed', 'heavy', 'sniper'],
         layout: [
           '000000000000000',
-          '020202020202020',
+          '000202000202000',
           '055555000555550',
           '020102010201020',
           '055555000555550',
@@ -1362,7 +1370,7 @@
         enemyTypes: ['scout', 'speed', 'heavy', 'sniper'],
         layout: [
           '000000000000000',
-          '012101210121012',
+          '002101200121002',
           '012101210121012',
           '000000000000000',
           '022033020330220',
@@ -1388,7 +1396,7 @@
         enemyTypes: ['speed', 'heavy', 'sniper'],
         layout: [
           '000000000000000',
-          '020102010201020',
+          '000102000201000',
           '000000000000000',
           '011022000220110',
           '011022000220110',
@@ -1415,17 +1423,51 @@
         this.z = z;
         this.y = 0.45;
         this.angle = angle;
+        this.speed = speed;
         this.vx = Math.sin(angle) * speed;
         this.vz = Math.cos(angle) * speed;
         this.isPlayer = isPlayer;
-        this.type = type; // normal, heavy, laser
-        this.radius = type === 'heavy' ? 0.22 : 0.14;
-        this.damage = type === 'heavy' ? 2 : (type === 'laser' ? 2.5 : 1);
+        this.type = type; // normal, heavy, laser, missile, plasma
+        this.radius = (type === 'heavy' || type === 'missile') ? 0.22 : 0.14;
+        this.damage = type === 'heavy' ? 2 : (type === 'missile' ? 3.5 : (type === 'laser' ? 2.5 : 1));
         this.dead = false;
         this.life = 4.0; // max seconds
+        this.target = null;
       }
 
-      update(dt) {
+      update(dt, enemies = []) {
+        // Homing Missile Tracking
+        if (this.type === 'missile' && this.isPlayer) {
+          if (!this.target || this.target.dead) {
+            let closestDist = 20;
+            let closestEnemy = null;
+            enemies.forEach(e => {
+              if (!e.dead) {
+                const d = Math.hypot(e.x - this.x, e.z - this.z);
+                if (d < closestDist) {
+                  closestDist = d;
+                  closestEnemy = e;
+                }
+              }
+            });
+            this.target = closestEnemy;
+          }
+
+          if (this.target && !this.target.dead) {
+            const dx = this.target.x - this.x;
+            const dz = this.target.z - this.z;
+            const targetAngle = Math.atan2(dx, dz);
+            // Smoothly steer missile towards target
+            let diff = (targetAngle - this.angle) % (Math.PI * 2);
+            if (diff < -Math.PI) diff += Math.PI * 2;
+            if (diff > Math.PI) diff -= Math.PI * 2;
+            this.angle += diff * Math.min(1.0, dt * 7.0);
+
+            this.vx = Math.sin(this.angle) * this.speed;
+            this.vz = Math.cos(this.angle) * this.speed;
+          }
+        }
+
         this.x += this.vx * dt;
         this.z += this.vz * dt;
         this.life -= dt;
@@ -1465,20 +1507,43 @@
       }
     }
 
+    class Drone {
+      constructor(player, offsetAngle = 0) {
+        this.player = player;
+        this.offsetAngle = offsetAngle;
+        this.orbitRadius = 1.4;
+        this.angle = offsetAngle;
+        this.x = player.x;
+        this.y = 0.85;
+        this.z = player.z;
+        this.cooldown = 0;
+        this.dead = false;
+      }
+
+      update(dt) {
+        this.angle += dt * 3.0;
+        this.x = this.player.x + Math.sin(this.angle) * this.orbitRadius;
+        this.z = this.player.z + Math.cos(this.angle) * this.orbitRadius;
+        this.y = 0.85 + Math.sin(this.angle * 2) * 0.15;
+        if (this.cooldown > 0) this.cooldown -= dt;
+      }
+    }
+
     class PowerUp {
       constructor(x, z, type) {
         this.x = x;
         this.z = z;
         this.y = 0.4;
-        this.type = type; // star, shield, bomb, clock, shovel, health, speed
+        // star, shield, bomb, clock, shovel, health, speed, drill, missile, gatling, drone
+        this.type = type;
         this.rot = 0;
         this.dead = false;
         this.life = 25.0; // 25s disappear
       }
 
       update(dt) {
-        this.rot += dt * 2.5;
-        this.y = 0.4 + Math.sin(this.rot * 2) * 0.12;
+        this.rot += dt * 2.8;
+        this.y = 0.4 + Math.sin(this.rot * 2) * 0.14;
         this.life -= dt;
         if (this.life <= 0) this.dead = true;
       }
@@ -1488,9 +1553,11 @@
       constructor(x, z, isPlayer = false, type = 'player') {
         this.x = x;
         this.z = z;
+        this.vx = 0;
+        this.vz = 0;
         this.y = 0.35;
-        this.angle = 0; // heading angle
-        this.turretAngle = 0;
+        this.angle = isPlayer ? Math.PI : 0; // heading angle
+        this.turretAngle = this.angle;
         this.isPlayer = isPlayer;
         this.type = type; // player, scout, speed, heavy, sniper, boss
 
@@ -1503,6 +1570,12 @@
         this.fireRate = 0.35;
         this.shieldTime = 0;
         this.speedBoostTime = 0;
+
+        // Tactical buffs
+        this.drillTime = 0;    // Alloy Drill (smashes all bricks/steel & rams tanks)
+        this.gatlingTime = 0;  // Rapid fire storm
+        this.droneTime = 0;    // Escort Drones
+
         this.dead = false;
         this.recoil = 0;
 
@@ -1519,6 +1592,7 @@
 
         // AI behavior
         this.changeDirTimer = 0;
+        this.stuckTimer = 0;
         this.targetDir = 0;
         this.isFlashing = false; // drops powerup
       }
@@ -1528,6 +1602,9 @@
 
         if (this.shieldTime > 0) this.shieldTime -= dt;
         if (this.speedBoostTime > 0) this.speedBoostTime -= dt;
+        if (this.drillTime > 0) this.drillTime -= dt;
+        if (this.gatlingTime > 0) this.gatlingTime -= dt;
+        if (this.droneTime > 0) this.droneTime -= dt;
         if (this.cooldown > 0) this.cooldown -= dt;
         if (this.recoil > 0) this.recoil -= dt * 6;
       }
@@ -1579,6 +1656,10 @@
         this.baseDestroyed = false;
 
         window.gameApp = this;
+
+        this.joystickVector = { x: 0, z: 0, active: false };
+        this.touchFiring = false;
+        this.drones = [];
 
         this.initDOM();
         this.bindEvents();
@@ -1739,36 +1820,50 @@
           const dx = t.clientX - touchOrigin.x;
           const dy = t.clientY - touchOrigin.y;
           const dist = Math.hypot(dx, dy);
-          const maxDist = 45;
-          const angle = Math.atan2(dy, dx);
+          const maxDist = 52;
           const moveDist = Math.min(dist, maxDist);
+          const angle = Math.atan2(dy, dx);
 
           const thumbX = Math.cos(angle) * moveDist;
           const thumbY = Math.sin(angle) * moveDist;
           thumb.style.transform = `translate(${thumbX}px, ${thumbY}px)`;
 
-          // Map to keys
-          this.keys['KeyD'] = dx > 15;
-          this.keys['KeyA'] = dx < -15;
-          this.keys['KeyS'] = dy > 15;
-          this.keys['KeyW'] = dy < -15;
+          // Continuous 360-degree analog vector (X: right, Z: down in screen)
+          if (dist > 8) {
+            const norm = moveDist / maxDist;
+            this.joystickVector.x = (dx / dist) * norm;
+            this.joystickVector.z = (dy / dist) * norm;
+            this.joystickVector.active = true;
+          } else {
+            this.joystickVector.active = false;
+          }
         });
 
         const resetJoystick = () => {
           touchOrigin = null;
           thumb.style.transform = 'translate(0, 0)';
-          this.keys['KeyW'] = false;
-          this.keys['KeyA'] = false;
-          this.keys['KeyS'] = false;
-          this.keys['KeyD'] = false;
+          this.joystickVector.x = 0;
+          this.joystickVector.z = 0;
+          this.joystickVector.active = false;
         };
 
         zone.addEventListener('touchend', resetJoystick);
         zone.addEventListener('touchcancel', resetJoystick);
 
+        // Continuous Touch Fire
         this.dom.btnTouchFire.addEventListener('touchstart', e => {
           e.preventDefault();
+          this.touchFiring = true;
           this.tryPlayerShoot();
+        });
+
+        this.dom.btnTouchFire.addEventListener('touchend', e => {
+          e.preventDefault();
+          this.touchFiring = false;
+        });
+
+        this.dom.btnTouchFire.addEventListener('touchcancel', e => {
+          this.touchFiring = false;
         });
 
         this.dom.btnTouchView.addEventListener('touchstart', e => {
@@ -1889,14 +1984,20 @@
         const cfg = STAGE_CONFIGS[this.currentStageIdx];
         if (this.enemiesRemainingToSpawn <= 0) return;
 
-        // 3 Spawn Points at Top (x=1.5, x=7.5, x=13.5, z=1.5)
+        // 3 Safe Spawn Points at Top (x=1.5, x=7.5, x=13.5, z=1.5)
         const spawnCols = [1.5, 7.5, 13.5];
-        const spawnX = spawnCols[Math.floor(Math.random() * spawnCols.length)];
-        const spawnZ = 1.5;
+        let safeSpawn = null;
+        for (let sx of spawnCols.sort(() => Math.random() - 0.5)) {
+          // Check collision with walls and other tanks
+          if (!this.checkTileCollision(sx, 1.5, 0.45) && !this.enemies.some(e => Math.hypot(e.x - sx, e.z - 1.5) < 1.6)) {
+            safeSpawn = { x: sx, z: 1.5 };
+            break;
+          }
+        }
+        if (!safeSpawn) return; // Wait for spawn area to be clear
 
-        // Check if spawn point is occupied
-        const isOccupied = this.enemies.some(e => Math.hypot(e.x - spawnX, e.z - spawnZ) < 1.4);
-        if (isOccupied) return;
+        const spawnX = safeSpawn.x;
+        const spawnZ = safeSpawn.z;
 
         let type = 'scout';
         if (cfg.isBossStage && this.enemiesRemainingToSpawn === 1 && !this.enemies.some(e => e.isBoss)) {
@@ -1907,9 +2008,10 @@
 
         const enemy = new Tank(spawnX, spawnZ, false, type);
         enemy.angle = Math.PI; // Face downwards
+        enemy.turretAngle = Math.PI;
 
-        // 20% Chance of Flashing Tank (drops powerup)
-        if (Math.random() < 0.22 && !enemy.isBoss) {
+        // 25% Chance of Flashing Tank (drops powerup)
+        if (Math.random() < 0.25 && !enemy.isBoss) {
           enemy.isFlashing = true;
         }
 
@@ -1938,8 +2040,10 @@
         if (this.state !== 'PLAYING' || !this.player || this.player.dead || this.player.cooldown > 0) return;
 
         const p = this.player;
-        p.cooldown = p.speedBoostTime > 0 ? p.fireRate * 0.5 : p.fireRate;
-        p.recoil = 0.25;
+        const isGatling = p.gatlingTime > 0;
+        const baseRate = isGatling ? 0.08 : p.fireRate;
+        p.cooldown = p.speedBoostTime > 0 ? baseRate * 0.5 : baseRate;
+        p.recoil = isGatling ? 0.12 : 0.25;
         this.shotsFired++;
 
         const rad = p.turretAngle;
@@ -1947,23 +2051,34 @@
         const bx = p.x + Math.sin(rad) * barrelLen;
         const bz = p.z + Math.cos(rad) * barrelLen;
 
-        if (p.level === 1) {
-          this.bullets.push(new Bullet(bx, bz, rad, true, 'normal', 14));
+        if (p.missileAmmo && p.missileAmmo > 0) {
+          // Homing Missile Shoot
+          p.missileAmmo--;
+          this.bullets.push(new Bullet(bx, bz, rad, true, 'missile', 14));
+          sound.playShoot('laser');
+          this.showToast(`🚀 发射追踪飞弹！剩余: ${p.missileAmmo} 枚`);
+        } else if (isGatling) {
+          // Gatling Storm
+          const spread = (Math.random() - 0.5) * 0.12;
+          this.bullets.push(new Bullet(bx, bz, rad + spread, true, 'normal', 22));
+          sound.playShoot('normal');
+        } else if (p.level === 1) {
+          this.bullets.push(new Bullet(bx, bz, rad, true, 'normal', 15));
           sound.playShoot('normal');
         } else if (p.level === 2) {
-          this.bullets.push(new Bullet(bx, bz, rad, true, 'normal', 18));
+          this.bullets.push(new Bullet(bx, bz, rad, true, 'normal', 19));
           sound.playShoot('normal');
         } else if (p.level === 3) {
           // Double Barrel Heavy
           const offsetL = 0.18;
-          this.bullets.push(new Bullet(bx - Math.cos(rad)*offsetL, bz + Math.sin(rad)*offsetL, rad, true, 'heavy', 16));
-          this.bullets.push(new Bullet(bx + Math.cos(rad)*offsetL, bz - Math.sin(rad)*offsetL, rad, true, 'heavy', 16));
+          this.bullets.push(new Bullet(bx - Math.cos(rad)*offsetL, bz + Math.sin(rad)*offsetL, rad, true, 'heavy', 17));
+          this.bullets.push(new Bullet(bx + Math.cos(rad)*offsetL, bz - Math.sin(rad)*offsetL, rad, true, 'heavy', 17));
           sound.playShoot('heavy');
         } else if (p.level >= 4) {
           // 3-Way Laser / Plasma Shells
-          this.bullets.push(new Bullet(bx, bz, rad, true, 'laser', 22));
-          this.bullets.push(new Bullet(bx, bz, rad - 0.15, true, 'normal', 18));
-          this.bullets.push(new Bullet(bx, bz, rad + 0.15, true, 'normal', 18));
+          this.bullets.push(new Bullet(bx, bz, rad, true, 'laser', 24));
+          this.bullets.push(new Bullet(bx, bz, rad - 0.16, true, 'normal', 20));
+          this.bullets.push(new Bullet(bx, bz, rad + 0.16, true, 'normal', 20));
           sound.playShoot('laser');
         }
 
@@ -2054,6 +2169,23 @@
             this.applyPlayerRankStats();
             this.showToast(`⭐ 战车升级！当前等级: Lv.${this.player.level}`);
             break;
+          case 'drill':
+            this.player.drillTime = 16.0;
+            this.showToast('🔩 获得旋转合金钻头！可直接碾碎一切砖石与钢铁，持续16秒');
+            break;
+          case 'missile':
+            this.player.missileAmmo = (this.player.missileAmmo || 0) + 6;
+            this.showToast('🚀 获得追踪飞弹 × 6！按开火键自动索敌贯穿打击');
+            break;
+          case 'gatling':
+            this.player.gatlingTime = 14.0;
+            this.showToast('🔫 暴风加特林就绪！每秒12发超高速狂轰14秒');
+            break;
+          case 'drone':
+            this.player.droneTime = 20.0;
+            this.drones = [new Drone(this.player, 0), new Drone(this.player, Math.PI)];
+            this.showToast('🛸 2架高能护航僚机升空！自动索敌开火20秒');
+            break;
           case 'shield':
             this.player.shieldTime = 15.0;
             this.showToast('🛡️ 能量护盾激活！15秒绝对无敌');
@@ -2085,7 +2217,7 @@
             break;
           case 'speed':
             this.player.speedBoostTime = 12.0;
-            this.showToast('🚀 引擎超频！移速与装填加倍 12 秒');
+            this.showToast('⚡ 引擎超频！移速与装填加倍 12 秒');
             break;
         }
 
@@ -2160,6 +2292,31 @@
           this.dom.hudHpVal.textContent = `${this.player.hp}/${this.player.maxHp}`;
           const rankNames = ['Lv.1 轻坦', 'Lv.2 突击坦', 'Lv.3 重炮战车', 'Lv.4 磁暴毁灭者'];
           this.dom.hudRank.textContent = rankNames[this.player.level - 1] || 'Lv.4 终极战车';
+
+          // Render active Buff Pills
+          const buffEl = document.getElementById('hud-buff-bar');
+          if (buffEl) {
+            let pills = '';
+            if (this.player.drillTime > 0) {
+              pills += `<span style="font-size:10.5px;padding:2px 6px;border-radius:4px;background:rgba(234,179,8,0.25);border:1px solid #eab308;color:#fde047">🔩 钻头 ${Math.ceil(this.player.drillTime)}s</span>`;
+            }
+            if (this.player.missileAmmo && this.player.missileAmmo > 0) {
+              pills += `<span style="font-size:10.5px;padding:2px 6px;border-radius:4px;background:rgba(239,68,68,0.25);border:1px solid #ef4444;color:#fca5a5">🚀 飞弹 ×${this.player.missileAmmo}</span>`;
+            }
+            if (this.player.gatlingTime > 0) {
+              pills += `<span style="font-size:10.5px;padding:2px 6px;border-radius:4px;background:rgba(6,182,212,0.25);border:1px solid #06b6d4;color:#67e8f9">🔫 加特林 ${Math.ceil(this.player.gatlingTime)}s</span>`;
+            }
+            if (this.player.droneTime > 0) {
+              pills += `<span style="font-size:10.5px;padding:2px 6px;border-radius:4px;background:rgba(168,85,247,0.25);border:1px solid #a855f7;color:#d8b4fe">🛸 僚机 ${Math.ceil(this.player.droneTime)}s</span>`;
+            }
+            if (this.player.shieldTime > 0) {
+              pills += `<span style="font-size:10.5px;padding:2px 6px;border-radius:4px;background:rgba(59,130,246,0.25);border:1px solid #3b82f6;color:#93c5fd">🛡️ 护盾 ${Math.ceil(this.player.shieldTime)}s</span>`;
+            }
+            if (this.player.speedBoostTime > 0) {
+              pills += `<span style="font-size:10.5px;padding:2px 6px;border-radius:4px;background:rgba(34,197,94,0.25);border:1px solid #22c55e;color:#86efac">⚡ 超频 ${Math.ceil(this.player.speedBoostTime)}s</span>`;
+            }
+            buffEl.innerHTML = pills;
+          }
         }
 
         // Boss Bar update
@@ -2292,6 +2449,12 @@
           for (let i = 0; i < 8; i++) {
             this.particles.push(new Particle(col + 0.5, 0.4, row + 0.5, [0.85, 0.4, 0.2, 1], 0.16, 3));
           }
+          // 15% chance to spawn powerup from broken brick
+          if (Math.random() < 0.15) {
+            const types = ['drill', 'missile', 'gatling', 'drone', 'star', 'shield', 'bomb', 'clock', 'shovel', 'health', 'speed'];
+            const pType = types[Math.floor(Math.random() * types.length)];
+            this.powerups.push(new PowerUp(col + 0.5, row + 0.5, pType));
+          }
           return;
         } else if (tile === TILE_STEEL) {
           b.dead = true;
@@ -2300,10 +2463,14 @@
           for (let i = 0; i < 6; i++) {
             this.particles.push(new Particle(b.x, 0.4, b.z, [1, 1, 1, 1], 0.12, 4));
           }
-          // Level 3+ or Heavy Bullet can destroy Steel
-          if (b.type === 'heavy' || b.type === 'laser') {
+          // Level 3+, Heavy or Missile Bullet can destroy Steel
+          if (b.type === 'heavy' || b.type === 'laser' || b.type === 'missile') {
             this.map[row][col] = TILE_EMPTY;
             this.spawnExplosion(col + 0.5, 0.4, row + 0.5, false, [0.6, 0.7, 0.8, 1]);
+            if (Math.random() < 0.2) {
+              const types = ['drill', 'missile', 'gatling', 'drone', 'star'];
+              this.powerups.push(new PowerUp(col + 0.5, row + 0.5, types[Math.floor(Math.random() * types.length)]));
+            }
           }
           return;
         } else if (tile === TILE_BASE) {
@@ -2445,33 +2612,117 @@
         if (this.player && !this.player.dead) {
           this.player.update(dt);
 
-          // Keyboard & Input Move vector (W:Up/-Z, S:Down/+Z, A:Left/-X, D:Right/+X)
-          let dx = 0, dz = 0;
-          if (this.keys['KeyW'] || this.keys['ArrowUp']) dz -= 1;
-          if (this.keys['KeyS'] || this.keys['ArrowDown']) dz += 1;
-          if (this.keys['KeyA'] || this.keys['ArrowLeft']) dx -= 1;
-          if (this.keys['KeyD'] || this.keys['ArrowRight']) dx += 1;
+          // Get Input Vector from Continuous Joystick or Keyboard (W:Up/-Z, S:Down/+Z, A:Left/-X, D:Right/+X)
+          let inputX = 0, inputZ = 0;
+          if (this.joystickVector && this.joystickVector.active) {
+            inputX = this.joystickVector.x;
+            inputZ = this.joystickVector.z;
+          } else {
+            if (this.keys['KeyW'] || this.keys['ArrowUp']) inputZ -= 1;
+            if (this.keys['KeyS'] || this.keys['ArrowDown']) inputZ += 1;
+            if (this.keys['KeyA'] || this.keys['ArrowLeft']) inputX -= 1;
+            if (this.keys['KeyD'] || this.keys['ArrowRight']) inputX += 1;
 
-          if (dx !== 0 || dz !== 0) {
-            // Normalize direction vector
-            const len = Math.hypot(dx, dz);
-            const normX = dx / len;
-            const normZ = dz / len;
-
-            const targetAngle = Math.atan2(normX, normZ);
-            this.player.angle = this.lerpAngle(this.player.angle, targetAngle, Math.min(1.0, dt * 14.0));
-            this.player.turretAngle = this.lerpAngle(this.player.turretAngle, targetAngle, Math.min(1.0, dt * 18.0));
-
-            const spd = (this.keys['ShiftLeft'] || this.keys['ShiftRight']) ? this.player.speed * 1.35 : this.player.speed;
-            const actualSpeed = this.player.speedBoostTime > 0 ? spd * 1.5 : spd;
-
-            // Smooth Sliding Axis-separated Move & Hard Screen Clamp
-            this.moveEntityWithCollision(this.player, normX, normZ, actualSpeed, dt);
+            if (inputX !== 0 || inputZ !== 0) {
+              const len = Math.hypot(inputX, inputZ);
+              inputX /= len;
+              inputZ /= len;
+            }
           }
 
-          // Turret Rotation (Follows Key/Mouse)
-          if (this.keys['Space'] || this.keys['KeyJ'] || this.isMouseDown) {
+          const baseSpeed = (this.keys['ShiftLeft'] || this.keys['ShiftRight']) ? this.player.speed * 1.35 : this.player.speed;
+          const maxSpeed = this.player.speedBoostTime > 0 ? baseSpeed * 1.5 : baseSpeed;
+
+          if (inputX !== 0 || inputZ !== 0) {
+            const targetAngle = Math.atan2(inputX, inputZ);
+            this.player.angle = this.lerpAngle(this.player.angle, targetAngle, Math.min(1.0, dt * 16.0));
+            this.player.turretAngle = this.lerpAngle(this.player.turretAngle, targetAngle, Math.min(1.0, dt * 20.0));
+
+            // Acceleration
+            const accel = 26.0;
+            this.player.vx += (inputX * maxSpeed - this.player.vx) * Math.min(1.0, dt * accel);
+            this.player.vz += (inputZ * maxSpeed - this.player.vz) * Math.min(1.0, dt * accel);
+          } else {
+            // Friction Deceleration
+            const friction = 20.0;
+            this.player.vx += (0 - this.player.vx) * Math.min(1.0, dt * friction);
+            this.player.vz += (0 - this.player.vz) * Math.min(1.0, dt * friction);
+          }
+
+          // Smooth Physics Move with Separation
+          const curSpd = Math.hypot(this.player.vx, this.player.vz);
+          if (curSpd > 0.02) {
+            const dirX = this.player.vx / curSpd;
+            const dirZ = this.player.vz / curSpd;
+            this.moveEntityWithCollision(this.player, dirX, dirZ, curSpd, dt);
+          }
+
+          // Alloy Drill Frontal Ramming Check
+          if (this.player.drillTime > 0) {
+            const frontDist = 0.65;
+            const fx = this.player.x + Math.sin(this.player.angle) * frontDist;
+            const fz = this.player.z + Math.cos(this.player.angle) * frontDist;
+            const fr = Math.floor(fz), fc = Math.floor(fx);
+
+            if (fr >= 0 && fr < MAP_SIZE && fc >= 0 && fc < MAP_SIZE) {
+              const tile = this.map[fr][fc];
+              if (tile === TILE_BRICK || tile === TILE_STEEL) {
+                this.map[fr][fc] = TILE_EMPTY;
+                this.spawnExplosion(fc + 0.5, 0.4, fr + 0.5, false, [0.8, 0.6, 0.2, 1]);
+                sound.playHit(true);
+                if (Math.random() < 0.2) {
+                  const types = ['drill', 'missile', 'gatling', 'drone', 'star'];
+                  this.powerups.push(new PowerUp(fc + 0.5, fr + 0.5, types[Math.floor(Math.random() * types.length)]));
+                }
+              }
+            }
+
+            // Drill Ram Enemies
+            this.enemies.forEach(e => {
+              if (!e.dead && Math.hypot(e.x - fx, e.z - fz) < e.size * 0.7) {
+                e.hp -= dt * 18.0;
+                sound.playHit(true);
+                this.particles.push(new Particle(fx, 0.4, fz, [1, 0.8, 0.2, 1], 0.15, 4));
+                if (e.hp <= 0) {
+                  e.dead = true;
+                  this.kills++;
+                  this.stageKills++;
+                  this.spawnExplosion(e.x, 0.5, e.z, e.isBoss);
+                  this.updateHUD();
+                  this.checkStageProgress();
+                }
+              }
+            });
+          }
+
+          // Auto-Fire / Continuous Fire
+          if (this.keys['Space'] || this.keys['KeyJ'] || this.isMouseDown || this.touchFiring) {
             this.tryPlayerShoot();
+          }
+
+          // Escort Drones Update & Auto Target
+          if (this.player.droneTime > 0 && this.drones.length > 0) {
+            this.drones.forEach(d => {
+              d.update(dt);
+              if (d.cooldown <= 0) {
+                // Find nearest enemy within 12 units
+                let nearest = null, nDist = 12.0;
+                this.enemies.forEach(e => {
+                  if (!e.dead) {
+                    const dist = Math.hypot(e.x - d.x, e.z - d.z);
+                    if (dist < nDist) { nDist = dist; nearest = e; }
+                  }
+                });
+                if (nearest) {
+                  d.cooldown = 0.45;
+                  const shootAngle = Math.atan2(nearest.x - d.x, nearest.z - d.z);
+                  this.bullets.push(new Bullet(d.x, d.z, shootAngle, true, 'plasma', 20));
+                  sound.playShoot('laser');
+                }
+              }
+            });
+          } else {
+            this.drones = [];
           }
 
           // Pick up powerups
@@ -2482,18 +2733,34 @@
           });
         }
 
-        // Update Enemies
-        this.enemies.forEach(e => {
+        // Update Enemies with Mutual Separation
+        this.enemies.forEach((e, idx) => {
           if (!e.dead) {
             e.update(dt);
             this.updateAI(e, dt);
+
+            // Tank-to-Tank Separation
+            for (let j = idx + 1; j < this.enemies.length; j++) {
+              const e2 = this.enemies[j];
+              if (!e2.dead) {
+                const dist = Math.hypot(e.x - e2.x, e.z - e2.z);
+                const minDist = (e.size + e2.size) * 0.48;
+                if (dist < minDist && dist > 0.01) {
+                  const push = (minDist - dist) * 0.5;
+                  const px = ((e.x - e2.x) / dist) * push;
+                  const pz = ((e.z - e2.z) / dist) * push;
+                  e.x += px; e.z += pz;
+                  e2.x -= px; e2.z -= pz;
+                }
+              }
+            }
           }
         });
 
-        // Update Bullets
+        // Update Bullets (with Missile Tracking)
         this.bullets.forEach(b => {
           if (!b.dead) {
-            b.update(dt);
+            b.update(dt, this.enemies);
             this.handleBulletCollisions(b);
           }
         });
@@ -2525,22 +2792,27 @@
         const sz = (Math.random() - 0.5) * this.shake * 0.4;
         if (this.shake > 0.01) this.shake *= 0.88; else this.shake = 0;
 
+        const isMobile = (this.scene.aspect || 1.0) < 1.05;
+
         if (this.state === 'START') {
           // Smooth 3D Panoramic Orbit during Title Screen
           const t = performance.now() * 0.0004;
-          const orbitR = 15.0;
-          const eye = [7.5 + Math.cos(t) * orbitR, 14.0, 7.5 + Math.sin(t) * orbitR];
+          const orbitR = isMobile ? 12.0 : 15.0;
+          const eye = [7.5 + Math.cos(t) * orbitR, isMobile ? 10.5 : 14.0, 7.5 + Math.sin(t) * orbitR];
           const center = [7.5, 0.5, 7.5];
-          sc.setCamera(eye, center, [0, 1, 0], 50);
+          sc.setCamera(eye, center, [0, 1, 0], isMobile ? 58 : 50);
         } else if (this.viewMode === 0) {
-          // Isometric 3D (Classic Elevated Angled View)
-          const eye = [targetX + sx, 16.0 + sy, targetZ + 11.5 + sz];
-          const center = [targetX + sx, 0.3 + sy, targetZ + 1.0 + sz];
-          sc.setCamera(eye, center, [0, 1, 0], 48);
+          // Isometric 3D (Classic Elevated Angled View - Dynamically Scaled for Mobile)
+          const camDist = isMobile ? 8.2 : 11.5;
+          const camHeight = isMobile ? 11.8 : 16.0;
+          const fov = isMobile ? 56 : 48;
+          const eye = [targetX + sx, camHeight + sy, targetZ + camDist + sz];
+          const center = [targetX + sx, 0.3 + sy, targetZ + (isMobile ? 0.0 : 1.0) + sz];
+          sc.setCamera(eye, center, [0, 1, 0], fov);
         } else if (this.viewMode === 1) {
           // Third-Person Chase Cam
           const heading = this.player ? this.player.angle : 0;
-          const dist = 5.5, height = 3.5;
+          const dist = isMobile ? 4.6 : 5.5, height = isMobile ? 2.8 : 3.5;
           const eye = [
             targetX - Math.sin(heading) * dist + sx,
             height + sy,
@@ -2550,9 +2822,10 @@
           sc.setCamera(eye, center, [0, 1, 0], 55);
         } else {
           // TopDown 3D View
-          const eye = [7.5 + sx, 22.0 + sy, 7.501 + sz];
+          const topHeight = isMobile ? 16.5 : 22.0;
+          const eye = [7.5 + sx, topHeight + sy, 7.501 + sz];
           const center = [7.5 + sx, 0.0 + sy, 7.5 + sz];
-          sc.setCamera(eye, center, [0, 0, -1], 44);
+          sc.setCamera(eye, center, [0, 0, -1], isMobile ? 54 : 44);
         }
 
         const mat = M4.create();
@@ -2639,12 +2912,27 @@
           M4.identity(mat);
           M4.translate(mat, mat, [p.x, p.y, p.z]);
           M4.rotateY(mat, mat, p.rot);
-          M4.scale(mat, mat, [0.45, 0.45, 0.45]);
-          let pColor = [1, 0.8, 0.2, 1];
-          if (p.type === 'shield') pColor = [0.2, 0.8, 1, 1];
-          if (p.type === 'bomb') pColor = [1, 0.2, 0.2, 1];
-          if (p.type === 'clock') pColor = [0.8, 0.4, 1, 1];
-          sc.drawMesh(sc.cube, mat, pColor, 0.5);
+
+          if (p.type === 'drill') {
+            M4.scale(mat, mat, [0.4, 0.6, 0.4]);
+            sc.drawMesh(sc.pyramid, mat, [0.95, 0.8, 0.15, 1], 0.6);
+          } else if (p.type === 'missile') {
+            M4.scale(mat, mat, [0.3, 0.5, 0.3]);
+            sc.drawMesh(sc.cylinder, mat, [0.95, 0.2, 0.2, 1], 0.6);
+          } else if (p.type === 'gatling') {
+            M4.scale(mat, mat, [0.38, 0.38, 0.38]);
+            sc.drawMesh(sc.cube, mat, [0.2, 0.85, 0.95, 1], 0.6);
+          } else if (p.type === 'drone') {
+            M4.scale(mat, mat, [0.4, 0.3, 0.4]);
+            sc.drawMesh(sc.pyramid, mat, [0.75, 0.35, 0.95, 1], 0.6);
+          } else {
+            M4.scale(mat, mat, [0.45, 0.45, 0.45]);
+            let pColor = [1, 0.8, 0.2, 1];
+            if (p.type === 'shield') pColor = [0.2, 0.8, 1, 1];
+            if (p.type === 'bomb') pColor = [1, 0.2, 0.2, 1];
+            if (p.type === 'clock') pColor = [0.8, 0.4, 1, 1];
+            sc.drawMesh(sc.cube, mat, pColor, 0.5);
+          }
         });
 
         // 5. Draw Tanks (Player & Enemies)
@@ -2669,6 +2957,8 @@
             }
           } else if (tank.shieldTime > 0 && (performance.now() % 160 < 80)) {
             bodyColor = [0.4, 0.9, 1.0, 1.0]; // Shield Glow
+          } else if (tank.drillTime > 0) {
+            bodyColor = [0.95, 0.8, 0.2, 1.0]; // Gold Drill Armored
           }
 
           sc.drawMesh(sc.cube, mat, bodyColor);
@@ -2688,10 +2978,32 @@
           M4.translate(mat, mat, [0, 0, tank.size * 0.45 - barrelRecoil]);
           M4.scale(mat, mat, [0.14, 0.14, tank.size * 0.65]);
           sc.drawMesh(sc.cylinder, mat, [0.18, 0.22, 0.28, 1.0]);
+
+          // Render Active 3D Rotating Drill on Player Front
+          if (tank.isPlayer && tank.drillTime > 0) {
+            M4.identity(mat);
+            M4.translate(mat, mat, [tank.x, 0.32, tank.z]);
+            M4.rotateY(mat, mat, tank.angle);
+            M4.translate(mat, mat, [0, 0, tank.size * 0.6]);
+            M4.rotateY(mat, mat, performance.now() * 0.03); // Rapid spinning
+            M4.scale(mat, mat, [0.35, 0.45, 0.35]);
+            sc.drawMesh(sc.pyramid, mat, [0.95, 0.85, 0.2, 1.0], 0.7);
+          }
         };
 
         if (this.player) renderTank(this.player);
         this.enemies.forEach(e => renderTank(e));
+
+        // 5.5 Draw Escort Drones
+        if (this.drones && this.drones.length > 0) {
+          this.drones.forEach(d => {
+            M4.identity(mat);
+            M4.translate(mat, mat, [d.x, d.y, d.z]);
+            M4.rotateY(mat, mat, d.angle * 2);
+            M4.scale(mat, mat, [0.3, 0.2, 0.3]);
+            sc.drawMesh(sc.pyramid, mat, [0.3, 0.85, 1.0, 1.0], 0.8);
+          });
+        }
 
         // 6. Draw Bullets
         this.bullets.forEach(b => {
@@ -2701,9 +3013,14 @@
           M4.rotateY(mat, mat, b.angle);
           M4.scale(mat, mat, [b.radius * 2, b.radius * 2, b.radius * 3.5]);
 
-          const bColor = b.isPlayer ?
-            (b.type === 'laser' ? [0.2, 0.9, 1.0, 1] : [1.0, 0.85, 0.2, 1]) :
-            [1.0, 0.3, 0.2, 1];
+          let bColor = [1.0, 0.85, 0.2, 1];
+          if (b.isPlayer) {
+            if (b.type === 'laser') bColor = [0.2, 0.9, 1.0, 1];
+            if (b.type === 'missile') bColor = [1.0, 0.25, 0.2, 1];
+            if (b.type === 'plasma') bColor = [0.4, 0.8, 1.0, 1];
+          } else {
+            bColor = [1.0, 0.3, 0.2, 1];
+          }
 
           sc.drawMesh(sc.cylinder, mat, bColor, 0.6);
         });
