@@ -39,6 +39,7 @@
 | `iot-hub` | 实时数据调度控制台 | 5万级设备虚拟列表 + 内存安全调度 + 命令模式 Undo/Redo |
 | `learn-lang` | 多语种学习平台 | 3D 翻转记忆闪卡 + 本地纯 SVG 动态头像 + 学习活跃度图表 |
 | `stellar-fusion` | 3D 星际能源监控中心 | WebGL2 + 多模型（Gemini/GLM/MuseSpark）归并对照 |
+| `tank-battle` | 3D 经典坦克大战进化版 | 纯原生 WebGL 1.0 + 多视角切换 + 5大关卡/泰坦BOSS战 + Web Audio 合成音效 |
 
 ---
 

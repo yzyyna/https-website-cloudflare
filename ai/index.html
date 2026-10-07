@@ -1061,7 +1061,7 @@
         <div class="metric-item">
           <div class="metric-dot"></div>
           <span>收录项目:</span>
-          <b>6 款完整应用</b>
+          <b>7 款完整应用</b>
         </div>
         <div class="metric-item">
           <span>构建依赖:</span>
@@ -1081,8 +1081,8 @@
     <!-- Filter & Search Controls -->
     <section class="filter-bar">
       <div class="category-pills" id="categoryFilter">
-        <button class="cat-btn active" data-cat="all">全部展示 (6)</button>
-        <button class="cat-btn" data-cat="3d">3D 渲染与物理 (2)</button>
+        <button class="cat-btn active" data-cat="all">全部展示 (7)</button>
+        <button class="cat-btn" data-cat="3d">3D 渲染与物理 (3)</button>
         <button class="cat-btn" data-cat="interactive">创意互动与游戏 (2)</button>
         <button class="cat-btn" data-cat="tools">数据中台与监控 (1)</button>
         <button class="cat-btn" data-cat="edu">语言与教育 (1)</button>
@@ -1315,6 +1315,43 @@
             <a href="./stellar-fusion/gemini/" class="btn-sublink" target="_blank" title="Gemini 独立版本">Gemini 版</a>
             <a href="./stellar-fusion/musespark/" class="btn-sublink" target="_blank" title="MuseSpark 独立版本">MuseSpark 版</a>
             <a href="./stellar-fusion/musespark/IndexGLM.html" class="btn-sublink" target="_blank" title="GLM 标杆对照版本">GLM 标杆版</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. tank-battle -->
+      <div class="project-card" data-cat="3d" data-slug="tank-battle" data-url="./tank-battle/" data-title="3D Tank Clash · 钢铁风暴" data-keywords="3d tank clash 坦克大战 3d webgl 钢铁风暴 经典 游戏 boss 战车 炮火 战役 视角切换 道具">
+        <div class="card-content-wrap">
+          <div class="card-top">
+            <div class="card-icon-wrap">🛡️</div>
+            <div class="card-heading">
+              <div class="card-title-row">
+                <span class="card-title">3D Tank Clash · 钢铁风暴</span>
+                <span class="card-num-chip">#7</span>
+              </div>
+              <div class="card-slug">/ai/tank-battle/</div>
+            </div>
+          </div>
+          <p class="card-desc">
+            纯原生 WebGL 1.0 与 Web Audio 构建的经典坦克大战 3D 进化版。支持等轴 3D/追尾视角实时无缝切换、5 大特色战区推进、终极泰坦巨兽 BOSS 决战、多兵种敌人、4 级战车升级与丰富战地道具系统。
+          </p>
+          <div class="card-tags">
+            <span class="tag-pill featured">WebGL 1.0</span>
+            <span class="tag-pill">3D 战场渲染</span>
+            <span class="tag-pill">多视角切换</span>
+            <span class="tag-pill">5大关卡/BOSS战</span>
+            <span class="tag-pill">Web Audio 合成</span>
+            <span class="tag-pill model">Claude 3.7 / Gemini</span>
+          </div>
+        </div>
+        <div>
+          <div class="card-actions">
+            <button class="btn-preview" onclick="openPreview('./tank-battle/', '3D Tank Clash · 钢铁风暴')">
+              <span>⚡ 快速预览</span>
+            </button>
+            <a href="./tank-battle/" class="btn-launch" target="_blank">
+              <span>🚀 全屏进入</span>
+            </a>
           </div>
         </div>
       </div>
@@ -1718,7 +1755,8 @@
       { url: './internet-museum/', title: '404 之前：互联网考古馆' },
       { url: './learn-lang/', title: 'LinguaJourney 多语种学习平台' },
       { url: './iot-hub/', title: 'IoT 实时数据调度控制台' },
-      { url: './stellar-fusion/', title: 'HELIOS & STELLAR 3D 聚变控制台' }
+      { url: './stellar-fusion/', title: 'HELIOS & STELLAR 3D 聚变控制台' },
+      { url: './tank-battle/', title: '3D Tank Clash · 钢铁风暴' }
     ];
 
     window.launchRandomProject = () => {
@@ -1742,6 +1780,7 @@
       { name: 'LinguaJourney 多语种学习平台', slug: '/ai/learn-lang/', icon: '🌍', url: './learn-lang/' },
       { name: 'IoT 实时数据调度控制台', slug: '/ai/iot-hub/', icon: '📡', url: './iot-hub/' },
       { name: 'HELIOS 3D 聚变控制台 (Gemini/GLM)', slug: '/ai/stellar-fusion/', icon: '☀️', url: './stellar-fusion/' },
+      { name: '3D Tank Clash · 钢铁风暴 (3D 坦克大战)', slug: '/ai/tank-battle/', icon: '🛡️', url: './tank-battle/' },
       { name: '🎲 随便挑一个项目体验', slug: 'random', icon: '🎲', action: () => launchRandomProject() },
       { name: '🔊 切换音效开关', slug: 'toggle-sound', icon: '🎵', action: () => sound.toggle() }
     ];

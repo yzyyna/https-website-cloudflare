@@ -20,6 +20,7 @@
 | [`learn-lang`](./learn-lang/) | **多语种语言学习应用**（3D 闪卡 + 单词发音） | `aWebsite` | 纯 HTML5 + CSS3 + 原生 JS |
 | [`iot-hub`](./iot-hub/) | **物联网设备监控面板**（万级数据虚拟滚动） | `bOpencodeXAlpha` | 单文件纯 HTML + CSS + JS |
 | [`stellar-fusion`](./stellar-fusion/) | **3D 星际能源控制台**（同一 Prompt 双模型横向对标：Gemini / MuseSpark） | `cGoogleGemini` & `dMuseSpark` | 纯 WebGL 2.0 + 原生 GLSL |
+| [`tank-battle`](./tank-battle/) | **3D 坦克大战：钢铁风暴**（等轴/追尾多视角 + 5大关卡/泰坦BOSS战 + 道具升级） | 原创 3D 游戏 | 纯 WebGL 1.0 + Web Audio 原生合成 |
 
 ---
 
@@ -37,3 +38,4 @@
    - [http://localhost:8080/learn-lang/](http://localhost:8080/learn-lang/)
    - [http://localhost:8080/iot-hub/](http://localhost:8080/iot-hub/)
    - [http://localhost:8080/stellar-fusion/](http://localhost:8080/stellar-fusion/)（聚合主页，含 Gemini 版与 MuseSpark 版双向切换）
+   - [http://localhost:8080/tank-battle/](http://localhost:8080/tank-battle/)（3D 坦克大战 · 钢铁风暴）
