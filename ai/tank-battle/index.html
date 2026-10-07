@@ -1046,7 +1046,6 @@
       uniform mat4 uModel;
       uniform mat4 uView;
       uniform mat4 uProjection;
-      uniform mat3 uNormalMatrix;
 
       varying vec3 vNormal;
       varying vec3 vFragPos;
@@ -1054,7 +1053,7 @@
       void main() {
         vec4 worldPos = uModel * vec4(aPosition, 1.0);
         vFragPos = worldPos.xyz;
-        vNormal = normalize(uNormalMatrix * aNormal);
+        vNormal = normalize((uModel * vec4(aNormal, 0.0)).xyz);
         gl_Position = uProjection * uView * worldPos;
       }
     `;
@@ -1073,14 +1072,16 @@
       uniform float uEmissive;
 
       void main() {
-        // Ambient Light
-        vec3 ambient = vec3(0.32, 0.35, 0.42);
-
-        // Directional Sunlight (Diffuse)
         vec3 norm = normalize(vNormal);
         vec3 lightDir = normalize(uLightDir);
+
+        // Hemisphere Sky/Ground Ambient
+        float hemi = norm.y * 0.5 + 0.5;
+        vec3 ambient = mix(vec3(0.32, 0.36, 0.44), vec3(0.65, 0.70, 0.78), hemi);
+
+        // Directional Sunlight (Diffuse)
         float diff = max(dot(norm, lightDir), 0.0);
-        vec3 diffuse = diff * vec3(1.0, 0.96, 0.85);
+        vec3 diffuse = diff * vec3(0.92, 0.88, 0.80);
 
         // Point Light (Explosion flash)
         vec3 pointDir = uPointLightPos - vFragPos;
@@ -1092,11 +1093,10 @@
         // Specular highlight
         vec3 viewDir = normalize(-vFragPos);
         vec3 reflectDir = reflect(-lightDir, norm);
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
-        vec3 specular = vec3(0.4) * spec;
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), 12.0) * 0.35;
 
-        vec3 result = (ambient + diffuse + pointLight) * uColor.rgb + specular + (uColor.rgb * uEmissive);
-        gl_FragColor = vec4(result, uColor.a);
+        vec3 finalColor = (ambient + diffuse + pointLight) * uColor.rgb + vec3(spec) + (uColor.rgb * uEmissive);
+        gl_FragColor = vec4(finalColor, uColor.a);
       }
     `;
 
@@ -1113,7 +1113,6 @@
         this.projMatrix = M4.create();
         this.viewMatrix = M4.create();
         this.modelMatrix = M4.create();
-        this.normalMatrix = new Float32Array(9);
 
         this.pointLight = { pos: [0, 2, 0], color: [1, 0.6, 0.2], intensity: 0 };
       }
@@ -1140,7 +1139,6 @@
           model: gl.getUniformLocation(program, 'uModel'),
           view: gl.getUniformLocation(program, 'uView'),
           projection: gl.getUniformLocation(program, 'uProjection'),
-          normalMatrix: gl.getUniformLocation(program, 'uNormalMatrix'),
           color: gl.getUniformLocation(program, 'uColor'),
           lightDir: gl.getUniformLocation(program, 'uLightDir'),
           pointLightPos: gl.getUniformLocation(program, 'uPointLightPos'),
@@ -1182,21 +1180,22 @@
       }
 
       resize() {
-        const w = this.canvas.clientWidth || window.innerWidth;
-        const h = this.canvas.clientHeight || window.innerHeight;
+        const w = this.canvas.clientWidth || window.innerWidth || 800;
+        const h = this.canvas.clientHeight || window.innerHeight || 600;
         this.canvas.width = w;
         this.canvas.height = h;
         this.gl.viewport(0, 0, w, h);
-        this.aspect = w / h;
+        this.aspect = w / (h || 1);
       }
 
       beginFrame() {
         const gl = this.gl;
         gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.CULL_FACE);
+        gl.depthFunc(gl.LEQUAL);
+        gl.disable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.clearColor(0.04, 0.07, 0.12, 1.0);
+        gl.clearColor(0.06, 0.09, 0.16, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.useProgram(this.program);
@@ -1214,7 +1213,7 @@
       }
 
       setCamera(eye, center, up, fov = 45) {
-        M4.perspective(this.projMatrix, (fov * Math.PI) / 180, this.aspect, 0.1, 150.0);
+        M4.perspective(this.projMatrix, (fov * Math.PI) / 180, this.aspect, 0.1, 200.0);
         M4.lookAt(this.viewMatrix, eye, center, up);
 
         this.gl.uniformMatrix4fv(this.uniforms.projection, false, this.projMatrix);
@@ -1224,14 +1223,6 @@
       drawMesh(vbo, transformMatrix, color, emissive = 0) {
         const gl = this.gl;
         gl.uniformMatrix4fv(this.uniforms.model, false, transformMatrix);
-
-        // 3x3 Normal matrix
-        const m = transformMatrix;
-        this.normalMatrix[0] = m[0]; this.normalMatrix[1] = m[1]; this.normalMatrix[2] = m[2];
-        this.normalMatrix[3] = m[4]; this.normalMatrix[4] = m[5]; this.normalMatrix[5] = m[6];
-        this.normalMatrix[6] = m[8]; this.normalMatrix[7] = m[9]; this.normalMatrix[8] = m[10];
-        gl.uniformMatrix3fv(this.uniforms.normalMatrix, false, this.normalMatrix);
-
         gl.uniform4fv(this.uniforms.color, color);
         gl.uniform1f(this.uniforms.emissive, emissive);
 
@@ -1564,7 +1555,32 @@
 
         this.initDOM();
         this.bindEvents();
+        this.setupStageEnvironment(0); // Pre-warm map & visual entities
         this.startLoop();
+      }
+
+      setupStageEnvironment(idx) {
+        const cfg = STAGE_CONFIGS[idx] || STAGE_CONFIGS[0];
+        this.map = [];
+        for (let r = 0; r < MAP_SIZE; r++) {
+          this.map[r] = [];
+          const rowStr = cfg.layout[r] || '000000000000000';
+          for (let c = 0; c < MAP_SIZE; c++) {
+            this.map[r][c] = parseInt(rowStr[c] || '0', 10);
+          }
+        }
+        this.player = new Tank(7.5, 11.5, true, 'player');
+        this.player.level = 1;
+        this.player.angle = 0;
+        this.applyPlayerRankStats();
+
+        // Sample showcase enemies
+        this.enemies = [
+          new Tank(1.5, 1.5, false, 'scout'),
+          new Tank(7.5, 1.5, false, 'speed'),
+          new Tank(13.5, 1.5, false, 'heavy')
+        ];
+        this.enemies.forEach(e => { e.angle = Math.PI; e.turretAngle = Math.PI; });
       }
 
       initDOM() {
@@ -2433,7 +2449,7 @@
         const sc = this.scene;
         sc.beginFrame();
 
-        // 1. Camera Positioning based on View Mode
+        // 1. Camera Positioning based on Game State & View Mode
         const targetX = this.player ? this.player.x : 7.5;
         const targetZ = this.player ? this.player.z : 7.5;
 
@@ -2443,7 +2459,14 @@
         const sz = (Math.random() - 0.5) * this.shake * 0.4;
         if (this.shake > 0.01) this.shake *= 0.88; else this.shake = 0;
 
-        if (this.viewMode === 0) {
+        if (this.state === 'START') {
+          // Smooth 3D Panoramic Orbit during Title Screen
+          const t = performance.now() * 0.0004;
+          const orbitR = 15.0;
+          const eye = [7.5 + Math.cos(t) * orbitR, 14.0, 7.5 + Math.sin(t) * orbitR];
+          const center = [7.5, 0.5, 7.5];
+          sc.setCamera(eye, center, [0, 1, 0], 50);
+        } else if (this.viewMode === 0) {
           // Isometric 3D (Classic Elevated Angled View)
           const eye = [targetX + sx, 16.0 + sy, targetZ + 11.5 + sz];
           const center = [targetX + sx, 0.3 + sy, targetZ + 1.0 + sz];
@@ -2468,11 +2491,45 @@
 
         const mat = M4.create();
 
-        // 2. Draw Ground Arena Base
+        // 2. Draw Ground Arena Base with High-contrast Grid Tiles
         M4.identity(mat);
-        M4.translate(mat, mat, [7.5, -0.2, 7.5]);
-        M4.scale(mat, mat, [MAP_SIZE + 0.5, 0.4, MAP_SIZE + 0.5]);
-        sc.drawMesh(sc.cube, mat, [0.08, 0.12, 0.18, 1.0]);
+        M4.translate(mat, mat, [7.5, -0.25, 7.5]);
+        M4.scale(mat, mat, [MAP_SIZE + 0.8, 0.4, MAP_SIZE + 0.8]);
+        sc.drawMesh(sc.cube, mat, [0.08, 0.11, 0.18, 1.0]);
+
+        // Checkerboard Ground Tiles
+        for (let r = 0; r < MAP_SIZE; r++) {
+          for (let c = 0; c < MAP_SIZE; c++) {
+            M4.identity(mat);
+            M4.translate(mat, mat, [c + 0.5, -0.04, r + 0.5]);
+            M4.scale(mat, mat, [0.98, 0.06, 0.98]);
+            const isDark = (r + c) % 2 === 0;
+            const tileColor = isDark ? [0.12, 0.16, 0.24, 1.0] : [0.15, 0.20, 0.30, 1.0];
+            sc.drawMesh(sc.cube, mat, tileColor);
+          }
+        }
+
+        // Glowing Arena Border Rails
+        const borderMat = M4.create();
+        M4.identity(borderMat);
+        M4.translate(borderMat, borderMat, [7.5, 0.15, 0]);
+        M4.scale(borderMat, borderMat, [MAP_SIZE, 0.3, 0.15]);
+        sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
+
+        M4.identity(borderMat);
+        M4.translate(borderMat, borderMat, [7.5, 0.15, MAP_SIZE]);
+        M4.scale(borderMat, borderMat, [MAP_SIZE, 0.3, 0.15]);
+        sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
+
+        M4.identity(borderMat);
+        M4.translate(borderMat, borderMat, [0, 0.15, 7.5]);
+        M4.scale(borderMat, borderMat, [0.15, 0.3, MAP_SIZE]);
+        sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
+
+        M4.identity(borderMat);
+        M4.translate(borderMat, borderMat, [MAP_SIZE, 0.15, 7.5]);
+        M4.scale(borderMat, borderMat, [0.15, 0.3, MAP_SIZE]);
+        sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
 
         // 3. Draw Map Tiles
         for (let r = 0; r < MAP_SIZE; r++) {

@@ -8,7 +8,7 @@
   var hud, input, renderer, world, player, inventory, particles;
   var state = 'title'; /* title | playing | paused | inventory */
   var expectUnlock = false;
-  var settings = { renderDist: 4, muted: false };
+  var settings = { renderDist: 4, muted: false, controlMode: 'auto' };
   var loadedOnce = false;
   var savedExists = false;
 
@@ -73,6 +73,7 @@
       if (saved.settings) {
         if (saved.settings.renderDist) settings.renderDist = Math.max(3, Math.min(12, saved.settings.renderDist | 0));
         settings.muted = !!saved.settings.muted;
+        if (saved.settings.controlMode) settings.controlMode = saved.settings.controlMode;
       }
       if (saved.stats) {
         stats.mined = saved.stats.mined | 0;
@@ -80,6 +81,10 @@
       }
     } else {
       newWorldData();
+    }
+
+    if (settings.controlMode) {
+      input.setControlMode(settings.controlMode);
     }
 
     inventory = new MC.Inventory();
@@ -97,6 +102,7 @@
     wireMenus();
     hud.buildHotbar(inventory);
     hud.buildPanel(inventory);
+    hud.onCloseInventory = closeInventory;
     hud.onSlotClick = function (idx) {
       inventory.clickSlot(idx);
       MC.Sound.ui();
@@ -205,6 +211,7 @@
       hud.toast('鼠标锁定暂时不可用，请稍半秒再点一次');
     };
     input.onLockChange = function (locked) {
+      input.enabled = locked;
       MC.Sound.init();
       if (locked) {
         state = 'playing';
@@ -213,7 +220,10 @@
           welcomed = true;
           hud.toast('欢迎来到方块世界！先砍树试试手感');
           setTimeout(function () {
-            if (state === 'playing') hud.toast('长按左键挖掘 · 右键建造 · E 打开背包');
+            if (state === 'playing') {
+              var isTouch = input.isTouchActive();
+              hud.toast(isTouch ? '按右侧挖掘键采集 · 放置键建造 · 🎒 打开背包' : '长按左键挖掘 · 右键建造 · E 打开背包');
+            }
           }, 2200);
         }
       } else {
@@ -227,8 +237,7 @@
         }
         expectUnlock = false;
         hud.showState(state);
-        input.mouse.left = false;
-        input.mouse.right = false;
+        input.resetInputs();
         breakProgress = 0;
         breakTarget = null;
         hud.setProgress(0);
@@ -247,6 +256,14 @@
     document.getElementById('btn-start').addEventListener('click', function () {
       input.requestLock();
     });
+    document.getElementById('btn-resume').addEventListener('click', function () {
+      input.requestLock();
+    });
+    document.getElementById('btn-sound').addEventListener('click', function () {
+      var muted = MC.Sound.toggleMute();
+      settings.muted = muted;
+      updateSoundLabel();
+    });
     armConfirm('btn-new', function () {
       newWorldData();
       inventory.clear();
@@ -260,14 +277,6 @@
       hud.toast('新世界已生成');
       input.requestLock();
     });
-    document.getElementById('btn-resume').addEventListener('click', function () {
-      input.requestLock();
-    });
-    document.getElementById('btn-sound').addEventListener('click', function () {
-      var muted = MC.Sound.toggleMute();
-      settings.muted = muted;
-      updateSoundLabel();
-    });
     armConfirm('btn-new2', function () {
       newWorldData();
       inventory.clear();
@@ -280,6 +289,14 @@
       hud.toast('新世界已生成');
       input.requestLock();
     });
+    var selControl = document.getElementById('sel-control-mode');
+    if (selControl) {
+      selControl.value = settings.controlMode || 'auto';
+      selControl.addEventListener('change', function (e) {
+        settings.controlMode = e.target.value;
+        input.setControlMode(settings.controlMode);
+      });
+    }
     document.getElementById('sel-dist').addEventListener('change', function (e) {
       settings.renderDist = +e.target.value || 4;
     });

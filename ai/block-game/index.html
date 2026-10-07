@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>MiniCraft · 方块世界</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='2' y='2' width='28' height='28' rx='4' fill='%235c8e32'/><rect x='2' y='2' width='28' height='10' rx='2' fill='%237ec850'/><rect x='6' y='18' width='8' height='8' fill='%23866043'/><rect x='18' y='18' width='8' height='8' fill='%23866043'/></svg>">
 <link rel="stylesheet" href="css/style.css">
@@ -21,10 +21,32 @@
 <div id="air-bubbles" class="hidden"></div>
 <div id="hand-viewmodel" class="hidden"><canvas id="hand-canvas" width="160" height="160"></canvas></div>
 
+<!-- 移动端触控 HUD 覆盖层 -->
+<div id="touch-controls" class="hidden">
+  <div id="touch-joystick-zone">
+    <div id="joystick-base">
+      <div id="joystick-knob"></div>
+    </div>
+  </div>
+  
+  <div id="touch-action-btns">
+    <button id="btn-touch-jump" class="touch-btn touch-btn-jump" aria-label="跳跃与飞行"><span class="btn-icon">🦘</span><span class="btn-label">跳跃/飞行</span></button>
+    <button id="btn-touch-mine" class="touch-btn touch-btn-mine" aria-label="长按挖掘"><span class="btn-icon">⛏️</span><span class="btn-label">挖掘</span></button>
+    <button id="btn-touch-place" class="touch-btn touch-btn-place" aria-label="点击放置"><span class="btn-icon">🧱</span><span class="btn-label">放置</span></button>
+    <button id="btn-touch-sprint" class="touch-btn touch-btn-sprint" aria-label="疾跑与潜行"><span class="btn-icon">🏃</span><span class="btn-label">疾跑</span></button>
+  </div>
+  
+  <div id="touch-top-bar">
+    <button id="btn-touch-pause" class="touch-top-btn" aria-label="暂停菜单">⏸️ 暂停</button>
+    <button id="btn-touch-inv" class="touch-top-btn" aria-label="背包与合成">🎒 背包</button>
+  </div>
+</div>
+
 <!-- 背包 -->
 <div id="inventory-panel" class="overlay hidden">
   <div class="panel">
-    <div class="panel-title">背包与制作 <span class="panel-hint">按 E 关闭 · 点击格子与快捷栏交换 · 点击右侧配方直接制作</span></div>
+    <button id="btn-close-inv" class="panel-close-btn" aria-label="关闭背包">✖</button>
+    <div class="panel-title">背包与制作 <span class="panel-hint">点击格子自由整理 · 点击右侧配方直接制作</span></div>
     <div class="inv-wrapper">
       <div class="inv-left">
         <div class="sub-title">我的存储（27格）</div>
@@ -47,7 +69,7 @@
       <button id="btn-start" class="mc-btn">开始游戏</button>
       <button id="btn-new" class="mc-btn">新世界</button>
     </div>
-    <div class="help">
+    <div class="help" id="title-help-desktop">
       <table>
         <tr><td>W A S D / 方向键</td><td>移动（支持平滑自动跨越台阶）</td></tr>
         <tr><td>空格</td><td>跳跃 / 游泳 / 飞行上升（连按两次切换飞行）</td></tr>
@@ -61,6 +83,18 @@
         <tr><td>掉落物拾取</td><td>挖掘爆出3D迷你方块，走近3.2米自动磁吸入包</td></tr>
         <tr><td>M</td><td>静音开关</td></tr>
         <tr><td>ESC</td><td>暂停菜单</td></tr>
+      </table>
+    </div>
+    <div class="help hidden" id="title-help-touch">
+      <table>
+        <tr><td>左下角摇杆</td><td>前后左右平滑移动（自动跨台阶）</td></tr>
+        <tr><td>右半屏滑屏</td><td>自由旋转视角（水平偏航与俯仰）</td></tr>
+        <tr><td>⛏️ 挖掘（长按）</td><td>挖掘准星指向的方块（带碎裂进度）</td></tr>
+        <tr><td>🧱 放置（点击）</td><td>放置手持方块 / 点燃 TNT</td></tr>
+        <tr><td>🦘 跳跃/飞行</td><td>跳跃 / 游泳上升（双击快速开启/关闭飞行）</td></tr>
+        <tr><td>🏃 疾跑</td><td>切换疾跑加速 / 飞行快速下降</td></tr>
+        <tr><td>🎒 背包 / ⏸️ 暂停</td><td>顶部快捷按钮打开背包或暂停菜单</td></tr>
+        <tr><td>底部快捷栏</td><td>直接点击方块图标切换当前手持物品</td></tr>
       </table>
     </div>
     <p class="menu-footer" id="title-seed"></p>
@@ -77,6 +111,16 @@
       <button id="btn-new2" class="mc-btn">新世界（清除存档）</button>
     </div>
     <div class="row-setting">
+      <label>操作模式
+        <select id="sel-control-mode">
+          <option value="auto" selected>自动检测</option>
+          <option value="touch">触屏操作 (移动端)</option>
+          <option value="desktop">键鼠操作 (电脑端)</option>
+        </select>
+      </label>
+      <span class="row-hint">（自动识别触屏与桌面设备）</span>
+    </div>
+    <div class="row-setting">
       <label>渲染距离
         <select id="sel-dist">
           <option value="2">2</option><option value="3">3</option>
@@ -86,12 +130,20 @@
       </label>
       <span class="row-hint">（越大视野越远，越吃性能）</span>
     </div>
-    <div class="help">
+    <div class="help" id="pause-help-desktop">
       <table>
         <tr><td>左键长按</td><td>挖掘 · 右键 放置 · 中键 选取</td></tr>
         <tr><td>E</td><td>背包合成 · M 静音 · F 飞行</td></tr>
         <tr><td>合成</td><td>木板/火把/镐子/TNT… 火把能照亮洞穴</td></tr>
         <tr><td>小心</td><td>TNT 威力巨大且会连锁引爆</td></tr>
+      </table>
+    </div>
+    <div class="help hidden" id="pause-help-touch">
+      <table>
+        <tr><td>摇杆 + 滑屏</td><td>左手移动，右手滑屏控制视角</td></tr>
+        <tr><td>挖掘 + 放置</td><td>右侧按键挖掘/放置，双击跳跃开关飞行</td></tr>
+        <tr><td>背包</td><td>顶部背包按钮打开合成制作面板</td></tr>
+        <tr><td>提示</td><td>洞穴较深较暗，手持或放置火把照亮四周</td></tr>
       </table>
     </div>
     <p class="menu-footer" id="pause-seed"></p>

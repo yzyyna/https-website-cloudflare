@@ -17,6 +17,8 @@
       invPanel: document.getElementById('inventory-panel'),
       invGrid: document.getElementById('inventory-grid'),
       craftingList: document.getElementById('crafting-list'),
+      btnCloseInv: document.getElementById('btn-close-inv'),
+      touchControls: document.getElementById('touch-controls'),
       handViewmodel: document.getElementById('hand-viewmodel'),
       handCanvas: document.getElementById('hand-canvas'),
       titleMenu: document.getElementById('title-menu'),
@@ -25,6 +27,7 @@
     };
     this.iconCache = {};
     this.toastTimer = null;
+    this.onCloseInventory = null;
   }
 
   /* 等距立方体图标（从图集取贴图）；工具/火把/花等平面物画平铺贴图 */
@@ -151,6 +154,18 @@
     }
     this.el.invGrid.innerHTML = html;
     var self = this;
+    if (this.el.btnCloseInv) {
+      this.el.btnCloseInv.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (self.onCloseInventory) self.onCloseInventory();
+      });
+      this.el.btnCloseInv.addEventListener('touchstart', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (self.onCloseInventory) self.onCloseInventory();
+      }, { passive: false });
+    }
     this.el.invGrid.addEventListener('click', function (e) {
       var slot = e.target.closest('.hb-slot');
       if (!slot) return;
@@ -363,6 +378,9 @@
     this.el.crosshair.classList.toggle('hidden', state === 'title');
     this.el.hotbar.classList.toggle('hidden', state === 'title');
     this.el.stats.classList.toggle('hidden', state === 'title');
+    if (this.el.touchControls) {
+      this.el.touchControls.classList.toggle('hidden', state !== 'playing');
+    }
     if (this.el.handViewmodel) {
       this.el.handViewmodel.classList.toggle('hidden', state !== 'playing');
     }
