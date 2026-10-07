@@ -2,23 +2,27 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AI 纯前端免构建项目集 · Cloudflare Hub</title>
-  <meta name="description" content="零依赖、零打包步骤，纯 HTML5 + CSS3 + 原生 JavaScript / WebGL 实现的 AI 前端原型与互动应用合集。">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+  <meta name="description" content="零依赖、零打包步骤，纯 HTML5 + CSS3 + 原生 JavaScript / WebGL 实现的 AI 前端原型与交互应用合集。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚀%3C/text%3E%3C/svg%3E">
   <style>
     :root {
-      --cf-orange: #f38020;
-      --cf-orange-hover: #fa8f32;
-      --cf-bg: #0b0f19;
-      --cf-card-bg: rgba(22, 28, 45, 0.75);
-      --cf-border: rgba(255, 255, 255, 0.08);
-      --cf-border-hover: rgba(243, 128, 32, 0.45);
-      --cf-text-primary: #ffffff;
-      --cf-text-secondary: #94a3b8;
-      --cf-blue: #3b82f6;
-      --cf-green: #10b981;
-      --cf-purple: #a855f7;
+      --bg-dark: #070a12;
+      --bg-card: rgba(15, 22, 38, 0.72);
+      --bg-card-hover: rgba(22, 32, 54, 0.88);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(243, 128, 32, 0.4);
+      --primary-orange: #f38020;
+      --primary-orange-light: #fb923c;
+      --accent-cyan: #38bdf8;
+      --accent-emerald: #34d399;
+      --accent-purple: #c084fc;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     }
 
     * {
@@ -28,531 +32,1288 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      background-color: var(--cf-bg);
-      color: var(--cf-text-primary);
+      font-family: var(--font-sans);
+      background-color: var(--bg-dark);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       line-height: 1.6;
       overflow-x: hidden;
-      background-image: 
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(243, 128, 32, 0.18), transparent),
-        radial-gradient(ellipse 60% 40% at 85% 70%, rgba(59, 130, 246, 0.09), transparent),
-        radial-gradient(ellipse 50% 30% at 15% 40%, rgba(168, 85, 247, 0.08), transparent);
+      position: relative;
     }
 
+    /* Dynamic Particle Background */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.65;
+    }
+
+    /* Header Nav */
     header {
-      border-bottom: 1px solid var(--cf-border);
-      background: rgba(11, 15, 25, 0.85);
-      backdrop-filter: blur(16px);
       position: sticky;
       top: 0;
-      z-index: 50;
+      z-index: 40;
+      background: rgba(7, 10, 18, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
     }
 
-    .nav-container {
-      max-width: 1200px;
+    .nav-inner {
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 16px 24px;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .logo-group {
+    .brand {
       display: flex;
       align-items: center;
       gap: 12px;
       text-decoration: none;
       color: #fff;
-      font-weight: 700;
-      font-size: 18px;
     }
 
-    .logo-badge {
-      background: linear-gradient(135deg, var(--cf-orange), #ff5722);
-      color: #fff;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-weight: 600;
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #f38020, #e11d48);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      box-shadow: 0 0 16px rgba(243, 128, 32, 0.4);
     }
 
-    .nav-actions {
+    .brand-name {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 8px;
     }
 
-    .nav-link {
-      color: var(--cf-text-secondary);
-      text-decoration: none;
-      font-size: 14px;
-      transition: color 0.15s ease;
-    }
-
-    .nav-link:hover {
-      color: #ffffff;
-    }
-
-    .btn-nav-primary {
+    .badge-edge {
       background: rgba(243, 128, 32, 0.15);
-      border: 1px solid rgba(243, 128, 32, 0.35);
-      color: var(--cf-orange);
+      border: 1px solid rgba(243, 128, 32, 0.3);
+      color: var(--primary-orange-light);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-nav-ghost {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .btn-nav-ghost:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .btn-nav-fortrust {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      color: var(--accent-cyan);
       text-decoration: none;
       font-size: 13px;
       font-weight: 600;
       padding: 6px 14px;
-      border-radius: 6px;
-      transition: all 0.2s ease;
+      border-radius: 8px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-nav-fortrust:hover {
+      background: rgba(56, 189, 248, 0.22);
+      color: #fff;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.3);
     }
 
-    .btn-nav-primary:hover {
-      background: var(--cf-orange);
-      color: #fff;
+    /* Main Container */
+    main {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
     }
 
     /* Hero */
-    .hero {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 60px 24px 40px;
+    .hero-wrap {
       text-align: center;
+      margin-bottom: 44px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    .hero-badge {
+    .hero-pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(243, 128, 32, 0.1);
-      border: 1px solid rgba(243, 128, 32, 0.25);
-      color: var(--cf-orange);
+      background: rgba(243, 128, 32, 0.08);
+      border: 1px solid rgba(243, 128, 32, 0.22);
+      color: var(--primary-orange-light);
       padding: 6px 16px;
-      border-radius: 30px;
-      font-size: 13px;
+      border-radius: 999px;
+      font-size: 12px;
       font-weight: 600;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
+      animation: pulseGlow 3s infinite alternate;
     }
 
-    h1 {
-      font-size: clamp(32px, 5vw, 52px);
-      font-weight: 800;
-      line-height: 1.15;
-      letter-spacing: -0.02em;
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 8px rgba(243, 128, 32, 0.1); }
+      100% { box-shadow: 0 0 20px rgba(243, 128, 32, 0.25); }
+    }
+
+    .hero-title {
+      font-size: clamp(32px, 5.5vw, 56px);
+      font-weight: 900;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
       margin-bottom: 16px;
     }
 
-    h1 .gradient-text {
-      background: linear-gradient(135deg, #ffffff 30%, #f38020 70%, #ff7643 100%);
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, #ffffff 20%, #f38020 60%, #ff5470 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .hero-subtitle {
-      font-size: clamp(15px, 2vw, 18px);
-      color: var(--cf-text-secondary);
-      max-width: 760px;
+      font-size: clamp(15px, 2vw, 17px);
+      color: var(--text-muted);
+      max-width: 740px;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    /* Quick Metrics Ribbon */
+    .metrics-ribbon {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 24px;
+      padding: 12px 24px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      backdrop-filter: blur(10px);
+      margin-bottom: 36px;
+    }
+
+    .metric-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .metric-item b {
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+    .metric-item span {
+      color: var(--text-dim);
+    }
+    .metric-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+    }
+
+    /* Filter & Search Bar */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
       margin-bottom: 32px;
+      background: rgba(15, 23, 42, 0.4);
+      padding: 8px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
     }
 
-    /* Grid */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto 80px;
-      padding: 0 24px;
+    .category-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cat-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .cat-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .cat-btn.active {
+      background: rgba(243, 128, 32, 0.16);
+      border-color: rgba(243, 128, 32, 0.35);
+      color: var(--primary-orange-light);
+      font-weight: 600;
+      box-shadow: 0 0 12px rgba(243, 128, 32, 0.15);
+    }
+
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-width: 240px;
+      flex: 0 1 300px;
+    }
+    .search-input {
       width: 100%;
+      background: rgba(10, 15, 28, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 7px 36px 7px 12px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--primary-orange);
+      box-shadow: 0 0 12px rgba(243, 128, 32, 0.2);
+    }
+    .search-kbd {
+      position: absolute;
+      right: 8px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-dim);
+      padding: 1px 6px;
+      border-radius: 4px;
+      pointer-events: none;
     }
 
+    /* Projects Grid */
     .projects-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
       gap: 24px;
     }
 
+    /* Project Card */
     .project-card {
-      background: var(--cf-card-bg);
-      border: 1px solid var(--cf-border);
-      border-radius: 16px;
-      padding: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     }
 
     .project-card::before {
-      content: '';
+      content: "";
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       height: 3px;
-      background: linear-gradient(90deg, transparent, var(--cf-orange), transparent);
+      background: linear-gradient(90deg, transparent, var(--primary-orange), transparent);
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.3s;
     }
 
     .project-card:hover {
-      border-color: var(--cf-border-hover);
-      transform: translateY(-4px);
-      box-shadow: 0 16px 36px rgba(243, 128, 32, 0.12);
+      transform: translateY(-5px);
+      border-color: var(--border-glow);
+      background: var(--bg-card-hover);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45), 0 0 24px rgba(243, 128, 32, 0.12);
     }
 
     .project-card:hover::before {
       opacity: 1;
     }
 
-    .card-header {
+    .card-top {
       display: flex;
       align-items: flex-start;
       gap: 16px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
-    .project-icon {
-      font-size: 36px;
-      line-height: 1;
-      padding: 12px;
+    .card-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      flex-shrink: 0;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .project-card:hover .card-icon-wrap {
+      transform: scale(1.08) rotate(3deg);
+    }
+
+    .card-heading {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-title {
+      font-size: 19px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+      margin-bottom: 4px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+      justify-content: space-between;
     }
 
-    .card-title-group h2 {
-      font-size: 20px;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 4px;
+    .card-num-chip {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: normal;
     }
 
-    .card-title-group .project-slug {
+    .card-slug {
       font-size: 12px;
-      color: #64748b;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
     }
 
     .card-desc {
-      color: var(--cf-text-secondary);
-      font-size: 14px;
-      line-height: 1.6;
-      margin-bottom: 20px;
+      color: var(--text-muted);
+      font-size: 13.5px;
+      line-height: 1.65;
+      margin-bottom: 18px;
       flex-grow: 1;
     }
 
-    .tags-list {
+    .card-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 24px;
+      gap: 6px;
+      margin-bottom: 20px;
     }
 
-    .tag {
-      font-size: 12px;
+    .tag-pill {
+      font-size: 11px;
       font-weight: 500;
-      padding: 3px 10px;
-      border-radius: 20px;
+      padding: 2px 9px;
+      border-radius: 999px;
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.07);
       color: #cbd5e1;
     }
 
-    .tag.primary {
-      background: rgba(243, 128, 32, 0.1);
-      border-color: rgba(243, 128, 32, 0.25);
-      color: #fb923c;
+    .tag-pill.featured {
+      background: rgba(243, 128, 32, 0.12);
+      border-color: rgba(243, 128, 32, 0.3);
+      color: var(--primary-orange-light);
+      font-weight: 600;
     }
 
+    .tag-pill.model {
+      background: rgba(192, 132, 252, 0.12);
+      border-color: rgba(192, 132, 252, 0.28);
+      color: var(--accent-purple);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+    }
+
+    /* Actions */
     .card-actions {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding-top: 16px;
+      gap: 8px;
+      padding-top: 14px;
       border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    .btn-launch {
+    .btn-preview {
       flex: 1;
-      background: var(--cf-orange);
-      color: #ffffff;
-      text-decoration: none;
-      font-size: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
       font-weight: 600;
-      padding: 10px 16px;
-      border-radius: 8px;
-      text-align: center;
-      transition: all 0.15s ease;
+      padding: 9px 14px;
+      border-radius: 10px;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-preview:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
     }
 
+    .btn-launch {
+      flex: 1.2;
+      background: linear-gradient(135deg, var(--primary-orange), #ea580c);
+      border: none;
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 9px 14px;
+      border-radius: 10px;
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(243, 128, 32, 0.3);
+    }
     .btn-launch:hover {
-      background: var(--cf-orange-hover);
-      box-shadow: 0 4px 14px rgba(243, 128, 32, 0.35);
+      background: linear-gradient(135deg, var(--primary-orange-light), #f97316);
+      box-shadow: 0 6px 20px rgba(243, 128, 32, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .sublinks-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
     }
 
     .btn-sublink {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--cf-text-secondary);
-      border: 1px solid var(--cf-border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-dim);
+      border: 1px solid var(--border-subtle);
       text-decoration: none;
-      font-size: 13px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      transition: all 0.15s ease;
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      padding: 3px 8px;
+      border-radius: 6px;
+      transition: all 0.15s;
     }
-
     .btn-sublink:hover {
-      color: #ffffff;
-      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
     }
 
-    footer {
-      border-top: 1px solid var(--cf-border);
-      background: #080b13;
-      padding: 32px 24px;
-      margin-top: auto;
+    /* Empty state */
+    .empty-search {
+      grid-column: 1 / -1;
       text-align: center;
-      color: #64748b;
+      padding: 60px 20px;
+      color: var(--text-dim);
+    }
+    .empty-search i {
+      font-size: 40px;
+      display: block;
+      margin-bottom: 12px;
+      font-style: normal;
+    }
+
+    /* ========================================================
+       PREVIEW MODAL (Slide-over / Full-screen drawer)
+       ======================================================== */
+    .preview-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 6, 12, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .preview-modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-header {
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .modal-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .modal-url {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .modal-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .viewport-switch {
+      display: flex;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 2px;
+    }
+    .viewport-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .viewport-btn.active {
+      background: var(--primary-orange);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .btn-modal-action {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .btn-modal-action:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-modal-close {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-modal-close:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .modal-iframe-wrap {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+      overflow: hidden;
+      background: #030712;
+    }
+
+    .preview-frame {
+      width: 100%;
+      height: 100%;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      background: #000;
+      transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+    }
+
+    .preview-frame.mobile-view {
+      width: 420px;
+      border-radius: 28px;
+      border-width: 4px;
+      border-color: #334155;
+    }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 10;
+      border-top: 1px solid var(--border-subtle);
+      background: rgba(7, 10, 18, 0.9);
+      padding: 28px 24px;
+      text-align: center;
+      color: var(--text-dim);
       font-size: 13px;
+    }
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      margin: 0 8px;
+      transition: color 0.2s;
+    }
+    footer a:hover {
+      color: var(--primary-orange-light);
     }
 
     @media (max-width: 768px) {
       .projects-grid {
         grid-template-columns: 1fr;
       }
-      .hero {
-        padding: 40px 16px 24px;
+      .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .search-box {
+        width: 100%;
+      }
+      .viewport-switch {
+        display: none;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- Particle Background Canvas -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Navigation -->
   <header>
-    <div class="nav-container">
-      <a href="/" class="logo-group">
-        <span>⚡ AI Project Hub</span>
-        <span class="logo-badge">Edge CDN</span>
+    <div class="nav-inner">
+      <a href="./" class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-name">
+          <span>AI Project Hub</span>
+          <span class="badge-edge">Cloudflare CDN</span>
+        </div>
       </a>
-      <div class="nav-actions">
-        <a href="/" class="nav-link">站点首页</a>
-        <a href="/fortrust/" class="btn-nav-primary">静态资源中心 🔒</a>
+      <div class="nav-links">
+        <a href="/" class="btn-nav-ghost">站点首页</a>
+        <a href="/fortrust/" class="btn-nav-fortrust">静态资源中心 🔒</a>
       </div>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <main class="hero">
-    <div class="hero-badge">
-      <span>✨</span>
-      <span>Zero-Dependency Vanilla Web Applications</span>
-    </div>
+  <!-- Main Content -->
+  <main>
+    <!-- Hero -->
+    <section class="hero-wrap">
+      <div class="hero-pill">
+        <span>✨</span>
+        <span>Zero Build · Zero Node.js · Pure Web Standards</span>
+      </div>
 
-    <h1>
-      AI 原型与互动项目集<br>
-      <span class="gradient-text">纯前端 · 零依赖 · 极速离线体验</span>
-    </h1>
+      <h1 class="hero-title">
+        AI 原型与前沿互动项目集<br>
+        <span class="gradient-text">纯原生 · 零构建 · 极速离线体验</span>
+      </h1>
 
-    <p class="hero-subtitle">
-      由多个前沿 AI 模型生成的独立纯前端应用。基于 HTML5、CSS3、原生 JavaScript 及 WebGL 构建，免打包编译，通过 Cloudflare 全球边缘网络即时交付。
-    </p>
-  </main>
+      <p class="hero-subtitle">
+        收录由多个前沿 AI 模型（Claude 3.7 / Gemini / GLM-4 / Kimi）深度生成的纯前端高拟真应用。基于 HTML5、CSS3、原生 JavaScript 及 WebGL 构建，免打包编译，支持直接离线运行与边缘即时交付。
+      </p>
 
-  <!-- Projects Grid -->
-  <div class="container">
-    <div class="projects-grid">
+      <!-- Stats Ribbon -->
+      <div class="metrics-ribbon">
+        <div class="metric-item">
+          <div class="metric-dot"></div>
+          <span>独立项目:</span>
+          <b>6 款完整应用</b>
+        </div>
+        <div class="metric-item">
+          <span>构建状态:</span>
+          <b style="color:var(--accent-emerald)">100% 免编译直开</b>
+        </div>
+        <div class="metric-item">
+          <span>技术栈:</span>
+          <b>HTML5 · WebGL 1/2 · Web Audio</b>
+        </div>
+        <div class="metric-item">
+          <span>离线能力:</span>
+          <b style="color:var(--accent-cyan)">100% 离线脱机自愈</b>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter & Search Controls -->
+    <section class="filter-bar">
+      <div class="category-pills" id="categoryFilter">
+        <button class="cat-btn active" data-cat="all">全部展示 (6)</button>
+        <button class="cat-btn" data-cat="3d">3D 渲染与物理 (2)</button>
+        <button class="cat-btn" data-cat="interactive">创意互动与游戏 (2)</button>
+        <button class="cat-btn" data-cat="tools">数据中台与监控 (1)</button>
+        <button class="cat-btn" data-cat="edu">语言与教育 (1)</button>
+      </div>
+
+      <div class="search-box">
+        <input type="text" id="searchInput" class="search-input" placeholder="搜索项目、技术栈或特性 (按 / 聚焦)...">
+        <span class="search-kbd">/</span>
+      </div>
+    </section>
+
+    <!-- Projects Grid -->
+    <section class="projects-grid" id="projectsGrid">
 
       <!-- 1. block-game -->
-      <div class="project-card">
+      <div class="project-card" data-cat="3d" data-keywords="minicraft block game 3d webgl sandbox voxel 我的世界 体素 沙盒 物理 爆炸 昼夜 贪心网格">
         <div>
-          <div class="card-header">
-            <div class="project-icon">🧱</div>
-            <div class="card-title-group">
-              <h2>MiniCraft · 方块世界</h2>
-              <div class="project-slug">/ai/block-game/</div>
+          <div class="card-top">
+            <div class="card-icon-wrap">🧱</div>
+            <div class="card-heading">
+              <div class="card-title">
+                <span>MiniCraft · 体素沙盒世界</span>
+                <span class="card-num-chip">#1</span>
+              </div>
+              <div class="card-slug">/ai/block-game/</div>
             </div>
           </div>
           <p class="card-desc">
-            纯原生 WebGL 1.0 实现的 3D 沙盒世界（网页版我的世界）。支持三维噪声地形生成、方块放置与破坏、实时光影、粒子系统与游戏存档。
+            纯原生 WebGL 1.0 实现的高性能 3D 体素沙盒。支持程序化三维柏林噪声地形生成、贪心网格渲染加速、昼夜动态光照、方块破坏/放置、TNT 物理引爆与 3D 浮空掉落物磁吸入包。
           </p>
-          <div class="tags-list">
-            <span class="tag primary">WebGL 1.0</span>
-            <span class="tag">3D 沙盒</span>
-            <span class="tag">程序化生成</span>
-            <span class="tag">原生 JS</span>
+          <div class="card-tags">
+            <span class="tag-pill featured">WebGL 1.0</span>
+            <span class="tag-pill">3D 体素沙盒</span>
+            <span class="tag-pill">贪心网格加速</span>
+            <span class="tag-pill">物理防穿透</span>
+            <span class="tag-pill">离线存档</span>
+            <span class="tag-pill model">Claude 3.7 / GLM-4</span>
           </div>
         </div>
-        <div class="card-actions">
-          <a href="./block-game/" class="btn-launch" target="_blank">
-            <span>启动体验</span>
-            <span>→</span>
-          </a>
+        <div>
+          <div class="card-actions">
+            <button class="btn-preview" onclick="openPreview('./block-game/', 'MiniCraft · 体素沙盒世界', 'block-game')">
+              <span>⚡ 快速预览</span>
+            </button>
+            <a href="./block-game/" class="btn-launch" target="_blank">
+              <span>🚀 全屏进入</span>
+            </a>
+          </div>
         </div>
       </div>
 
       <!-- 2. cyber-potato -->
-      <div class="project-card">
+      <div class="project-card" data-cat="interactive" data-keywords="cyber potato 电子土豆 像素 宠物 辞职信 打工 状态机 web audio 快捷键 离线推演">
         <div>
-          <div class="card-header">
-            <div class="project-icon">🥔</div>
-            <div class="card-title-group">
-              <h2>赛博电子土豆</h2>
-              <div class="project-slug">/ai/cyber-potato/</div>
+          <div class="card-top">
+            <div class="card-icon-wrap">🥔</div>
+            <div class="card-heading">
+              <div class="card-title">
+                <span>赛博电子土豆</span>
+                <span class="card-num-chip">#2</span>
+              </div>
+              <div class="card-slug">/ai/cyber-potato/</div>
             </div>
           </div>
           <p class="card-desc">
-            一颗会饿、会困、会超频过载，连续被冷落还会撰写辞职信的像素打工土豆。纯 CSS 像素动画与 Web Audio 原生合成音效，带状态持久化。
+            一颗会饿、会困、会超频过载，连续被冷落还会撰写辞职信的像素打工薯。纯 CSS 像素级动效、Web Audio 原生合成声效、状态机离线推演与换装衣柜系统，支持全键盘快捷键盲打。
           </p>
-          <div class="tags-list">
-            <span class="tag primary">CSS 像素动画</span>
-            <span class="tag">Web Audio</span>
-            <span class="tag">趣味互动</span>
-            <span class="tag">localStorage</span>
+          <div class="card-tags">
+            <span class="tag-pill featured">CSS 像素动效</span>
+            <span class="tag-pill">Web Audio 合成</span>
+            <span class="tag-pill">状态机推演</span>
+            <span class="tag-pill">全键盘快捷键</span>
+            <span class="tag-pill model">Claude 3.7 / DeepSeek</span>
           </div>
         </div>
-        <div class="card-actions">
-          <a href="./cyber-potato/" class="btn-launch" target="_blank">
-            <span>启动体验</span>
-            <span>→</span>
-          </a>
+        <div>
+          <div class="card-actions">
+            <button class="btn-preview" onclick="openPreview('./cyber-potato/', '赛博电子土豆', 'cyber-potato')">
+              <span>⚡ 快速预览</span>
+            </button>
+            <a href="./cyber-potato/" class="btn-launch" target="_blank">
+              <span>🚀 全屏进入</span>
+            </a>
+          </div>
         </div>
       </div>
 
       <!-- 3. internet-museum -->
-      <div class="project-card">
+      <div class="project-card" data-cat="interactive" data-keywords="internet museum 互联网 考古 1998 2003 2008 2012 2024 2099 拨号 midi 空间 算法 遗迹修复 展馆">
         <div>
-          <div class="card-header">
-            <div class="project-icon">🏛️</div>
-            <div class="card-title-group">
-              <h2>404 之前：互联网考古馆</h2>
-              <div class="project-slug">/ai/internet-museum/</div>
+          <div class="card-top">
+            <div class="card-icon-wrap">🏛️</div>
+            <div class="card-heading">
+              <div class="card-title">
+                <span>404 之前：互联网考古馆</span>
+                <span class="card-num-chip">#3</span>
+              </div>
+              <div class="card-slug">/ai/internet-museum/</div>
             </div>
           </div>
           <p class="card-desc">
-            横向穿越 1998、2003、2008、2012、2024、2099 六个互联网时代的单页互动遗址展馆。沉浸式复古 UI、时代彩蛋与动态声效。
+            横向穿越 1998、2003、2008、2012、2024、2099 六个互联网时代的沉浸式互动展馆。包含 1998 双音多频拨号握手音效模拟、2003 八音盒留言板、2008 天涯论坛、2012 QQ 空间与 2099 遗迹拼图修复。
           </p>
-          <div class="tags-list">
-            <span class="tag primary">沉浸式多时代</span>
-            <span class="tag">复古拟物</span>
-            <span class="tag">数字考古</span>
-            <span class="tag">音效系统</span>
+          <div class="card-tags">
+            <span class="tag-pill featured">6 时代沉浸穿越</span>
+            <span class="tag-pill">DTMF 拨号音效</span>
+            <span class="tag-pill">复古拟物 UI</span>
+            <span class="tag-pill">彩蛋收集系统</span>
+            <span class="tag-pill model">Claude 3.7 / Kimi</span>
           </div>
         </div>
-        <div class="card-actions">
-          <a href="./internet-museum/" class="btn-launch" target="_blank">
-            <span>启动体验</span>
-            <span>→</span>
-          </a>
+        <div>
+          <div class="card-actions">
+            <button class="btn-preview" onclick="openPreview('./internet-museum/', '404 之前：互联网考古馆', 'internet-museum')">
+              <span>⚡ 快速预览</span>
+            </button>
+            <a href="./internet-museum/" class="btn-launch" target="_blank">
+              <span>🚀 全屏进入</span>
+            </a>
+          </div>
         </div>
       </div>
 
       <!-- 4. learn-lang -->
-      <div class="project-card">
+      <div class="project-card" data-cat="edu" data-keywords="linguajourney learn language 语言 学习 英语 3d 闪卡 翻转 speech 语音 svg 图表 本地头像">
         <div>
-          <div class="card-header">
-            <div class="project-icon">🌍</div>
-            <div class="card-title-group">
-              <h2>LinguaJourney 语言学习</h2>
-              <div class="project-slug">/ai/learn-lang/</div>
+          <div class="card-top">
+            <div class="card-icon-wrap">🌍</div>
+            <div class="card-heading">
+              <div class="card-title">
+                <span>LinguaJourney 多语种学习</span>
+                <span class="card-num-chip">#4</span>
+              </div>
+              <div class="card-slug">/ai/learn-lang/</div>
             </div>
           </div>
           <p class="card-desc">
-            沉浸式多语种学习单页应用（SPA）。集成 3D 拟真翻转闪卡、单词原声发音评测、词汇量记忆曲线及互动学习测试模块。
+            现代化沉浸式语言学习平台 SPA。集成 3D 真实透视翻转记忆闪卡、Web Speech 原生单词发音合成、近 7 天学习活跃度 SVG 折线趋势图、确定性哈希本地安全矢量头像与学员社群动态。
           </p>
-          <div class="tags-list">
-            <span class="tag primary">SPA 学习平台</span>
-            <span class="tag">3D 闪卡</span>
-            <span class="tag">语音发音</span>
-            <span class="tag">纯原生</span>
+          <div class="card-tags">
+            <span class="tag-pill featured">3D 透视闪卡</span>
+            <span class="tag-pill">Web Speech API</span>
+            <span class="tag-pill">SVG 动态图表</span>
+            <span class="tag-pill">纯本地矢量头像</span>
+            <span class="tag-pill model">Gemini 2.5 / Claude 3.7</span>
           </div>
         </div>
-        <div class="card-actions">
-          <a href="./learn-lang/" class="btn-launch" target="_blank">
-            <span>启动体验</span>
-            <span>→</span>
-          </a>
+        <div>
+          <div class="card-actions">
+            <button class="btn-preview" onclick="openPreview('./learn-lang/', 'LinguaJourney 多语种学习', 'learn-lang')">
+              <span>⚡ 快速预览</span>
+            </button>
+            <a href="./learn-lang/" class="btn-launch" target="_blank">
+              <span>🚀 全屏进入</span>
+            </a>
+          </div>
         </div>
       </div>
 
       <!-- 5. iot-hub -->
-      <div class="project-card">
+      <div class="project-card" data-cat="tools" data-keywords="iot hub 物联网 5万 50000 虚拟列表 实时 数据调度 控制台 状态机 命令模式 canvas 图表">
         <div>
-          <div class="card-header">
-            <div class="project-icon">📡</div>
-            <div class="card-title-group">
-              <h2>IoT 实时数据调度控制台</h2>
-              <div class="project-slug">/ai/iot-hub/</div>
+          <div class="card-top">
+            <div class="card-icon-wrap">📡</div>
+            <div class="card-heading">
+              <div class="card-title">
+                <span>IoT 实时数据调度控制台</span>
+                <span class="card-num-chip">#5</span>
+              </div>
+              <div class="card-slug">/ai/iot-hub/</div>
             </div>
           </div>
           <p class="card-desc">
-            高性能单文件海量物联网设备调度与状态监控面板。包含万级设备虚拟滚动列表、多维告警过滤与动态拓扑数据可视化。
+            高性能单文件海量设备调度中台。支持 50,000 台设备 60fps 极速虚拟滚动列表、乱序/重复消息丢弃防护、动态告警自动去重、多字段稳定排序与命令模式（Command Pattern）撤销/重做支持。
           </p>
-          <div class="tags-list">
-            <span class="tag primary">海量数据调度</span>
-            <span class="tag">虚拟列表</span>
-            <span class="tag">单文件极简</span>
-            <span class="tag">IoT 监控</span>
+          <div class="card-tags">
+            <span class="tag-pill featured">50,000 设备调度</span>
+            <span class="tag-pill">虚拟列表 60fps</span>
+            <span class="tag-pill">乱序防抖</span>
+            <span class="tag-pill">命令模式 Undo/Redo</span>
+            <span class="tag-pill model">Claude 3.7 / GLM-4</span>
           </div>
         </div>
-        <div class="card-actions">
-          <a href="./iot-hub/" class="btn-launch" target="_blank">
-            <span>启动体验</span>
-            <span>→</span>
-          </a>
+        <div>
+          <div class="card-actions">
+            <button class="btn-preview" onclick="openPreview('./iot-hub/', 'IoT 实时数据调度控制台', 'iot-hub')">
+              <span>⚡ 快速预览</span>
+            </button>
+            <a href="./iot-hub/" class="btn-launch" target="_blank">
+              <span>🚀 全屏进入</span>
+            </a>
+          </div>
         </div>
       </div>
 
       <!-- 6. stellar-fusion -->
-      <div class="project-card">
+      <div class="project-card" data-cat="3d" data-keywords="stellar fusion helios 3d webgl2 glsl 恒星 聚变 星际 能源 控制台 戴森球 粒子 gemini musespark glm 对标">
         <div>
-          <div class="card-header">
-            <div class="project-icon">☀️</div>
-            <div class="card-title-group">
-              <h2>HELIOS & STELLAR 3D 聚变控制台</h2>
-              <div class="project-slug">/ai/stellar-fusion/</div>
+          <div class="card-top">
+            <div class="card-icon-wrap">☀️</div>
+            <div class="card-heading">
+              <div class="card-title">
+                <span>HELIOS & STELLAR 3D 聚变控制台</span>
+                <span class="card-num-chip">#6</span>
+              </div>
+              <div class="card-slug">/ai/stellar-fusion/</div>
             </div>
           </div>
           <p class="card-desc">
-            纯 WebGL 2.0 (GLSL ES 3.00) 构建的 3D 星际能源监控系统。同一 Prompt 下 Google Gemini 与 MuseSpark 双模型生成的横向对比演示。
+            纯 WebGL 2.0 (GLSL ES 3.00) 构建的星际戴森球能源监控中枢。同一 Prompt 下 Google Gemini 与 MuseSpark 双模型生成的横向对比演示，包含历史遥测时间轴回放与粒子光流渲染。
           </p>
-          <div class="tags-list">
-            <span class="tag primary">WebGL 2.0</span>
-            <span class="tag">GLSL ES 3.0</span>
-            <span class="tag">双模型横评</span>
-            <span class="tag">3D 粒子流</span>
+          <div class="card-tags">
+            <span class="tag-pill featured">WebGL 2.0</span>
+            <span class="tag-pill">GLSL ES 3.0</span>
+            <span class="tag-pill">双模型横评</span>
+            <span class="tag-pill">粒子光流</span>
+            <span class="tag-pill model">Gemini 2.5 / MuseSpark</span>
           </div>
         </div>
-        <div class="card-actions">
-          <a href="./stellar-fusion/" class="btn-launch" target="_blank">
-            <span>聚合主页</span>
-            <span>→</span>
-          </a>
-          <a href="./stellar-fusion/gemini/" class="btn-sublink" target="_blank" title="Gemini 版本">Gemini</a>
-          <a href="./stellar-fusion/musespark/" class="btn-sublink" target="_blank" title="MuseSpark 版本">MuseSpark</a>
+        <div>
+          <div class="card-actions">
+            <button class="btn-preview" onclick="openPreview('./stellar-fusion/', 'HELIOS & STELLAR 3D 聚变控制台', 'stellar-fusion')">
+              <span>⚡ 聚合预览</span>
+            </button>
+            <a href="./stellar-fusion/" class="btn-launch" target="_blank">
+              <span>🚀 全屏进入</span>
+            </a>
+          </div>
+          <div class="sublinks-row">
+            <a href="./stellar-fusion/gemini/" class="btn-sublink" target="_blank" title="Gemini 独立版本">Gemini 版</a>
+            <a href="./stellar-fusion/musespark/" class="btn-sublink" target="_blank" title="MuseSpark 独立版本">MuseSpark 版</a>
+            <a href="./stellar-fusion/musespark/IndexGLM.html" class="btn-sublink" target="_blank" title="GLM 标杆对照版本">GLM 标杆版</a>
+          </div>
         </div>
       </div>
 
+    </section>
+  </main>
+
+  <!-- Slide-in / Fullscreen Preview Modal -->
+  <div class="preview-modal" id="previewModal" aria-hidden="true">
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <span style="font-size:18px">🖥️</span>
+        <div>
+          <div class="modal-title" id="modalProjectTitle">项目预览</div>
+          <div class="modal-url" id="modalProjectUrl">about:blank</div>
+        </div>
+      </div>
+
+      <div class="modal-controls">
+        <div class="viewport-switch">
+          <button class="viewport-btn active" id="vpDesktop" onclick="setViewportMode('desktop')">🖥️ 桌面视图</button>
+          <button class="viewport-btn" id="vpMobile" onclick="setViewportMode('mobile')">📱 移动端</button>
+        </div>
+        <button class="btn-modal-action" onclick="reloadPreview()" title="重新加载当前页面">
+          <span>🔄 刷新</span>
+        </button>
+        <a id="btnModalPopout" href="#" target="_blank" class="btn-modal-action" title="在新窗口独立打开">
+          <span>↗️ 独立标签</span>
+        </a>
+        <button class="btn-modal-close" onclick="closePreview()">
+          <span>✕ 关闭 (Esc)</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-iframe-wrap">
+      <iframe id="modalFrame" class="preview-frame" src="about:blank" frameborder="0"></iframe>
     </div>
   </div>
 
   <!-- Footer -->
   <footer>
-    <p>Cloudflare Pages Edge Static Center &middot; Zero Build & Zero Dependency</p>
+    <p>AItestProjects &middot; Cloudflare Pages Edge Static Center &middot; Zero Build & Zero Dependency</p>
+    <div style="margin-top:8px;font-size:12px;color:var(--text-dim)">
+      <span>纯原生三件套 (HTML5/CSS3/JavaScript)</span> &bull;
+      <span>100% 离线可用</span> &bull;
+      <a href="./AGENTS.md" target="_blank">开发规范 (AGENTS.md)</a>
+    </div>
   </footer>
 
+  <script>
+  (() => {
+    'use strict';
+
+    /* ========================================================
+       1. Dynamic Particle Canvas Background
+       ======================================================== */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let width = 0, height = 0;
+    let particles = [];
+    let mouse = { x: -1000, y: -1000 };
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      initParticles();
+    }
+
+    function initParticles() {
+      const count = Math.min(60, Math.floor((width * height) / 22000));
+      particles = [];
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.45,
+          vy: (Math.random() - 0.5) * 0.45,
+          radius: Math.random() * 1.6 + 0.6,
+          alpha: Math.random() * 0.5 + 0.2,
+          color: Math.random() > 0.4 ? '#f38020' : '#38bdf8'
+        });
+      }
+    }
+
+    function renderParticles() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Connect near particles
+      for (let i = 0; i < particles.length; i++) {
+        const p1 = particles[i];
+        p1.x += p1.vx;
+        p1.y += p1.vy;
+
+        if (p1.x < 0) p1.x = width;
+        if (p1.x > width) p1.x = 0;
+        if (p1.y < 0) p1.y = height;
+        if (p1.y > height) p1.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p1.x, p1.y, p1.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p1.color;
+        ctx.globalAlpha = p1.alpha;
+        ctx.fill();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.hypot(dx, dy);
+
+          if (dist < 130) {
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = '#f38020';
+            ctx.globalAlpha = (1 - dist / 130) * 0.14;
+            ctx.lineWidth = 0.75;
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.globalAlpha = 1.0;
+      requestAnimationFrame(renderParticles);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('mousemove', e => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    resizeCanvas();
+    renderParticles();
+
+    /* ========================================================
+       2. Category & Search Filtering
+       ======================================================== */
+    const catButtons = document.querySelectorAll('.cat-btn');
+    const searchInput = document.getElementById('searchInput');
+    const cards = document.querySelectorAll('.project-card');
+    const grid = document.getElementById('projectsGrid');
+
+    let activeCat = 'all';
+    let searchQuery = '';
+
+    function applyFilters() {
+      let visibleCount = 0;
+      const q = searchQuery.toLowerCase().trim();
+
+      cards.forEach(card => {
+        const cat = card.dataset.cat;
+        const keywords = (card.dataset.keywords || '').toLowerCase();
+        const text = card.textContent.toLowerCase();
+
+        const matchCat = activeCat === 'all' || cat === activeCat;
+        const matchSearch = !q || keywords.includes(q) || text.includes(q);
+
+        if (matchCat && matchSearch) {
+          card.style.display = 'flex';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      let emptyEl = document.getElementById('emptySearchState');
+      if (visibleCount === 0) {
+        if (!emptyEl) {
+          emptyEl = document.createElement('div');
+          emptyEl.id = 'emptySearchState';
+          emptyEl.className = 'empty-search';
+          emptyEl.innerHTML = `<i>🔍</i><p>未找到与 "<b>${escapeHtml(searchQuery)}</b>" 匹配的项目</p><button class="cat-btn active" style="margin-top:12px" onclick="clearSearch()">重置筛选</button>`;
+          grid.appendChild(emptyEl);
+        }
+      } else if (emptyEl) {
+        emptyEl.remove();
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    catButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        catButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeCat = btn.dataset.cat;
+        applyFilters();
+      });
+    });
+
+    searchInput.addEventListener('input', e => {
+      searchQuery = e.target.value;
+      applyFilters();
+    });
+
+    window.clearSearch = () => {
+      searchInput.value = '';
+      searchQuery = '';
+      activeCat = 'all';
+      catButtons.forEach(b => b.classList.toggle('active', b.dataset.cat === 'all'));
+      applyFilters();
+    };
+
+    /* ========================================================
+       3. Interactive Live Preview Modal
+       ======================================================== */
+    const modal = document.getElementById('previewModal');
+    const modalFrame = document.getElementById('modalFrame');
+    const modalTitle = document.getElementById('modalProjectTitle');
+    const modalUrl = document.getElementById('modalProjectUrl');
+    const btnPopout = document.getElementById('btnModalPopout');
+    const vpDesktop = document.getElementById('vpDesktop');
+    const vpMobile = document.getElementById('vpMobile');
+
+    let currentPreviewUrl = '';
+
+    window.openPreview = (url, title, slug) => {
+      currentPreviewUrl = url;
+      modalTitle.textContent = title;
+      modalUrl.textContent = url;
+      btnPopout.href = url;
+      modalFrame.src = url;
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+      setViewportMode('desktop');
+    };
+
+    window.closePreview = () => {
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+      modalFrame.src = 'about:blank';
+    };
+
+    window.reloadPreview = () => {
+      if (currentPreviewUrl) {
+        modalFrame.src = currentPreviewUrl;
+      }
+    };
+
+    window.setViewportMode = (mode) => {
+      if (mode === 'mobile') {
+        modalFrame.classList.add('mobile-view');
+        vpMobile.classList.add('active');
+        vpDesktop.classList.remove('active');
+      } else {
+        modalFrame.classList.remove('mobile-view');
+        vpDesktop.classList.add('active');
+        vpMobile.classList.remove('active');
+      }
+    };
+
+    /* ========================================================
+       4. Global Keyboard Shortcuts
+       ======================================================== */
+    document.addEventListener('keydown', e => {
+      if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        e.preventDefault();
+        searchInput.focus();
+      }
+      if (e.key === 'Escape') {
+        closePreview();
+      }
+    });
+
+  })();
+  </script>
 </body>
 </html>
