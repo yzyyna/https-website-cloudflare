@@ -10,13 +10,13 @@
     :root {
       --cf-orange: #f38020;
       --cf-orange-hover: #fa8f32;
-      --cf-bg: #0b0f19;
-      --cf-card-bg: rgba(22, 28, 45, 0.7);
+      --cf-bg: #080c16;
+      --cf-card-bg: rgba(17, 24, 39, 0.65);
       --cf-border: rgba(255, 255, 255, 0.08);
       --cf-border-hover: rgba(243, 128, 32, 0.35);
       --cf-text-primary: #ffffff;
       --cf-text-secondary: #94a3b8;
-      --cf-blue: #3b82f6;
+      --cf-blue: #38bdf8;
       --cf-green: #10b981;
     }
 
@@ -27,7 +27,7 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "SF Pro Display", Helvetica, Arial, sans-serif;
       background-color: var(--cf-bg);
       color: var(--cf-text-primary);
       min-height: 100vh;
@@ -36,24 +36,25 @@
       line-height: 1.6;
       overflow-x: hidden;
       background-image: 
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(243, 128, 32, 0.18), transparent),
-        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59, 130, 246, 0.08), transparent);
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(243, 128, 32, 0.14), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 75%, rgba(56, 189, 248, 0.06), transparent);
     }
 
     /* Navigation */
     header {
       border-bottom: 1px solid var(--cf-border);
-      background: rgba(11, 15, 25, 0.8);
+      background: rgba(8, 12, 22, 0.85);
       backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       position: sticky;
       top: 0;
       z-index: 50;
     }
 
     .nav-container {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
-      padding: 16px 24px;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -134,15 +135,26 @@
       transform: scale(0.98);
     }
 
-    /* Hero Section */
-    .hero {
-      max-width: 1100px;
+    /* Hero Section with 3D Globe */
+    .hero-section {
+      max-width: 1240px;
       margin: 0 auto;
-      padding: 80px 24px 60px;
-      text-align: center;
+      padding: 60px 24px 40px;
+      width: 100%;
+    }
+
+    .hero-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: center;
+      gap: 40px;
+      min-height: 520px;
+    }
+
+    .hero-content {
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: flex-start;
     }
 
     .hero-badge {
@@ -159,45 +171,53 @@
       margin-bottom: 24px;
     }
 
-    .hero-badge .sparkle {
-      font-size: 14px;
+    .hero-badge .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cf-orange);
+      box-shadow: 0 0 8px var(--cf-orange);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
     }
 
     h1 {
-      font-size: clamp(38px, 6vw, 64px);
+      font-size: clamp(38px, 4.5vw, 60px);
       font-weight: 800;
-      line-height: 1.1;
+      line-height: 1.12;
       letter-spacing: -0.03em;
-      margin-bottom: 22px;
-      max-width: 900px;
+      margin-bottom: 20px;
     }
 
     h1 .gradient-text {
-      background: linear-gradient(135deg, #ffffff 30%, #f38020 70%, #ff7643 100%);
+      background: linear-gradient(135deg, #ffffff 35%, #f38020 75%, #ff7643 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .hero-subtitle {
-      font-size: clamp(16px, 2.2vw, 20px);
+      font-size: clamp(16px, 1.8vw, 19px);
       color: var(--cf-text-secondary);
-      max-width: 720px;
-      margin-bottom: 40px;
+      margin-bottom: 36px;
       font-weight: 400;
+      line-height: 1.6;
+      max-width: 580px;
     }
 
     .cta-group {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 64px;
+      gap: 14px;
       flex-wrap: wrap;
-      justify-content: center;
     }
 
     .btn-large {
-      padding: 14px 28px;
-      font-size: 16px;
+      padding: 13px 26px;
+      font-size: 15px;
       border-radius: 8px;
     }
 
@@ -206,9 +226,9 @@
       border: 1px solid var(--cf-border);
       color: #ffffff;
       text-decoration: none;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
-      padding: 14px 28px;
+      padding: 13px 24px;
       border-radius: 8px;
       transition: all 0.15s ease;
     }
@@ -218,19 +238,75 @@
       border-color: rgba(255, 255, 255, 0.2);
     }
 
+    /* Globe Visual Container */
+    .globe-wrapper {
+      position: relative;
+      width: 100%;
+      height: 480px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .globe-glow {
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(243, 128, 32, 0.16) 0%, rgba(56, 189, 248, 0.08) 50%, transparent 75%);
+      filter: blur(30px);
+      pointer-events: none;
+    }
+
+    #globe-canvas {
+      width: 480px;
+      height: 480px;
+      cursor: grab;
+      position: relative;
+      z-index: 1;
+      touch-action: none;
+    }
+
+    #globe-canvas:active {
+      cursor: grabbing;
+    }
+
+    .globe-caption {
+      position: absolute;
+      bottom: 12px;
+      font-size: 11px;
+      color: #64748b;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .globe-caption::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+    }
+
     /* Stats Bar */
     .stats-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 24px;
       width: 100%;
-      max-width: 1000px;
+      margin: 40px auto 60px;
       padding: 28px;
       background: var(--cf-card-bg);
       border: 1px solid var(--cf-border);
       border-radius: 16px;
       backdrop-filter: blur(12px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
     }
 
     .stat-item {
@@ -256,15 +332,15 @@
 
     /* Features Section */
     .section-container {
-      max-width: 1200px;
-      margin: 40px auto 100px;
+      max-width: 1240px;
+      margin: 20px auto 80px;
       padding: 0 24px;
       width: 100%;
     }
 
     .section-header {
       text-align: center;
-      margin-bottom: 56px;
+      margin-bottom: 48px;
     }
 
     .section-title {
@@ -283,16 +359,16 @@
 
     .feature-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
       gap: 24px;
     }
 
     .feature-card {
       background: var(--cf-card-bg);
       border: 1px solid var(--cf-border);
-      border-radius: 14px;
+      border-radius: 16px;
       padding: 32px;
-      transition: all 0.25s ease;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
       overflow: hidden;
     }
@@ -300,13 +376,13 @@
     .feature-card:hover {
       border-color: var(--cf-border-hover);
       transform: translateY(-3px);
-      box-shadow: 0 12px 30px rgba(243, 128, 32, 0.08);
+      box-shadow: 0 16px 36px rgba(243, 128, 32, 0.08);
     }
 
     .feature-icon {
       width: 48px;
       height: 48px;
-      border-radius: 10px;
+      border-radius: 12px;
       background: rgba(243, 128, 32, 0.1);
       border: 1px solid rgba(243, 128, 32, 0.2);
       display: flex;
@@ -331,11 +407,11 @@
 
     /* Banner CTA */
     .banner {
-      max-width: 1140px;
+      max-width: 1192px;
       margin: 0 auto 80px;
-      padding: 56px 36px;
+      padding: 52px 40px;
       border-radius: 20px;
-      background: linear-gradient(135deg, rgba(243, 128, 32, 0.15) 0%, rgba(22, 28, 45, 0.9) 100%);
+      background: linear-gradient(135deg, rgba(243, 128, 32, 0.15) 0%, rgba(17, 24, 39, 0.95) 100%);
       border: 1px solid rgba(243, 128, 32, 0.3);
       display: flex;
       align-items: center;
@@ -357,13 +433,13 @@
     /* Footer */
     footer {
       border-top: 1px solid var(--cf-border);
-      background: #080b13;
+      background: #050811;
       padding: 60px 24px 40px;
       margin-top: auto;
     }
 
     .footer-container {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
       display: grid;
       grid-template-columns: 2fr repeat(3, 1fr);
@@ -407,7 +483,7 @@
     }
 
     .footer-bottom {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
       padding-top: 24px;
       border-top: 1px solid var(--cf-border);
@@ -418,7 +494,17 @@
       color: #64748b;
     }
 
-    @media (max-width: 860px) {
+    @media (max-width: 960px) {
+      .hero-layout {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .hero-content {
+        align-items: center;
+      }
+      .cta-group {
+        justify-content: center;
+      }
       .stats-bar {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -429,12 +515,16 @@
         flex-direction: column;
         text-align: center;
       }
-      .nav-links {
-        display: none;
-      }
     }
 
-    @media (max-width: 540px) {
+    @media (max-width: 640px) {
+      .globe-wrapper {
+        height: 360px;
+      }
+      #globe-canvas {
+        width: 340px;
+        height: 340px;
+      }
       .stats-bar {
         grid-template-columns: 1fr;
       }
@@ -444,6 +534,9 @@
       .footer-bottom {
         flex-direction: column;
         gap: 12px;
+      }
+      .nav-links {
+        display: none;
       }
     }
   </style>
@@ -475,30 +568,42 @@
     </div>
   </header>
 
-  <!-- Hero -->
-  <main class="hero">
-    <div class="hero-badge">
-      <span class="sparkle">⚡</span>
-      <span>Cloudflare Pages & Workers Platform</span>
-    </div>
+  <!-- Hero Section with Interactive 3D Globe -->
+  <section class="hero-section">
+    <div class="hero-layout">
+      <!-- Left Content -->
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="pulse-dot"></span>
+          <span>Cloudflare Global Anycast Network</span>
+        </div>
 
-    <h1>
-      Build fast.<br>
-      <span class="gradient-text">Deploy globally.</span>
-    </h1>
+        <h1>
+          Build fast.<br>
+          <span class="gradient-text">Deploy globally.</span>
+        </h1>
 
-    <p class="hero-subtitle">
-      Cloudflare Pages is a Jamstack platform for frontend developers to collaborate and deploy websites. Powered by the world's most connected global edge network.
-    </p>
+        <p class="hero-subtitle">
+          Cloudflare Pages is a Jamstack platform for frontend developers to collaborate and deploy websites. Powered by the world's most connected programmable edge network.
+        </p>
 
-    <div class="cta-group">
-      <a href="https://dash.cloudflare.com/sign-up/pages" target="_blank" rel="noopener noreferrer" class="btn-primary btn-large">
-        <span>Get Started in Seconds</span>
-        <span>→</span>
-      </a>
-      <a href="https://developers.cloudflare.com/pages/" target="_blank" rel="noopener noreferrer" class="btn-secondary">
-        <span>Read Documentation</span>
-      </a>
+        <div class="cta-group">
+          <a href="https://dash.cloudflare.com/sign-up/pages" target="_blank" rel="noopener noreferrer" class="btn-primary btn-large">
+            <span>Get Started in Seconds</span>
+            <span>→</span>
+          </a>
+          <a href="https://developers.cloudflare.com/pages/" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+            <span>Read Documentation</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right 3D Rotating Globe -->
+      <div class="globe-wrapper">
+        <div class="globe-glow"></div>
+        <canvas id="globe-canvas"></canvas>
+        <div class="globe-caption">Live 330+ Anycast Edge Nodes · Drag to Explore</div>
+      </div>
     </div>
 
     <!-- Stats Matrix -->
@@ -520,7 +625,7 @@
         <div class="stat-label">Global Anycast Availability</div>
       </div>
     </div>
-  </main>
+  </section>
 
   <!-- Feature Grid -->
   <section class="section-container">
@@ -627,6 +732,319 @@
       <span>Privacy Policy · Terms of Use · Report Security Vulnerability</span>
     </div>
   </footer>
+
+  <!-- 3D Globe Interactive Engine Script -->
+  <script>
+  (function initGlobe() {
+    const canvas = document.getElementById('globe-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    let width = canvas.parentElement.clientWidth || 480;
+    let height = canvas.parentElement.clientHeight || 480;
+    let dpr = window.devicePixelRatio || 1;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width || 480;
+      height = rect.height || 480;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Globe parameters
+    const GLOBE_RADIUS = 155;
+    let rotY = 0.5;
+    let rotX = 0.28;
+    let autoSpeed = 0.0035;
+    let isDragging = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let velocityY = 0;
+    let velocityX = 0;
+
+    // Cloudflare Global Data Center Hubs
+    const CITIES = [
+      { name: 'San Francisco', lat: 37.7749, lng: -122.4194, color: '#f38020' },
+      { name: 'London', lat: 51.5074, lng: -0.1278, color: '#38bdf8' },
+      { name: 'Tokyo', lat: 35.6762, lng: 139.6503, color: '#f38020' },
+      { name: 'Singapore', lat: 1.3521, lng: 103.8198, color: '#38bdf8' },
+      { name: 'Frankfurt', lat: 50.1109, lng: 8.6821, color: '#38bdf8' },
+      { name: 'Sydney', lat: -33.8688, lng: 151.2093, color: '#f38020' },
+      { name: 'Hong Kong', lat: 22.3193, lng: 114.1694, color: '#f38020' },
+      { name: 'São Paulo', lat: -23.5505, lng: -46.6333, color: '#38bdf8' },
+      { name: 'Mumbai', lat: 19.0760, lng: 72.8777, color: '#f38020' },
+      { name: 'Johannesburg', lat: -26.2041, lng: 28.0473, color: '#38bdf8' },
+      { name: 'Seattle', lat: 47.6062, lng: -122.3321, color: '#38bdf8' },
+      { name: 'Dubai', lat: 25.2048, lng: 55.2708, color: '#f38020' },
+      { name: 'Paris', lat: 48.8566, lng: 2.3522, color: '#38bdf8' }
+    ];
+
+    // Global High-speed Network Arcs
+    const ARCS = [
+      { from: 0, to: 2 }, // SF -> Tokyo
+      { from: 2, to: 3 }, // Tokyo -> Singapore
+      { from: 3, to: 6 }, // Singapore -> HK
+      { from: 0, to: 1 }, // SF -> London
+      { from: 1, to: 4 }, // London -> Frankfurt
+      { from: 4, to: 11 },// Frankfurt -> Dubai
+      { from: 11, to: 8 },// Dubai -> Mumbai
+      { from: 8, to: 3 }, // Mumbai -> Singapore
+      { from: 3, to: 5 }, // Singapore -> Sydney
+      { from: 0, to: 7 }, // SF -> Sao Paulo
+      { from: 1, to: 9 }, // London -> Joburg
+      { from: 0, to: 10 },// SF -> Seattle
+      { from: 1, to: 12 } // London -> Paris
+    ];
+
+    // Accurate Landmass Dot Generation (Sampled continent boundaries)
+    const LAND_DOTS = [];
+    function isLand(lat, lng) {
+      // North America
+      if (lat > 15 && lat < 70 && lng > -165 && lng < -50) {
+        if (lat < 30 && lng < -100) return false;
+        return true;
+      }
+      // South America
+      if (lat > -55 && lat < 12 && lng > -80 && lng < -35) {
+        if (lat < -20 && lng > -60 && lng < -45) return true;
+        if (lat >= -20) return true;
+        return lng < -60;
+      }
+      // Europe
+      if (lat > 36 && lat < 70 && lng > -10 && lng < 45) {
+        if (lat > 55 && lng < 5) return lng > -5; // UK/North Sea
+        return true;
+      }
+      // Africa
+      if (lat > -35 && lat < 36 && lng > -18 && lng < 52) {
+        if (lat > 20 && lng < -10) return false;
+        if (lat < -10 && lng < 12) return false;
+        return true;
+      }
+      // Asia
+      if (lat > 5 && lat < 75 && lng >= 45 && lng < 150) {
+        if (lat < 10 && lng < 95) return false; // Indian ocean
+        return true;
+      }
+      // Australia
+      if (lat > -42 && lat < -10 && lng > 112 && lng < 155) return true;
+      // Japan & East Asia Islands
+      if (lat > 30 && lat < 45 && lng > 128 && lng < 146) return true;
+      // Indonesia & Philippines
+      if (lat > -10 && lat < 20 && lng > 95 && lng < 130) {
+        return (lat * lng) % 3 === 0;
+      }
+      // Scandinavia
+      if (lat > 55 && lat < 72 && lng > 4 && lng < 32) return true;
+      return false;
+    }
+
+    // Populate Dots
+    for (let lat = -70; lat <= 75; lat += 3.8) {
+      const cosLat = Math.cos((lat * Math.PI) / 180);
+      const stepLng = Math.max(3.8 / cosLat, 4.2);
+      for (let lng = -180; lng <= 180; lng += stepLng) {
+        if (isLand(lat, lng)) {
+          LAND_DOTS.push({ lat, lng });
+        }
+      }
+    }
+
+    // 3D Projection Math
+    function project(lat, lng, radius = GLOBE_RADIUS) {
+      const phi = (lat * Math.PI) / 180;
+      const lambda = (lng * Math.PI) / 180 + rotY;
+
+      // Base 3D Sphere coordinates
+      const x = radius * Math.cos(phi) * Math.sin(lambda);
+      const y = -radius * Math.sin(phi);
+      const z = radius * Math.cos(phi) * Math.cos(lambda);
+
+      // Pitch Rotation (X-axis)
+      const cosX = Math.cos(rotX);
+      const sinX = Math.sin(rotX);
+      const yRot = y * cosX - z * sinX;
+      const zRot = y * sinX + z * cosX;
+
+      // Perspective scale
+      const fov = 500;
+      const scale = fov / (fov - zRot);
+
+      return {
+        x: width / 2 + x * scale,
+        y: height / 2 + yRot * scale,
+        z: zRot,
+        scale: scale,
+        visible: zRot > -GLOBE_RADIUS * 0.25
+      };
+    }
+
+    // Mouse & Touch Drag Controls
+    canvas.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+
+      velocityY = dx * 0.005;
+      velocityX = dy * 0.005;
+
+      rotY += velocityY;
+      rotX += velocityX;
+      rotX = Math.max(-0.8, Math.min(0.8, rotX));
+    });
+
+    window.addEventListener('pointerup', () => {
+      isDragging = false;
+    });
+
+    let pulseTime = 0;
+
+    // Render Loop
+    function render() {
+      pulseTime += 0.02;
+
+      // Inertia & Auto Rotation
+      if (!isDragging) {
+        velocityY *= 0.94;
+        velocityX *= 0.94;
+        rotY += autoSpeed + velocityY;
+        rotX += velocityX;
+      }
+      rotX = Math.max(-0.8, Math.min(0.8, rotX));
+
+      ctx.clearRect(0, 0, width, height);
+
+      const cx = width / 2;
+      const cy = height / 2;
+
+      // 1. Globe Atmosphere Rim
+      const rimGrad = ctx.createRadialGradient(cx, cy, GLOBE_RADIUS * 0.7, cx, cy, GLOBE_RADIUS * 1.08);
+      rimGrad.addColorStop(0, 'rgba(15, 23, 42, 0)');
+      rimGrad.addColorStop(0.85, 'rgba(243, 128, 32, 0.04)');
+      rimGrad.addColorStop(1, 'rgba(56, 189, 248, 0.12)');
+      ctx.fillStyle = rimGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, GLOBE_RADIUS * 1.08, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Base Sphere Outline (Delicate Wireframe)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, GLOBE_RADIUS, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 3. Render Landmass Dot Matrix
+      for (let i = 0; i < LAND_DOTS.length; i++) {
+        const p = project(LAND_DOTS[i].lat, LAND_DOTS[i].lng);
+        if (!p.visible) continue;
+
+        // Front-facing depth alpha
+        const alpha = Math.max(0.08, (p.z + GLOBE_RADIUS) / (GLOBE_RADIUS * 2));
+        const size = Math.max(0.8, 1.4 * p.scale);
+
+        ctx.fillStyle = `rgba(226, 232, 240, ${alpha * 0.85})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 4. Render 3D Arcs (Great Circle Flight Paths)
+      for (let i = 0; i < ARCS.length; i++) {
+        const c1 = CITIES[ARCS[i].from];
+        const c2 = CITIES[ARCS[i].to];
+        if (!c1 || !c2) continue;
+
+        const p1 = project(c1.lat, c1.lng);
+        const p2 = project(c2.lat, c2.lng);
+
+        if (!p1.visible && !p2.visible) continue;
+
+        // Interpolate elevated 3D arc midpoint
+        const midLat = (c1.lat + c2.lat) / 2 + 10;
+        const midLng = (c1.lng + c2.lng) / 2;
+        const pMid = project(midLat, midLng, GLOBE_RADIUS * 1.25);
+
+        // Draw Arc Line
+        const arcAlpha = Math.max(0.1, (p1.z + p2.z + GLOBE_RADIUS * 2) / (GLOBE_RADIUS * 4));
+        ctx.strokeStyle = `rgba(243, 128, 32, ${arcAlpha * 0.4})`;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.quadraticCurveTo(pMid.x, pMid.y, p2.x, p2.y);
+        ctx.stroke();
+
+        // Traveling Light Packet (Photon)
+        const t = (pulseTime * 0.8 + i * 0.22) % 1;
+        const qx = (1 - t) * (1 - t) * p1.x + 2 * (1 - t) * t * pMid.x + t * t * p2.x;
+        const qy = (1 - t) * (1 - t) * p1.y + 2 * (1 - t) * t * pMid.y + t * t * p2.y;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#f38020';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(qx, qy, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0; // reset
+      }
+
+      // 5. Render Anycast Edge Hub Nodes
+      for (let i = 0; i < CITIES.length; i++) {
+        const c = CITIES[i];
+        const p = project(c.lat, c.lng);
+        if (!p.visible) continue;
+
+        const nodeAlpha = Math.max(0.2, (p.z + GLOBE_RADIUS) / (GLOBE_RADIUS * 2));
+
+        // Core Node Dot
+        ctx.fillStyle = c.color;
+        ctx.shadowColor = c.color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3 * p.scale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Pulsing Wave Ring
+        const ringProgress = (pulseTime + i * 0.3) % 1.5;
+        if (ringProgress < 1.0) {
+          ctx.strokeStyle = c.color;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, (4 + ringProgress * 12) * p.scale, 0, Math.PI * 2);
+          ctx.globalAlpha = (1 - ringProgress) * nodeAlpha * 0.8;
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+
+        // City Label (Only for front-facing key cities)
+        if (p.z > GLOBE_RADIUS * 0.25) {
+          ctx.font = '10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+          ctx.fillText(c.name, p.x + 7, p.y + 3);
+        }
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    render();
+  })();
+  </script>
 
 </body>
 </html>
