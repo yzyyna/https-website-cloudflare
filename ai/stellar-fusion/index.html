@@ -180,15 +180,22 @@ main {
 .btn {
   flex: 1;
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 10px;
   text-decoration: none;
   text-align: center;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease,
+              color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: inline-block;
   border: 1px solid transparent;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0);
 }
 .btn-primary {
   background: rgba(70, 232, 255, 0.15);
@@ -207,6 +214,7 @@ main {
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.09);
   color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
 }
 .preview-section {
   background: var(--panel-bg);
