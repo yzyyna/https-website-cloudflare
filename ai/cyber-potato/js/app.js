@@ -250,6 +250,7 @@
       state.counters.feedCount = (state.counters.feedCount || 0) + 1;
 
       window.PotatoAudio.playFeed();
+      haptic(15);
       triggerSquash();
 
       // 台词反馈
@@ -477,6 +478,12 @@
 
   // 8. 模态框与工具栏
   function bindModals() {
+    /* 触觉反馈（Android Vibration API；iOS 静默降级无副作用） */
+    function haptic(ms) {
+      try {
+        if (typeof navigator.vibrate === 'function') navigator.vibrate(ms);
+      } catch (e) {}
+    }
     // 声音开关
     btnMute.addEventListener('click', () => {
       const muted = window.PotatoAudio.toggleMute();
@@ -484,6 +491,7 @@
       if (!muted) {
         window.PotatoAudio.playPoke();
       }
+      haptic(15);
     });
 
     // 打开衣橱
@@ -492,6 +500,7 @@
       window.PotatoAccessories.renderWardrobe(state);
       modalWardrobe.classList.add('open');
       window.PotatoAudio.playPoke();
+      haptic(12);
     });
     document.getElementById('btnCloseWardrobe').addEventListener('click', () => {
       modalWardrobe.classList.remove('open');

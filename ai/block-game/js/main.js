@@ -453,6 +453,13 @@
     });
   }
 
+  /* 触觉反馈（Android Vibration API；iOS 静默降级无副作用） */
+  function haptic(ms) {
+    try {
+      if (typeof navigator.vibrate === 'function') navigator.vibrate(ms || 15);
+    } catch (e) {}
+  }
+
   function doMine(t) {
     var id = world.getBlock(t.x, t.y, t.z);
     if (id === BLOCK.AIR || !isFinite(DEFS[id].hardness)) return;
@@ -460,6 +467,7 @@
     world.setBlock(t.x, t.y, t.z, BLOCK.AIR);
     particles.spawnBurst(renderer.atlas, id, t.x, t.y, t.z);
     MC.Sound.breakBlock(id);
+    haptic(id === BLOCK.TNT ? 25 : 15);
     if (id !== BLOCK.TNT) {
       spawnDrop(dropId, t.x, t.y, t.z);
     }
@@ -474,6 +482,7 @@
     var targetedBlock = world.getBlock(t.x, t.y, t.z);
     if (targetedBlock === BLOCK.TNT) {
       igniteTNT(t.x, t.y, t.z);
+      haptic(25);
       return;
     }
     if (!t.face) return;
@@ -491,6 +500,7 @@
     inventory.consumeSelected();
     stats.placed++;
     MC.Sound.place();
+    haptic(18);
   }
 
   /* ---------------- 区块调度 ---------------- */

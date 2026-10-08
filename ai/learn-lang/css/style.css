@@ -1315,14 +1315,35 @@ body {
 }
 
 @media (max-width: 768px) {
+  html {
+    scroll-behavior: smooth;
+  }
   .sidebar {
     display: none;
   }
   .mobile-nav {
     display: flex;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* 移动端触摸目标 ≥44px */
+  .mobile-nav-item {
+    min-width: 64px;
+    min-height: 56px;
+    padding: 8px 4px;
+  }
+  .nav-item, .logout-btn, .login-btn-sidebar, .btn, .btn-white {
+    min-height: 44px;
+  }
+  .module-card {
+    padding: 18px 16px;
   }
   .main-wrapper {
     padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+  /* 触屏设备禁用 hover 悬停态，避免误触粘滞 */
+  .action-btn:hover, .nav-item:hover, .module-card:hover, .feature-card:hover {
+    background: var(--bg);
+    transform: none;
   }
   .hero-title {
     font-size: 34px;

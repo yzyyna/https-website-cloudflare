@@ -2,7 +2,11 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#070b14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="钢铁风暴坦克战">
   <title>3D Tank Clash · 钢铁风暴 3D 坦克大战</title>
   <meta name="description" content="纯原生 WebGL + Web Audio 实现的 3D 经典坦克大战进化版。零依赖、零构建，支持 5 大关卡、BOSS 决战、多兵种敌人、道具合成、多视角切换与全平台适配。">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -1212,6 +1216,13 @@
     }
 
     const sound = new SoundEngine();
+
+    /* 触觉反馈（Android Vibration API；iOS 静默降级无副作用） */
+    function haptic(pattern) {
+      try {
+        if (typeof navigator.vibrate === 'function') navigator.vibrate(pattern);
+      } catch (e) {}
+    }
 
     /* ========================================================
        2. Fast 3D Math Matrix & Vector Library
@@ -2524,10 +2535,12 @@
 
         // Muzzle Flash Particle (Lightweight)
         this.particles.push(new Particle(bx, 0.45, bz, [1, 0.8, 0.2, 1], 0.18, 2));
+        haptic(12);
       }
 
       spawnExplosion(x, y, z, isBig = false, color = [1, 0.5, 0.1, 1]) {
         sound.playExplosion(isBig);
+        haptic(isBig ? [30, 40, 55] : 18);
         this.shake = Math.min(this.shake + (isBig ? 0.6 : 0.25), 1.0);
         this.scene.pointLight.pos = [x, y + 1.2, z];
         this.scene.pointLight.intensity = isBig ? 3.5 : 1.8;

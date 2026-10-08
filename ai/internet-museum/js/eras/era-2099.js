@@ -229,6 +229,7 @@ export function initEra2099() {
     } else {
       // 对位失败！严格拒绝吸附并触发弹回与音效
       audioManager.playReject();
+      if (eggsManager.haptic) eggsManager.haptic([25, 40, 25]);
 
       // 槽位晃动警示
       slotEl.classList.remove('slot-mismatch');
@@ -255,6 +256,7 @@ export function initEra2099() {
     if (!cfg) return;
 
     audioManager.playSnap();
+    if (eggsManager.haptic) eggsManager.haptic(30);
     restoredIds.push(fragId);
     museumStore.update({ restoredFragments: [...restoredIds] });
 
@@ -265,6 +267,7 @@ export function initEra2099() {
 
     if (restoredIds.length === FRAGMENTS_CONFIG.length) {
       audioManager.playRestorationSuccess();
+      if (eggsManager.haptic) eggsManager.haptic([40, 60, 40, 60, 90]);
       eggsManager.showToast('🎉 全网 6 大遗址修复完成！终极历史档案已解密！');
     }
   }

@@ -2,14 +2,27 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f7fb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="IoT 控制台">
 <title>实时数据调度控制台 - IoT Data Center</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232563eb'/><path d='M8 16h3l2-5 4 10 3-7 2 2h4' stroke='%23fff' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <style>
 :root{--bg:#f6f7fb;--panel:#fff;--panel2:#f0f2f8;--text:#0f172a;--muted:#64748b;--border:#e2e8f0;--primary:#2563eb;--primary2:#1d4ed8;--danger:#ef4444;--warning:#f59e0b;--success:#10b981;--shadow:0 8px 24px rgba(15,23,42,.08)}
 [data-theme=dark]{--bg:#0b1220;--panel:#111c2f;--panel2:#0f1a30;--text:#e2e8f0;--muted:#94a3b8;--border:#1e2d4a;--primary:#3b82f6;--primary2:#2563eb;--shadow:0 8px 24px rgba(0,0,0,.4)}
-*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);background:var(--bg)}
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);background:var(--bg);-webkit-text-size-adjust:100%;text-size-adjust:100%}
 button,input,select,textarea{font:inherit}
+/* 移动端体验：全局惯性滚动、隐藏 hover-only 提示、加大触摸目标、消除双击缩放闪烁 */
+html{scroll-behavior:smooth}
+.viewport,.sidebar,.pane,.alarm-list,.modal-body,.drawer-body{-webkit-overflow-scrolling:touch}
+@media (hover:none) and (pointer:coarse){
+  .stat:hover{transform:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 1px 3px rgba(15,23,42,.05)}
+  .btn:hover{box-shadow:none}
+  .btn:active{transform:scale(.96);opacity:.9}
+  .tree .node:hover{background:transparent}
+  .tree .node.active{background:rgba(37,99,235,.1)}
+}
 ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:999px}[data-theme=dark] ::-webkit-scrollbar-thumb{background:#23344f}
 .top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--border);box-shadow:var(--shadow)}
 .brand{font-weight:800;letter-spacing:.2px;display:flex;align-items:center;gap:10px}
@@ -80,7 +93,25 @@ button,input,select,textarea{font:inherit}
 .chart-wrap canvas{width:100%;height:180px;display:block}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:900px){.charts{grid-template-columns:1fr}.list-head,.row{grid-template-columns:36px 120px 1fr 70px 70px 70px} .list-head span:nth-child(n+7),.row div:nth-child(n+7){display:none} .layout{grid-template-columns:1fr}}
-@media(max-width:640px){.top{padding:8px;flex-wrap:wrap;gap:8px}.brand{font-size:13px;width:100%}.stats{overflow-x:auto;max-width:100%;padding-bottom:4px}.stat{min-width:90px;padding:4px 8px}.stat b{font-size:11.5px}.list-head,.row{grid-template-columns:32px 100px 1fr 60px}.list-head span:nth-child(n+5),.row div:nth-child(n+5){display:none}.filter-builder{flex-direction:column}.filter-builder input,.filter-builder select{width:100%}} 
+@media(max-width:640px){
+  .top{padding:8px;flex-wrap:wrap;gap:8px;padding-top:max(8px,env(safe-area-inset-top))}
+  .brand{font-size:13px;width:100%}
+  .stats{overflow-x:auto;max-width:100%;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .stat{min-width:90px;padding:4px 8px}
+  .stat b{font-size:11.5px}
+  .list-head,.row{grid-template-columns:32px 100px 1fr 60px}
+  .list-head span:nth-child(n+5),.row div:nth-child(n+5){display:none}
+  .filter-builder{flex-direction:column}
+  .filter-builder input,.filter-builder select{width:100%}
+  /* 移动端触摸目标 ≥44px */
+  .btn{padding:11px 12px;font-size:13px}
+  .btn.small{padding:9px 12px;font-size:13px}
+  .toolbar-row input,.toolbar-row select,.search-wrap input{padding:11px 12px;font-size:15px}
+  .node{padding:11px 10px;font-size:14px}
+  .viewport{height:calc(100vh - 200px)}
+  .toast{bottom:max(18px,env(safe-area-inset-bottom));max-width:calc(100vw - 32px);text-align:center}
+  .debug{right:8px;bottom:max(8px,env(safe-area-inset-bottom));width:calc(100vw - 16px)}
+}
 .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(2,6,23,.45);z-index:50;padding:16px}
 .modal.open{display:grid}
 .modal-card{width:min(760px,96vw);background:var(--panel);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}

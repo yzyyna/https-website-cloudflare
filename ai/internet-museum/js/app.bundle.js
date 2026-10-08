@@ -842,6 +842,14 @@ class NavigationManager {
     const scrollLeft = this.galleryEl.scrollLeft;
     const targetIdx = Math.round(scrollLeft / width);
     this.goToEraByIndex(targetIdx);
+    this.haptic();
+  }
+
+  /* 触觉反馈（Android Vibration API；iOS 静默降级无副作用） */
+  haptic(pattern) {
+    try {
+      if (typeof navigator.vibrate === 'function') navigator.vibrate(pattern || 12);
+    } catch (e) {}
   }
 
   detectCurrentEraFromScroll() {
@@ -1035,9 +1043,11 @@ class EggsManager {
 
     if (isNew) {
       audioManager.playEggUnlock();
+      this.haptic(35);
       this.showUnlockModal(egg);
     } else {
       // 若已解锁，给出轻量 toast 提示已收录
+      this.haptic(15);
       this.showToast(`已在考古发现册中：${egg.title}`);
     }
   }
@@ -1095,6 +1105,13 @@ class EggsManager {
       toast.classList.remove('show');
       setTimeout(() => toast.remove(), 300);
     }, 2500);
+  }
+
+  /* 触觉反馈（Android Vibration API；iOS 静默降级无副作用） */
+  haptic(pattern) {
+    try {
+      if (typeof navigator.vibrate === 'function') navigator.vibrate(pattern);
+    } catch (e) {}
   }
 
   renderBookGrid() {
@@ -2585,6 +2602,7 @@ function initEra2099() {
     } else {
       // 对位失败！严格拒绝吸附并触发弹回与音效
       audioManager.playReject();
+      if (eggsManager.haptic) eggsManager.haptic([25, 40, 25]);
 
       // 槽位晃动警示
       slotEl.classList.remove('slot-mismatch');
@@ -2611,6 +2629,7 @@ function initEra2099() {
     if (!cfg) return;
 
     audioManager.playSnap();
+    if (eggsManager.haptic) eggsManager.haptic(30);
     restoredIds.push(fragId);
     museumStore.update({ restoredFragments: [...restoredIds] });
 
@@ -2621,6 +2640,7 @@ function initEra2099() {
 
     if (restoredIds.length === FRAGMENTS_CONFIG.length) {
       audioManager.playRestorationSuccess();
+      if (eggsManager.haptic) eggsManager.haptic([40, 60, 40, 60, 90]);
       eggsManager.showToast('🎉 全网 6 大遗址修复完成！终极历史档案已解密！');
     }
   }

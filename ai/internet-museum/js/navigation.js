@@ -158,6 +158,14 @@ export class NavigationManager {
     const scrollLeft = this.galleryEl.scrollLeft;
     const targetIdx = Math.round(scrollLeft / width);
     this.goToEraByIndex(targetIdx);
+    this.haptic();
+  }
+
+  /* 触觉反馈（Android Vibration API；iOS 静默降级无副作用） */
+  haptic(pattern) {
+    try {
+      if (typeof navigator.vibrate === 'function') navigator.vibrate(pattern || 12);
+    } catch (e) {}
   }
 
   detectCurrentEraFromScroll() {

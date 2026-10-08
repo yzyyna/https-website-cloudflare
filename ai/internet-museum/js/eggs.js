@@ -83,9 +83,11 @@ export class EggsManager {
 
     if (isNew) {
       audioManager.playEggUnlock();
+      this.haptic(35);
       this.showUnlockModal(egg);
     } else {
       // 若已解锁，给出轻量 toast 提示已收录
+      this.haptic(15);
       this.showToast(`已在考古发现册中：${egg.title}`);
     }
   }
@@ -143,6 +145,13 @@ export class EggsManager {
       toast.classList.remove('show');
       setTimeout(() => toast.remove(), 300);
     }, 2500);
+  }
+
+  /* 触觉反馈（Android Vibration API；iOS 静默降级无副作用） */
+  haptic(pattern) {
+    try {
+      if (typeof navigator.vibrate === 'function') navigator.vibrate(pattern);
+    } catch (e) {}
   }
 
   renderBookGrid() {
