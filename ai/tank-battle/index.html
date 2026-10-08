@@ -701,6 +701,9 @@
         this.ctx = null;
         this.enabled = true;
         this.masterGain = null;
+        this.lastShootTime = 0;
+        this.lastHitTime = 0;
+        this.lastExplodeTime = 0;
       }
 
       init() {
@@ -729,32 +732,34 @@
         if (!this.enabled) return;
         this.init();
         if (!this.ctx) return;
-        if (this.ctx.state === 'suspended') this.ctx.resume();
 
         const now = this.ctx.currentTime;
+        if (now - this.lastShootTime < 0.055) return; // Audio throttle limit
+        this.lastShootTime = now;
+
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
         if (type === 'laser') {
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(900, now);
-          osc.frequency.exponentialRampToValueAtTime(150, now + 0.12);
-          gain.gain.setValueAtTime(0.25, now);
+          osc.frequency.exponentialRampToValueAtTime(150, now + 0.10);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.10);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(now);
+          osc.stop(now + 0.10);
+        } else {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(type === 'heavy' ? 180 : 300, now);
+          osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
+          gain.gain.setValueAtTime(0.22, now);
           gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
           osc.connect(gain);
           gain.connect(this.masterGain);
           osc.start(now);
           osc.stop(now + 0.12);
-        } else {
-          osc.type = 'square';
-          osc.frequency.setValueAtTime( type === 'heavy' ? 180 : 320, now);
-          osc.frequency.exponentialRampToValueAtTime(40, now + 0.15);
-          gain.gain.setValueAtTime(0.3, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-          osc.connect(gain);
-          gain.connect(this.masterGain);
-          osc.start(now);
-          osc.stop(now + 0.15);
         }
       }
 
@@ -762,31 +767,38 @@
         if (!this.enabled) return;
         this.init();
         if (!this.ctx) return;
+
         const now = this.ctx.currentTime;
+        if (now - this.lastHitTime < 0.04) return;
+        this.lastHitTime = now;
+
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
         osc.type = isSteel ? 'triangle' : 'sine';
         osc.frequency.setValueAtTime(isSteel ? 600 : 120, now);
-        osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.06);
 
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
 
         osc.connect(gain);
         gain.connect(this.masterGain);
         osc.start(now);
-        osc.stop(now + 0.08);
+        osc.stop(now + 0.06);
       }
 
       playExplosion(isBig = false) {
         if (!this.enabled) return;
         this.init();
         if (!this.ctx) return;
-        const now = this.ctx.currentTime;
 
-        // White Noise Buffer for crunch
-        const bufferSize = this.ctx.sampleRate * (isBig ? 0.45 : 0.25);
+        const now = this.ctx.currentTime;
+        if (now - this.lastExplodeTime < 0.08) return;
+        this.lastExplodeTime = now;
+
+        const dur = isBig ? 0.35 : 0.2;
+        const bufferSize = Math.floor(this.ctx.sampleRate * dur);
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
@@ -798,12 +810,12 @@
 
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(isBig ? 450 : 700, now);
-        filter.frequency.exponentialRampToValueAtTime(40, now + (isBig ? 0.45 : 0.25));
+        filter.frequency.setValueAtTime(isBig ? 450 : 650, now);
+        filter.frequency.exponentialRampToValueAtTime(40, now + dur);
 
         const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(isBig ? 0.6 : 0.35, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + (isBig ? 0.45 : 0.25));
+        gain.gain.setValueAtTime(isBig ? 0.5 : 0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
 
         noise.connect(filter);
         filter.connect(gain);
@@ -1750,8 +1762,11 @@
       bindEvents() {
         window.addEventListener('resize', () => this.scene.resize());
 
-        // Keyboard Inputs
+        // Keyboard Inputs (Prevent Space & Arrow Scrolling)
         window.addEventListener('keydown', e => {
+          if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+            e.preventDefault();
+          }
           this.keys[e.code] = true;
 
           if (e.code === 'KeyV') {
@@ -1765,20 +1780,32 @@
           this.keys[e.code] = false;
         });
 
-        // Mouse Controls
-        window.addEventListener('mousemove', e => {
-          this.mousePos.x = (e.clientX / window.innerWidth) * 2 - 1;
-          this.mousePos.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        // Mouse Controls (Strictly Mouse Only, Ignore Touch emulation)
+        window.addEventListener('pointermove', e => {
+          if (e.pointerType === 'mouse') {
+            this.mousePos.x = (e.clientX / window.innerWidth) * 2 - 1;
+            this.mousePos.y = -(e.clientY / window.innerHeight) * 2 + 1;
+          }
         });
 
-        window.addEventListener('mousedown', e => {
-          if (e.target.tagName === 'BUTTON' || e.target.closest('.overlay-modal')) return;
+        window.addEventListener('pointerdown', e => {
+          if (e.pointerType !== 'mouse') return; // Ignore touch/pen
+          if (e.button !== 0) return; // Left button only
+          if (e.target.tagName === 'BUTTON' || e.target.closest('.overlay-modal') || e.target.closest('#mobile-controls')) return;
           this.isMouseDown = true;
           this.tryPlayerShoot();
         });
 
-        window.addEventListener('mouseup', () => {
+        window.addEventListener('pointerup', e => {
+          if (e.pointerType === 'mouse') {
+            this.isMouseDown = false;
+          }
+        });
+
+        // Safety fallback: if focus lost or mouse leaves window, release fire
+        window.addEventListener('blur', () => {
           this.isMouseDown = false;
+          this.touchFiring = false;
         });
 
         // Button Click Handlers
@@ -1797,79 +1824,101 @@
         this.dom.btnViewToggle.addEventListener('click', () => this.toggleViewMode());
         this.dom.btnPauseToggle.addEventListener('click', () => this.togglePause());
 
-        // Mobile Touch Joystick
+        // Mobile Touch Joystick & Actions
         this.initMobileControls();
       }
 
       initMobileControls() {
-        let touchOrigin = null;
         const zone = this.dom.joystickZone;
         const thumb = this.dom.joystickThumb;
+        let joystickTouchId = null;
+        let originX = 0, originZ = 0;
 
-        zone.addEventListener('touchstart', e => {
-          e.preventDefault();
-          const t = e.touches[0];
-          const rect = zone.getBoundingClientRect();
-          touchOrigin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        });
-
-        zone.addEventListener('touchmove', e => {
-          e.preventDefault();
-          if (!touchOrigin) return;
-          const t = e.touches[0];
-          const dx = t.clientX - touchOrigin.x;
-          const dy = t.clientY - touchOrigin.y;
+        const updateJoystick = (clientX, clientY) => {
+          const dx = clientX - originX;
+          const dy = clientY - originZ;
           const dist = Math.hypot(dx, dy);
           const maxDist = 52;
-          const moveDist = Math.min(dist, maxDist);
+          const clampedDist = Math.min(dist, maxDist);
           const angle = Math.atan2(dy, dx);
 
-          const thumbX = Math.cos(angle) * moveDist;
-          const thumbY = Math.sin(angle) * moveDist;
+          const thumbX = Math.cos(angle) * clampedDist;
+          const thumbY = Math.sin(angle) * clampedDist;
           thumb.style.transform = `translate(${thumbX}px, ${thumbY}px)`;
 
-          // Continuous 360-degree analog vector (X: right, Z: down in screen)
-          if (dist > 8) {
-            const norm = moveDist / maxDist;
+          if (dist > 6) {
+            const norm = clampedDist / maxDist;
             this.joystickVector.x = (dx / dist) * norm;
             this.joystickVector.z = (dy / dist) * norm;
             this.joystickVector.active = true;
           } else {
             this.joystickVector.active = false;
           }
-        });
-
-        const resetJoystick = () => {
-          touchOrigin = null;
-          thumb.style.transform = 'translate(0, 0)';
-          this.joystickVector.x = 0;
-          this.joystickVector.z = 0;
-          this.joystickVector.active = false;
         };
 
-        zone.addEventListener('touchend', resetJoystick);
-        zone.addEventListener('touchcancel', resetJoystick);
+        zone.addEventListener('touchstart', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (joystickTouchId !== null) return;
+          const touch = e.changedTouches[0];
+          joystickTouchId = touch.identifier;
+          const rect = zone.getBoundingClientRect();
+          originX = rect.left + rect.width / 2;
+          originZ = rect.top + rect.height / 2;
+          updateJoystick(touch.clientX, touch.clientY);
+        }, { passive: false });
 
-        // Continuous Touch Fire
+        window.addEventListener('touchmove', e => {
+          if (joystickTouchId === null) return;
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            if (touch.identifier === joystickTouchId) {
+              updateJoystick(touch.clientX, touch.clientY);
+              break;
+            }
+          }
+        }, { passive: true });
+
+        const releaseJoystick = (e) => {
+          if (joystickTouchId === null) return;
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === joystickTouchId) {
+              joystickTouchId = null;
+              thumb.style.transform = 'translate(0, 0)';
+              this.joystickVector.x = 0;
+              this.joystickVector.z = 0;
+              this.joystickVector.active = false;
+              break;
+            }
+          }
+        };
+
+        window.addEventListener('touchend', releaseJoystick, { passive: true });
+        window.addEventListener('touchcancel', releaseJoystick, { passive: true });
+
+        // Touch Fire Button (Long press auto-fire, isolated from joystick)
         this.dom.btnTouchFire.addEventListener('touchstart', e => {
           e.preventDefault();
+          e.stopPropagation();
           this.touchFiring = true;
           this.tryPlayerShoot();
-        });
+        }, { passive: false });
 
         this.dom.btnTouchFire.addEventListener('touchend', e => {
           e.preventDefault();
+          e.stopPropagation();
           this.touchFiring = false;
-        });
+        }, { passive: false });
 
-        this.dom.btnTouchFire.addEventListener('touchcancel', e => {
+        this.dom.btnTouchFire.addEventListener('touchcancel', () => {
           this.touchFiring = false;
         });
 
         this.dom.btnTouchView.addEventListener('touchstart', e => {
           e.preventDefault();
+          e.stopPropagation();
           this.toggleViewMode();
-        });
+        }, { passive: false });
       }
 
       showToast(text) {
@@ -2041,8 +2090,14 @@
 
         const p = this.player;
         const isGatling = p.gatlingTime > 0;
-        const baseRate = isGatling ? 0.08 : p.fireRate;
-        p.cooldown = p.speedBoostTime > 0 ? baseRate * 0.5 : baseRate;
+
+        // Player active bullet limiter to guarantee 60fps performance
+        const activeCount = this.bullets.filter(b => b.isPlayer && !b.dead).length;
+        const maxAllowed = isGatling ? 12 : (p.level >= 3 ? 6 : 4);
+        if (activeCount >= maxAllowed) return;
+
+        const baseRate = isGatling ? 0.09 : p.fireRate;
+        p.cooldown = p.speedBoostTime > 0 ? baseRate * 0.6 : baseRate;
         p.recoil = isGatling ? 0.12 : 0.25;
         this.shotsFired++;
 
@@ -2054,9 +2109,11 @@
         if (p.missileAmmo && p.missileAmmo > 0) {
           // Homing Missile Shoot
           p.missileAmmo--;
-          this.bullets.push(new Bullet(bx, bz, rad, true, 'missile', 14));
+          this.bullets.push(new Bullet(bx, bz, rad, true, 'missile', 15));
           sound.playShoot('laser');
-          this.showToast(`🚀 发射追踪飞弹！剩余: ${p.missileAmmo} 枚`);
+          if (p.missileAmmo === 0) {
+            this.showToast('🚀 追踪飞弹弹药耗尽！');
+          }
         } else if (isGatling) {
           // Gatling Storm
           const spread = (Math.random() - 0.5) * 0.12;
@@ -2082,8 +2139,8 @@
           sound.playShoot('laser');
         }
 
-        // Muzzle Flash Particle
-        this.particles.push(new Particle(bx, 0.45, bz, [1, 0.8, 0.2, 1], 0.22, 2));
+        // Muzzle Flash Particle (Lightweight)
+        this.particles.push(new Particle(bx, 0.45, bz, [1, 0.8, 0.2, 1], 0.18, 2));
       }
 
       spawnExplosion(x, y, z, isBig = false, color = [1, 0.5, 0.1, 1]) {
@@ -2376,11 +2433,11 @@
       }
 
       /* ========================================================
-         8. Physics & Collision Handling
+         8. Physics & Collision Handling (Circle-AABB Precision)
          ======================================================== */
       checkTileCollision(x, z, radius) {
         // Map Bound Check with Margin
-        if (x - radius < 0.2 || x + radius > MAP_SIZE - 0.2 || z - radius < 0.2 || z + radius > MAP_SIZE - 0.2) {
+        if (x - radius < 0.25 || x + radius > MAP_SIZE - 0.25 || z - radius < 0.25 || z + radius > MAP_SIZE - 0.25) {
           return true;
         }
 
@@ -2389,37 +2446,56 @@
         const minR = Math.max(0, Math.floor(z - radius));
         const maxR = Math.min(MAP_SIZE - 1, Math.floor(z + radius));
 
+        const r2 = radius * radius;
         for (let r = minR; r <= maxR; r++) {
           for (let c = minC; c <= maxC; c++) {
             const tile = this.map[r][c];
             if (tile === TILE_BRICK || tile === TILE_STEEL || tile === TILE_WATER || tile === TILE_BASE) {
-              return true;
+              // Exact Distance to Box [c, c+1] x [r, r+1]
+              const nearestX = Math.max(c, Math.min(x, c + 1.0));
+              const nearestZ = Math.max(r, Math.min(z, r + 1.0));
+              const dx = x - nearestX;
+              const dz = z - nearestZ;
+              if (dx * dx + dz * dz < r2) {
+                return true;
+              }
             }
           }
         }
         return false;
       }
 
-      // Smooth Sliding Axis-separated Collision
+      // True Independent Axis-Separated Sliding Collision
       moveEntityWithCollision(entity, dirX, dirZ, speed, dt) {
-        const radius = entity.size * 0.42;
+        const radius = entity.size * 0.40;
         const dist = speed * dt;
+        const origX = entity.x;
+        const origZ = entity.z;
 
-        const targetX = entity.x + dirX * dist;
-        const targetZ = entity.z + dirZ * dist;
+        const targetX = origX + dirX * dist;
+        const targetZ = origZ + dirZ * dist;
 
-        // 1. Try full movement
+        // 1. Try full diagonal movement
         if (!this.checkTileCollision(targetX, targetZ, radius)) {
           entity.x = targetX;
           entity.z = targetZ;
         } else {
-          // 2. Sliding Collision: Try X-axis only
-          if (dirX !== 0 && !this.checkTileCollision(targetX, entity.z, radius)) {
+          // 2. Sliding Collision: Test X-axis alone against original Z
+          let movedX = false;
+          if (dirX !== 0 && !this.checkTileCollision(targetX, origZ, radius)) {
             entity.x = targetX;
+            movedX = true;
+          } else {
+            // X-axis hit obstacle: eliminate X velocity so it doesn't stick
+            if (entity.vx) entity.vx = 0;
           }
-          // 3. Sliding Collision: Try Z-axis only
-          if (dirZ !== 0 && !this.checkTileCollision(entity.x, targetZ, radius)) {
+
+          // 3. Sliding Collision: Test Z-axis alone against (movedX ? newX : origX)
+          if (dirZ !== 0 && !this.checkTileCollision(movedX ? entity.x : origX, targetZ, radius)) {
             entity.z = targetZ;
+          } else {
+            // Z-axis hit obstacle: eliminate Z velocity so it doesn't stick
+            if (entity.vz) entity.vz = 0;
           }
         }
 
@@ -2512,7 +2588,7 @@
           enemy.changeDirTimer = 1.0 + Math.random() * 2.0;
 
           // Target Eagle or Player with probability
-          if (Math.random() < 0.4 && !this.baseDestroyed) {
+          if (Math.random() < 0.45 && !this.baseDestroyed) {
             // Head towards Base (Z=13.5, X=7.5)
             const dx = this.baseX - enemy.x;
             const dz = this.baseZ - enemy.z;
@@ -2521,7 +2597,7 @@
             } else {
               enemy.targetDir = dz > 0 ? 0 : Math.PI;
             }
-          } else if (Math.random() < 0.4 && this.player && !this.player.dead) {
+          } else if (Math.random() < 0.45 && this.player && !this.player.dead) {
             // Head towards Player
             const dx = this.player.x - enemy.x;
             const dz = this.player.z - enemy.z;
@@ -2543,8 +2619,25 @@
         const prevX = enemy.x, prevZ = enemy.z;
         this.moveEntityWithCollision(enemy, dirX, dirZ, enemy.speed, dt);
 
-        if (Math.hypot(enemy.x - prevX, enemy.z - prevZ) < 0.01) {
-          enemy.changeDirTimer = 0; // Hit obstacle, change direction
+        // Stuck Detection & Obstacle Breaker
+        if (Math.hypot(enemy.x - prevX, enemy.z - prevZ) < 0.008 * enemy.speed * dt * 60) {
+          enemy.stuckTimer = (enemy.stuckTimer || 0) + dt;
+          if (enemy.stuckTimer > 0.35) {
+            // If facing a brick wall, fire cannon to breach the wall
+            const frontCol = Math.floor(enemy.x + dirX * 0.9);
+            const frontRow = Math.floor(enemy.z + dirZ * 0.9);
+            if (frontRow >= 0 && frontRow < MAP_SIZE && frontCol >= 0 && frontCol < MAP_SIZE) {
+              if (this.map[frontRow][frontCol] === TILE_BRICK) {
+                enemy.cooldown = 0; // Trigger shot to clear path
+              }
+            }
+            // Turn 90 degrees away from obstacle
+            enemy.targetDir = enemy.angle + (Math.random() < 0.5 ? Math.PI * 0.5 : -Math.PI * 0.5);
+            enemy.changeDirTimer = 1.2;
+            enemy.stuckTimer = 0;
+          }
+        } else {
+          enemy.stuckTimer = 0;
         }
 
         // Fire logic
