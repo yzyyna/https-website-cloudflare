@@ -470,14 +470,14 @@
         display: none;
       }
       .touch-joystick-zone {
-        bottom: max(16px, env(safe-area-inset-bottom));
-        left: max(16px, env(safe-area-inset-left));
-        width: 116px;
-        height: 116px;
+        bottom: max(16px, env(safe-area-inset-bottom, 16px));
+        left: max(16px, env(safe-area-inset-left, 16px));
+        width: 132px;
+        height: 132px;
       }
       .touch-action-group {
-        bottom: max(16px, env(safe-area-inset-bottom));
-        right: max(16px, env(safe-area-inset-right));
+        bottom: max(16px, env(safe-area-inset-bottom, 16px));
+        right: max(16px, env(safe-area-inset-right, 16px));
       }
     }
   </style>
@@ -1227,12 +1227,17 @@
       }
 
       resize() {
-        const w = this.canvas.clientWidth || window.innerWidth || 800;
-        const h = this.canvas.clientHeight || window.innerHeight || 600;
-        this.canvas.width = w;
-        this.canvas.height = h;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const cssW = this.canvas.clientWidth || window.innerWidth || 800;
+        const cssH = this.canvas.clientHeight || window.innerHeight || 600;
+        const w = Math.floor(cssW * dpr);
+        const h = Math.floor(cssH * dpr);
+        if (this.canvas.width !== w || this.canvas.height !== h) {
+          this.canvas.width = w;
+          this.canvas.height = h;
+        }
         this.gl.viewport(0, 0, w, h);
-        this.aspect = w / (h || 1);
+        this.aspect = cssW / (cssH || 1);
       }
 
       beginFrame() {
@@ -2031,7 +2036,7 @@
 
       spawnEnemy() {
         const cfg = STAGE_CONFIGS[this.currentStageIdx];
-        if (this.enemiesRemainingToSpawn <= 0) return;
+        if (this.enemiesRemainingToSpawn <= 0) return false;
 
         // 3 Safe Spawn Points at Top (x=1.5, x=7.5, x=13.5, z=1.5)
         const spawnCols = [1.5, 7.5, 13.5];
@@ -2043,7 +2048,7 @@
             break;
           }
         }
-        if (!safeSpawn) return; // Wait for spawn area to be clear
+        if (!safeSpawn) return false; // Wait for spawn area to be clear
 
         const spawnX = safeSpawn.x;
         const spawnZ = safeSpawn.z;
@@ -2083,6 +2088,7 @@
         }
 
         this.updateHUD();
+        return true;
       }
 
       tryPlayerShoot() {
@@ -2693,12 +2699,12 @@
           }
         }
 
-        // Spawn Enemies
+        // Spawn Enemies with Active Throttle
         const cfg = STAGE_CONFIGS[this.currentStageIdx];
         this.enemySpawnTimer -= dt;
-        if (this.enemySpawnTimer <= 0 && this.enemies.filter(e => !e.dead).length < 5) {
-          this.enemySpawnTimer = cfg.spawnInterval;
-          this.spawnEnemy();
+        if (this.enemySpawnTimer <= 0 && this.enemies.filter(e => !e.dead).length < 5 && this.enemiesRemainingToSpawn > 0) {
+          const spawned = this.spawnEnemy();
+          this.enemySpawnTimer = spawned ? cfg.spawnInterval : 0.35;
         }
 
         // Update Player Tank
@@ -2885,7 +2891,7 @@
         const sz = (Math.random() - 0.5) * this.shake * 0.4;
         if (this.shake > 0.01) this.shake *= 0.88; else this.shake = 0;
 
-        const isMobile = (this.scene.aspect || 1.0) < 1.05;
+        const isMobile = (this.scene.aspect || 1.0) < 1.05 || window.innerWidth <= 768;
 
         if (this.state === 'START') {
           // Smooth 3D Panoramic Orbit during Title Screen
@@ -3024,6 +3030,9 @@
             if (p.type === 'shield') pColor = [0.2, 0.8, 1, 1];
             if (p.type === 'bomb') pColor = [1, 0.2, 0.2, 1];
             if (p.type === 'clock') pColor = [0.8, 0.4, 1, 1];
+            if (p.type === 'shovel') pColor = [0.8, 0.85, 0.9, 1];
+            if (p.type === 'health') pColor = [0.95, 0.2, 0.45, 1];
+            if (p.type === 'speed') pColor = [0.2, 0.95, 0.4, 1];
             sc.drawMesh(sc.cube, mat, pColor, 0.5);
           }
         });
