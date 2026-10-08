@@ -98,8 +98,11 @@ html, body {
 #stats {
   position: absolute; left: 10px; top: 10px;
   color: #fff; font-size: 12px; line-height: 1.55;
-  background: rgba(0,0,0,0.4);
-  padding: 6px 9px; border-radius: 4px;
+  background: rgba(0,0,0,0.42);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 6px 10px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
   z-index: 5; pointer-events: none;
   white-space: pre;
 }
@@ -110,7 +113,10 @@ html, body {
   transform: translateX(-50%);
   color: #ffe; font-size: 15px;
   background: rgba(0,0,0,0.55);
-  padding: 8px 18px; border-radius: 4px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 8px 18px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.14);
   z-index: 9; pointer-events: none;
   opacity: 0; transition: opacity 0.25s;
 }
@@ -161,7 +167,10 @@ html, body {
   transform: translateX(-50%);
   color: #fff; font-size: 16px;
   background: rgba(0,0,0,0.6);
-  padding: 10px 22px; border-radius: 6px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 10px 22px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.16);
   z-index: 9; pointer-events: none;
 }
 
@@ -174,16 +183,17 @@ html, body {
 }
 
 .menu-box {
-  background: rgba(24, 26, 32, 0.94);
+  background: linear-gradient(170deg, rgba(30, 33, 41, 0.96), rgba(20, 22, 28, 0.96));
   border: 2px solid #3a3f4b;
-  border-radius: 8px;
+  border-radius: 14px;
   padding: 26px 40px 20px;
   text-align: center;
   color: #ddd;
   max-width: 460px;
   max-height: 92vh;
   overflow: auto;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  box-shadow: 0 18px 48px rgba(0,0,0,0.66),
+              inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .menu-box h1 {
   color: #fff; font-size: 40px; letter-spacing: 4px;
@@ -208,6 +218,12 @@ html, body {
 }
 .mc-btn:hover { background: linear-gradient(#7d8b9e, #626b7a); }
 .mc-btn.armed { background: linear-gradient(#a35b3d, #7e4529); }
+.mc-btn {
+  transition: background 0.15s ease, transform 0.12s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.mc-btn:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.35); }
+.mc-btn:active { transform: scale(0.98); }
 
 .row-setting {
   margin-bottom: 12px; font-size: 14px; color: #ccc;
@@ -215,15 +231,16 @@ html, body {
 .row-setting select {
   font-family: inherit; font-size: 14px;
   background: #31353f; color: #fff;
-  border: 1px solid #555; border-radius: 3px;
+  border: 1px solid #555; border-radius: 6px;
   padding: 3px 8px; margin: 0 6px;
 }
 .row-hint { font-size: 12px; color: #7a8296; }
 
 .help {
   text-align: left; font-size: 13px;
-  background: rgba(0,0,0,0.28);
-  border-radius: 5px; padding: 10px 14px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px; padding: 10px 14px;
   margin-bottom: 12px;
 }
 .help table { border-collapse: collapse; width: 100%; }
@@ -236,12 +253,13 @@ html, body {
 /* ---------- 背包与制作面板 ---------- */
 #inventory-panel .panel {
   position: relative;
-  background: rgba(24, 26, 32, 0.95);
+  background: linear-gradient(170deg, rgba(28, 31, 39, 0.96), rgba(20, 22, 28, 0.96));
   border: 2px solid #3a3f4b;
-  border-radius: 8px;
+  border-radius: 14px;
   padding: 18px 24px;
   max-width: 820px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+  box-shadow: 0 16px 44px rgba(0,0,0,0.72),
+              inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .panel-close-btn {
   position: absolute;

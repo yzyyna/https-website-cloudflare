@@ -193,21 +193,25 @@
       color: var(--text-secondary);
       font-size: 13px;
       font-weight: 500;
-      padding: 6px 16px;
+      padding: 7px 17px;
       border-radius: 980px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease,
+                  box-shadow 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     }
 
     .filter-btn:hover {
       color: var(--text-primary);
       border-color: var(--border-hover);
+      transform: translateY(-1px);
     }
 
     .filter-btn.active {
       background: var(--text-primary);
       color: #ffffff;
       border-color: var(--text-primary);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
     }
 
     /* Projects Grid */
@@ -219,21 +223,41 @@
 
     .project-card {
       background: var(--bg-surface);
-      border-radius: 20px;
+      border-radius: 22px;
       padding: 32px 28px;
       border: 1px solid var(--border-subtle);
       box-shadow: var(--card-shadow);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.3s ease;
       position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle top gradient accent on hover (compositor-friendly) */
+    .project-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-blue), #34d399);
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
 
     .project-card:hover {
-      transform: translateY(-3px);
+      transform: translateY(-4px);
       box-shadow: var(--card-shadow-hover);
       border-color: var(--border-hover);
+    }
+
+    .project-card:hover::before {
+      opacity: 1;
     }
 
     .card-top {
@@ -244,26 +268,39 @@
     }
 
     .project-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: var(--bg-body);
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #f0f4ff, #e6ecfa);
       display: flex;
       align-items: center;
       justify-content: center;
       color: var(--text-primary);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                  0 1px 3px rgba(0, 0, 0, 0.06);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.3s ease;
+    }
+
+    .project-card:hover .project-icon {
+      transform: scale(1.06);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                  0 4px 12px rgba(0, 113, 227, 0.16);
     }
 
     .project-icon svg {
       width: 22px;
       height: 22px;
-      stroke: var(--text-primary);
+      stroke: var(--accent-blue);
     }
 
     .project-slug {
       font-family: var(--font-mono);
       font-size: 11px;
       color: var(--text-tertiary);
+      background: var(--bg-body);
+      padding: 2px 8px;
+      border-radius: 6px;
     }
 
     .project-name {
@@ -294,13 +331,15 @@
       font-weight: 500;
       color: var(--text-secondary);
       background: var(--bg-body);
-      padding: 3px 8px;
-      border-radius: 5px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      padding: 3px 9px;
+      border-radius: 6px;
     }
 
     .tag.highlight {
       color: var(--accent-blue);
       background: #eff6ff;
+      border-color: rgba(0, 113, 227, 0.18);
     }
 
     .card-actions {
@@ -319,10 +358,10 @@
       text-decoration: none;
       font-size: 13px;
       font-weight: 500;
-      padding: 9px 16px;
+      padding: 10px 16px;
       border-radius: 980px;
       text-align: center;
-      transition: background 0.15s ease;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -331,6 +370,7 @@
 
     .btn-launch:hover {
       background: var(--accent-blue-hover);
+      box-shadow: 0 4px 14px rgba(0, 113, 227, 0.28);
     }
 
     .btn-subitem {

@@ -496,17 +496,24 @@ body {
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
   box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.level-card:hover {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
 }
 
 .trophy-box {
   width: 48px;
   height: 48px;
   border-radius: var(--radius-full);
-  background: var(--accent-orange-light);
+  background: linear-gradient(135deg, #fed7aa, #fdba74);
   color: var(--accent-orange);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.22);
 }
 
 .level-number {
@@ -550,6 +557,13 @@ body {
   padding: 28px;
   box-shadow: var(--shadow-sm);
   margin-bottom: 28px;
+  transition: box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s ease;
+}
+
+.panel-card:hover {
+  box-shadow: 0 8px 26px rgba(15, 23, 42, 0.07);
+  border-color: rgba(37, 99, 235, 0.16);
 }
 
 .panel-card-title {
@@ -569,6 +583,13 @@ body {
   color: #fff;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.22);
+  transition: box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.path-banner:hover {
+  box-shadow: 0 14px 38px rgba(37, 99, 235, 0.3);
+  transform: translateY(-2px);
 }
 
 .path-banner::after {
@@ -802,10 +823,15 @@ body {
   cursor: pointer;
 }
 
+.module-card {
+  transition: border-color 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s ease, background 0.2s ease;
+}
+
 .module-card:hover:not(.locked) {
   border-color: var(--primary);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.1);
 }
 
 .module-card.completed {
