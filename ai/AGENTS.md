@@ -19,10 +19,12 @@
   1. 本项目（`AItestProjects`）为 AI 纯前端免构建项目集的源头开发仓库。
   2. **修改后实时同步**：后续任何会话中的改动（包括写功能、修 Bug、调样式、重构、改文档、加文件），完成修改与测试后，必须立即且完整同步至目标项目的 `ai` 目录。
   3. **双仓联动提交**：**一旦用户要求提交本项目（`AItestProjects`），必须在提交本仓库的同时，将改动同步至 `https-website-cloudflare/ai` 目录，并同步在 `https-website-cloudflare` 项目执行 Git 提交（保持两仓提交历史与代码状态严格对齐）。**
-  4. 执行同步的标准指令：
+  4. 执行同步的标准指令（脚本已内置排除规则、`diff -rq` 校验与 `--dry-run` 预览）：
      ```bash
-     rsync -av --delete --exclude='.git' --exclude='.DS_Store' --exclude='.claude' --exclude='.zcode' --exclude='.trae' /Users/fortrust/Documents/AItestProjects/ /Users/fortrust/Documents/Projects/gitee/https-website-cloudflare/ai/
+     scripts/sync-mirror.sh --dry-run   # 预览
+     scripts/sync-mirror.sh             # 同步并核对两侧一致
      ```
+     底层等价于 `rsync -av --delete --exclude=.git --exclude=.DS_Store --exclude=.claude --exclude=.zcode --exclude=.trae --exclude=scripts <源>/ <镜像>/`。
   5. 目标仓库提交参考指令：
      ```bash
      cd /Users/fortrust/Documents/Projects/gitee/https-website-cloudflare
@@ -31,7 +33,7 @@
      ```
   6. 同步完成后需核对两边文件差异（`diff -rq`），确保 100% 一致。
   7. 提交前两仓均需 `git status` 确认改动范围与本次主题一致，禁止 `git commit -a` 盲提交；两仓提交信息语义对应（源仓库用具体 scope，联动仓库统一 `feat(ai): 同步 …` / `fix(ai): 同步 …`）。
-- **同步排除说明**：`.git` / `.DS_Store` / `.claude` / `.zcode` / `.trae` 为有意排除——工具本地配置与仓库内部规划文档不进入部署仓库（注：`.trae` 在源仓库有 Git 跟踪，但同步时排除）。
+- **同步排除说明**：`.git` / `.DS_Store` / `.claude` / `.zcode` / `.trae` / `scripts/` 为有意排除——工具本地配置与仓库内部开发脚本不进入部署仓库（注：`.trae` 在源仓库有 Git 跟踪，但同步时排除）。
 
 ---
 
@@ -43,6 +45,10 @@ AItestProjects/
 ├── README.md         # 项目总览（新增子项目需同步维护）
 ├── AGENTS.md         # 本规范文件
 ├── LICENSE           # Apache 2.0
+├── KNOWN_ISSUES.md   # 已知遗留问题与排坑清单
+├── scripts/          # 仓库级开发脚本（不同步至镜像仓库）
+│   ├── check.sh      # 提交前校验：仅检查本次改动涉及的文件 + 生成物新鲜度 + 单元测试
+│   └── sync-mirror.sh # 同步至 https-website-cloudflare/ai 并核对差异
 ├── block-game/       # 各子项目目录，结构与维护要点见第 4 节
 ├── cyber-potato/
 ├── internet-museum/
@@ -51,6 +57,8 @@ AItestProjects/
 ├── stellar-fusion/
 └── tank-battle/
 ```
+
+- **提交前校验**：运行 `scripts/check.sh`。它只对当前改动的 `.js` / `.html` 做语法检查，并运行 `internet-museum/build.js --check`、`stellar-fusion/build.js --check` 与（涉及时）`cyber-potato/test.js`，不做全项目扫描。
 
 - **双击运行（首要验证路径）**：任意子目录的 `index.html` 在 `file://` 协议下必须完整可用。由此产生三条硬约束：
   1. 禁止依赖浏览器直接加载 ES Module（`file://` 下会被 CORS 拦截）；需要模块化时必须提供打包脚本产出普通 `<script>`（参考 `internet-museum/build.js`）。
@@ -70,7 +78,7 @@ AItestProjects/
 | `internet-museum` | 互联网考古馆 | 1998~2099 穿越互动展厅 + 纯代码 Web Audio 拨号音效 + 遗迹修复与 6 彩蛋 | ES Module 源码在 `js/` 与 `js/eras/`；交付物为 `js/app.bundle.js`（`node build.js` 生成） |
 | `iot-hub` | 实时数据调度控制台 | 5 万级设备虚拟列表 + 内存安全调度 + 命令模式 Undo/Redo | 单文件 `index.html`（约 1.1k 行，内置基础组件与全部逻辑） |
 | `learn-lang` | 多语种学习平台 | 3D 翻转记忆闪卡 + 本地纯 SVG 动态头像 + 学习活跃度图表 | `index.html` + `js/app.js` + `css/style.css`，hash 路由六视图 SPA |
-| `stellar-fusion` | 3D 星际能源监控中心 | WebGL2 + 多模型（Gemini/GLM/MuseSpark）归并对照 | 聚合页 iframe 切换预览 + 三份同源版本文件（详见第 9 节第 1 条） |
+| `stellar-fusion` | 3D 星际能源监控中心 | WebGL2 + 多模型（Gemini/GLM/MuseSpark）归并对照 | 共享内核 `src/core.js` + 页面壳 `src/shells/`，由 `build.js` 生成三份单文件版本（生成物，勿手改）；聚合页 iframe 切换预览 |
 | `tank-battle` | 3D 经典坦克大战进化版 | 纯原生 WebGL 1.0 + 多视角切换 + 5 大关卡/泰坦 BOSS 战 + Web Audio 合成音效 | 单文件 `index.html`（约 3.7k 行，内分 10 个编号逻辑区） |
 
 ---
@@ -124,11 +132,10 @@ AItestProjects/
 
 ---
 
-## 9. 已知遗留与排坑清单
+## 9. 工作流守则
 
-> 以下为代码现状核查结论，修改相关模块前先阅读；文档描述若与代码冲突，以代码为准。
+> 具体的已知遗留问题与排坑记录见根目录 `KNOWN_ISSUES.md`，修改相关模块前先阅读。
 
-1. **stellar-fusion · 三版本同源**：`gemini/index.html`、`musespark/index.html`、`musespark/IndexGLM.html` 三者差异仅约 90 行（以 CSS 排版与品牌文案为主），实为同源变体；修改共享逻辑时必须三版同步。README 中"双模型架构差异"的表述大于代码实际差异，评估以代码为准。
-2. **internet-museum · 打包清单硬编码**：`build.js` 内源文件清单为硬编码数组，新增/重命名 `js/` 模块必须同步修改该清单；每次改完源码必须 `node build.js` 重新生成 `js/app.bundle.js`（`index.html` 只加载 bundle，不加载源模块）。
-3. **文档与实现可能漂移**：历次重构后部分描述滞后（如 block-game 曾被描述为"贪心网格优化"，实测为逐面剔除）。发现不一致时先核实代码，再修正文档。
-4. **开工前核对两仓状态**：先 `git status` + `diff -rq` 检查两仓是否已有未同步/未提交改动，避免与他人的未完成任务叠加；工作结束后同样核对。
+1. **生成物只改源头**：stellar-fusion 的三份版本由 `src/core.js` 与 `src/shells/` 生成，internet-museum 的 `js/app.bundle.js` 由 `js/` 源码生成。修改后必须重新运行对应 `build.js`，禁止手改生成物。新增或重命名 internet-museum 的 `js/` 模块，须同步登记到 `build.js` 的 `SECTIONS`，否则构建会报错。
+2. **文档与实现可能漂移**：历次重构后部分描述滞后（如 block-game 曾被描述为"贪心网格优化"，实测为逐面剔除）。发现不一致时先核实代码，再修正文档。
+3. **开工前核对两仓状态**：先 `git status` + `diff -rq` 检查两仓是否已有未同步/未提交改动，避免与他人的未完成任务叠加；工作结束后同样核对。

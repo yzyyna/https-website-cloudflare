@@ -309,6 +309,7 @@ button.btn:active,.seg button:active{transform:scale(.96)}
 </div>
 
 <script>
+const BRAND = {"coreName":"HELIOS-7 CORE","gpuFallback":"WebGL2 renderer"};
 (() => {
 'use strict';
 
@@ -744,10 +745,8 @@ void main(){
 /* ============================== StateManager ============================== */
 class StateManager {
   constructor() {
-    this.settings = { density: 3000, coreEnergy: 1.0, gravity: 1.0, orbitSpeed: 1.0,
-      glow: 1.0, quality: 'HIGH', autoRotate: true, particleMode: 'ORBIT', audio: true };
-    this.display = { power: 2847, eff: 94.72, grid: 73.21, flow: 1.82, temp: 428.6,
-      stability: 98.72, shield: 99.1, latency: 12, flux: 7.41 };
+    this.settings = { density: 3000, coreEnergy: 1.0, gravity: 1.0, orbitSpeed: 1.0, glow: 1.0, quality: 'HIGH', autoRotate: true, particleMode: 'ORBIT', audio: true };
+    this.display = { power: 2847, eff: 94.72, grid: 73.21, flow: 1.82, temp: 428.6, stability: 98.72, shield: 99.1, latency: 12, flux: 7.41 };
     this.targets = { ...this.display };
     this.history = [];
     this.viewOffset = 0;
@@ -1155,8 +1154,7 @@ class InputManager {
     canvas.addEventListener('dblclick', () => { this.cam.reset(); app.audio.click(); });
     this.pinchInit = () => {
       const pts = [...this.pointers.values()];
-      this.pinch = { d: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y),
-        mx: (pts[0].x + pts[1].x)/2, my: (pts[0].y + pts[1].y)/2 };
+      this.pinch = { d: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y), mx: (pts[0].x + pts[1].x)/2, my: (pts[0].y + pts[1].y)/2 };
     };
     this.pinchMove = () => {
       const pts = [...this.pointers.values()];
@@ -1395,7 +1393,7 @@ class ParticleSystem {
   get count() { return this.ambientCount + this.burstAlive; }
 }
 
-/* ============================== EnergyNetwork (cities / links) ============================== */
+/* ============================== EnergyNetwork ============================== */
 const CITY_DEFS = [
   ['TOKYO', 35.7, 139.7], ['SHANGHAI', 31.2, 121.5], ['SINGAPORE', 1.35, 103.8],
   ['SYDNEY', -33.9, 151.2], ['SAN FRANCISCO', 37.8, -122.4], ['NEW YORK', 40.7, -74.0],
@@ -1638,7 +1636,7 @@ class Renderer {
     this.scene = null; this.bloomA = null; this.bloomB = null;
     this.hdr = !!gl.getExtension('EXT_color_buffer_float');
     const dbg = gl.getExtension('WEBGL_debug_renderer_info');
-    this.gpuName = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : 'WebGL2 renderer';
+    this.gpuName = dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : BRAND.gpuFallback;
     this.pxScale = 1000;
     this.pCore = this.sm.get(VS_SPHERE, FS_CORE);
     this.pShell = this.sm.get(VS_SPHERE, FS_SHELL);
@@ -1879,7 +1877,7 @@ class Chart {
     g.strokeStyle = 'rgba(70,232,255,0.10)';
     g.lineWidth = 1;
     g.fillStyle = 'rgba(111,167,200,0.75)';
-    g.font = '8px ' + '"SF Mono",ui-monospace,Menlo,monospace';
+    g.font = '8px "SF Mono",ui-monospace,Menlo,monospace';
     const N = 4;
     for (let i = 0; i <= N; i++) {
       const y = padT + ph * i / N;
@@ -2281,7 +2279,7 @@ class ControlPanel {
 /* ============================== Scene ============================== */
 class Scene {
   constructor(renderer, state, audio) {
-    const gl = renderer.gl, r = renderer;
+    const gl = renderer.gl;
     this.state = state;
     this.audio = audio;
     this.core = new EnergyCore();
@@ -2636,7 +2634,7 @@ class App {
     const row = (k, v) => `<div class="tt-row"><span>${k}</span><b>${v}</b></div>`;
     switch (hit.type) {
       case 'core':
-        return `<div class="tt-name">◈ HELIOS-7 CORE</div>` +
+        return `<div class="tt-name">◈ ${BRAND.coreName}</div>` +
           row('STATUS', 'ACTIVE') +
           row('OUTPUT', Utils.fmtInt(st.disp('power')) + ' MW') +
           row('CORE TEMP', st.disp('temp').toFixed(1) + ' K') +

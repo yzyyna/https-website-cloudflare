@@ -31,7 +31,7 @@
 ```
 .
 ├── index.html       # STELLAR CORE 主入口（自包含单文件，深度优化版本）
-├── IndexGLM.html    # HELIOS-7 标杆对照版本（单文件自包含）
+├── IndexGLM.html    # HELIOS-7 标杆对照版本（生成物，单文件自包含）
 └── README.md        # 本项目说明文档
 ```
 

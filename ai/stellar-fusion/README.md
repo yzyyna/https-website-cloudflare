@@ -11,14 +11,27 @@
 stellar-fusion/
 ├── index.html            # 聚合门户主页（双版本直观对比与内嵌切换预览）
 ├── README.md             # 本说明文档
+├── build.js              # 生成脚本：把共享脚本注入各版本外壳，输出自包含 HTML
+├── src/
+│   ├── core.js           # 三个版本共用的渲染与交互脚本（唯一脚本源）
+│   └── shells/           # 各版本外壳：样式与页面结构，脚本位置为 <!--STELLAR_SCRIPT--> 标记
 ├── gemini/               # Google Gemini 生成版本（HELIOS-X Command）
-│   ├── index.html        # 单文件自包含源码
+│   ├── index.html        # 生成物，单文件自包含（勿手改）
 │   └── README.md         # Gemini 版技术细节说明
 └── musespark/            # MuseSpark 生成版本（STELLAR CORE Fusion）
-    ├── index.html        # 单文件自包含源码（深度优化版）
-    ├── IndexGLM.html     # HELIOS-7 基准对照版本
+    ├── index.html        # 生成物，单文件自包含（深度优化版）
+    ├── IndexGLM.html     # HELIOS-7 基准对照版本（生成物）
     └── README.md         # MuseSpark 版技术细节说明
 ```
+
+**维护方式**：渲染与交互逻辑只改 `src/core.js`；版面、样式、品牌标题只改 `src/shells/` 下对应外壳；版本专属的品牌文案（提示框名称、GPU 回退名）在 `build.js` 的 `TARGETS` 中配置。修改后运行：
+
+```bash
+node stellar-fusion/build.js          # 生成三个版本
+node stellar-fusion/build.js --check  # 仅校验生成物是否与源码一致
+```
+
+`scripts/check.sh` 已包含 `--check` 校验，提交前会自动执行。
 
 ---
 
