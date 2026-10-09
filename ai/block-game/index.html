@@ -27,13 +27,17 @@
     <div id="joystick-base">
       <div id="joystick-knob"></div>
     </div>
+    <div id="joystick-hint">⇕ 推满自动疾跑</div>
   </div>
-  
+  <div id="fly-badge" class="hidden">🕊️ 飞行中 · 跳⬆ / 降⬇</div>
+
   <div id="touch-action-btns">
-    <button id="btn-touch-jump" class="touch-btn touch-btn-jump" aria-label="跳跃与飞行"><span class="btn-icon">🦘</span><span class="btn-label">跳跃/飞行</span></button>
+    <button id="btn-touch-fly" class="touch-btn touch-btn-fly" aria-label="开关飞行"><span class="btn-icon">🕊️</span><span class="btn-label">飞行</span></button>
     <button id="btn-touch-mine" class="touch-btn touch-btn-mine" aria-label="长按挖掘"><span class="btn-icon">⛏️</span><span class="btn-label">挖掘</span></button>
     <button id="btn-touch-place" class="touch-btn touch-btn-place" aria-label="点击放置"><span class="btn-icon">🧱</span><span class="btn-label">放置</span></button>
-    <button id="btn-touch-sprint" class="touch-btn touch-btn-sprint" aria-label="疾跑与潜行"><span class="btn-icon">🏃</span><span class="btn-label">疾跑</span></button>
+    <button id="btn-touch-down" class="touch-btn touch-btn-down hidden" aria-label="飞行下降"><span class="btn-icon">⬇️</span><span class="btn-label">下降</span></button>
+    <button id="btn-touch-jump" class="touch-btn touch-btn-jump" aria-label="跳跃与上升"><span class="btn-icon">🦘</span><span class="btn-label">跳/升</span></button>
+    <button id="btn-touch-sprint" class="touch-btn touch-btn-sprint" aria-label="疾跑开关"><span class="btn-icon">🏃</span><span class="btn-label">疾跑</span></button>
   </div>
   
   <div id="touch-top-bar">
@@ -87,12 +91,14 @@
     </div>
     <div class="help hidden" id="title-help-touch">
       <table>
-        <tr><td>左下角摇杆</td><td>前后左右平滑移动（自动跨台阶）</td></tr>
-        <tr><td>右半屏滑屏</td><td>自由旋转视角（水平偏航与俯仰）</td></tr>
-        <tr><td>⛏️ 挖掘（长按）</td><td>挖掘准星指向的方块（带碎裂进度）</td></tr>
-        <tr><td>🧱 放置（点击）</td><td>放置手持方块 / 点燃 TNT</td></tr>
-        <tr><td>🦘 跳跃/飞行</td><td>跳跃 / 游泳上升（双击快速开启/关闭飞行）</td></tr>
-        <tr><td>🏃 疾跑</td><td>切换疾跑加速 / 飞行快速下降</td></tr>
+        <tr><td>左下摇杆（浮动）</td><td>按住拖动移动，轻推慢走，推满自动疾跑，可跨1格台阶</td></tr>
+        <tr><td>右半屏滑屏</td><td>单指滑动旋转视角（挖掘时可用另一指微调）</td></tr>
+        <tr><td>⛏️ 挖掘（长按）</td><td>对准准星长按挖掘，松开即停（带碎裂进度+震动）</td></tr>
+        <tr><td>🧱 放置（点按）</td><td>放置手持方块 / 点燃 TNT（可长按连放）</td></tr>
+        <tr><td>🦘 跳/升（点按）</td><td>跳跃 / 游泳上浮 / 飞行时按住上升</td></tr>
+        <tr><td>⬇️ 下降</td><td>仅飞行时出现，按住下降</td></tr>
+        <tr><td>🕊️ 飞行</td><td>一键开关飞行（替代双击跳跃，更稳）</td></tr>
+        <tr><td>🏃 疾跑</td><td>开关疾跑；摇杆推满也会自动疾跑</td></tr>
         <tr><td>🎒 背包 / ⏸️ 暂停</td><td>顶部快捷按钮打开背包或暂停菜单</td></tr>
         <tr><td>底部快捷栏</td><td>直接点击方块图标切换当前手持物品</td></tr>
       </table>
