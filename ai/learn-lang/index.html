@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#2563eb">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -291,7 +291,7 @@
               </div>
 
               <!-- Challenge Card -->
-              <div class="challenge-card" onclick="navigate('learn')">
+              <div class="challenge-card" role="button" tabindex="0" onclick="navigate('learn')">
                 <div style="font-size:12px;font-weight:700;color:var(--accent-orange);text-transform:uppercase;margin-bottom:6px">挑战模块</div>
                 <h4 style="font-size:17px;font-weight:800;margin-bottom:6px">3D 核心高频词汇翻转闪卡</h4>
                 <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">智能发音 + 3D 沉浸翻转，每完成一组即奖励 50 EXP！</p>
@@ -353,7 +353,7 @@
 
             <!-- 3D Flashcard Scene -->
             <div class="flashcard-scene">
-              <div id="flashcard" class="flashcard" onclick="toggleCardFlip()">
+              <div id="flashcard" class="flashcard" role="button" tabindex="0" aria-label="翻转闪卡" onclick="toggleCardFlip()">
                 <!-- Front -->
                 <div class="card-face card-face-front">
                   <button class="audio-btn" title="朗读单词" onclick="speakCurrentWord(event)">

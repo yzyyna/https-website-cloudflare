@@ -40,10 +40,21 @@ window.PotatoState = (function () {
   let tickTimer = null;
   let onStateChangeListeners = [];
 
+  // 仅接受有限的 number 类型；null / '' / true 等会被 Number() 隐式转换，故不走隐式转换
   function sanitizeNum(val, def, min = 0, max = Infinity) {
-    const num = Number(val);
-    if (!Number.isFinite(num) || Number.isNaN(num)) return def;
-    return Math.min(max, Math.max(min, num));
+    if (typeof val !== 'number' || !Number.isFinite(val)) return def;
+    return Math.min(max, Math.max(min, val));
+  }
+
+  // 存档中的配件开关只保留确定的 true，其余（非布尔、篡改值）一律丢弃
+  function pickTrueFlags(src) {
+    const out = {};
+    if (src && typeof src === 'object') {
+      Object.keys(src).forEach((k) => {
+        if (src[k] === true) out[k] = true;
+      });
+    }
+    return out;
   }
 
   // 从 localStorage 加载并执行离线推演
@@ -59,8 +70,8 @@ window.PotatoState = (function () {
           stats: { ...defaultState().stats, ...(parsed.stats || {}) },
           counters: { ...defaultState().counters, ...(parsed.counters || {}) },
           accessories: {
-            unlocked: { ...(parsed.accessories && parsed.accessories.unlocked) },
-            active: { ...(parsed.accessories && parsed.accessories.active) }
+            unlocked: pickTrueFlags(parsed.accessories && parsed.accessories.unlocked),
+            active: pickTrueFlags(parsed.accessories && parsed.accessories.active)
           }
         };
 
@@ -71,9 +82,16 @@ window.PotatoState = (function () {
         state.stats.overheat = sanitizeNum(state.stats.overheat, 0, 0, 100);
         state.lastSaveTime = sanitizeNum(state.lastSaveTime, Date.now(), 0);
         state.birthTime = sanitizeNum(state.birthTime, Date.now(), 0);
+        // 计数器只允许非负有限数，布尔态强制为布尔值，防止篡改数据污染逻辑
+        Object.keys(defaultState().counters).forEach((k) => {
+          state.counters[k] = sanitizeNum(state.counters[k], 0, 0);
+        });
+        state.resigned = state.resigned === true;
+        state.isSleeping = state.isSleeping === true;
 
         // 离线时间推演
         simulateOfflineProgress();
+        evaluateStatus();
       }
     } catch (e) {
       console.warn('读取本地存档失败，使用默认状态', e);
@@ -89,7 +107,8 @@ window.PotatoState = (function () {
     if (elapsedSeconds > 10) {
       // 离线衰减
       if (state.isSleeping) {
-        state.stats.energy = Math.min(100, state.stats.energy + elapsedSeconds * 0.03);
+        // 睡眠只回升、不回落：咖啡等效果可使精力超过 100，不能被截回 100
+        state.stats.energy = Math.max(state.stats.energy, Math.min(100, state.stats.energy + elapsedSeconds * 0.03));
       } else {
         state.stats.energy = Math.max(0, state.stats.energy - elapsedSeconds * 0.015);
       }
@@ -191,7 +210,8 @@ window.PotatoState = (function () {
 
       // 精力
       if (state.isSleeping) {
-        state.stats.energy = Math.min(100, state.stats.energy + 0.6);
+        // 睡眠只回升、不回落（精力可能因咖啡超过 100）
+        state.stats.energy = Math.max(state.stats.energy, Math.min(100, state.stats.energy + 0.6));
         // 充满电后自动醒来
         if (state.stats.energy >= 100) {
           state.isSleeping = false;
@@ -209,7 +229,8 @@ window.PotatoState = (function () {
         state.stats.overheat = Math.max(0, state.stats.overheat - 1.2);
         if (prevOverheat > 60 && state.stats.overheat <= 60) {
           // 过载狂暴消退后遗症：精力回落与吐槽
-          state.stats.energy = Math.max(10, state.stats.energy - 25);
+          // 只做回落、不抬升：精力已低于 10 时不能被“修正”成 10
+          state.stats.energy = Math.min(state.stats.energy, Math.max(10, state.stats.energy - 25));
           if (window.PotatoDialogue) {
             window.PotatoDialogue.say('呼……咖啡因药效消退，CPU 降频，全身瘫软如泥……', 'sleepy');
           }

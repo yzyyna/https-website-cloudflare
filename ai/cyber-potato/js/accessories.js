@@ -38,7 +38,7 @@ window.PotatoAccessories = (function () {
       icon: '🍄',
       domClass: 'accessory-mushroom',
       desc: '长时间未擦拭在表皮寄生发霉产生的小毒蕈，十分危险。',
-      unlockHint: '累计发霉或饥饿总数超过 100 点解锁',
+      unlockHint: '累计发霉或饥饿总数达到 50 点解锁',
       checkUnlock: (state) => (state.counters.neglectScore || 0) >= 50
     },
     {
@@ -145,9 +145,11 @@ window.PotatoAccessories = (function () {
       if (isUnlocked) {
         const toggleBtn = card.querySelector('.toggle-badge');
         toggleBtn.addEventListener('click', () => {
-          state.accessories.active[acc.id] = !state.accessories.active[acc.id];
-          applyToDOM(state);
-          renderWardrobe(state);
+          // 每次取当前存档对象，避免 reset() 之后闭包持有旧 state
+          const s = window.PotatoState ? window.PotatoState.getState() : state;
+          s.accessories.active[acc.id] = !s.accessories.active[acc.id];
+          applyToDOM(s);
+          renderWardrobe(s);
           if (window.PotatoState) {
             window.PotatoState.save();
           }

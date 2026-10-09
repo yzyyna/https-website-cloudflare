@@ -28,6 +28,7 @@
   var welcomed = false;
   var airOxygen = 10;
   var visScanTimer = 0, lastVisX = -99999, lastVisZ = -99999, lastVisYaw = -99999, cachedVisible = null;
+  var glLost = false; /* WebGL 上下文丢失期间跳过渲染，避免对失效对象绘制 */
 
   /* ---------------- 初始化 ---------------- */
   function boot() {
@@ -50,6 +51,17 @@
       console.error(e);
       return;
     }
+    /* 上下文丢失（显存不足、驱动重置、后台回收等）：阻止默认行为以允许恢复，先存档再提示 */
+    canvas.addEventListener('webglcontextlost', function (e) {
+      e.preventDefault();
+      glLost = true;
+      doSave();
+      if (hud && hud.toast) hud.toast('图形上下文丢失，进度已自动保存，请刷新页面恢复画面');
+    });
+    canvas.addEventListener('webglcontextrestored', function () {
+      /* 恢复后原有 GL 对象已全部失效，需刷新页面重建渲染资源（存档已保存） */
+      if (hud && hud.toast) hud.toast('图形上下文已恢复，请刷新页面以重新加载画面');
+    });
     hud.atlasCanvas = renderer.atlas.canvas;
     hud.tilePx = renderer.atlas.tilePx;
     hud.cols = renderer.atlas.cols;
@@ -145,6 +157,12 @@
   }
 
   function newWorldData() {
+    /* 先释放旧世界的 GPU 缓冲，避免重开世界时显存泄漏 */
+    if (world && renderer) {
+      world.chunks.forEach(function (c) {
+        if (c.mesh) renderer.disposeChunk(c);
+      });
+    }
     var seed = (Math.random() * 0x7fffffff) | 0;
     world = new MC.World(seed);
     player = new MC.Player(world, world.spawn);
@@ -152,6 +170,15 @@
     stats.mined = 0;
     stats.placed = 0;
     welcomed = false;
+    tntList = [];
+    dropList = [];
+    cachedVisible = null;
+    visScanTimer = 0;
+    lastVisX = -99999;
+    lastVisZ = -99999;
+    currentTarget = null;
+    breakTarget = null;
+    breakProgress = 0;
     MC.saveAPI.clear();
   }
 
@@ -567,6 +594,7 @@
       if (cd) {
         if (cd.mesh) renderer.disposeChunk(cd);
         world.chunks.delete(toDelete[d]);
+        if (world._lightCache) world._lightCache.delete(toDelete[d]);
       }
     }
 
@@ -846,7 +874,7 @@
     hud.showHint(state === 'playing' && !locked);
 
     var pdata = particles.getData();
-    renderer.render({
+    if (!glLost) renderer.render({
       eye: eye, fwd: fwd,
       chunks: visible,
       target: currentTarget,

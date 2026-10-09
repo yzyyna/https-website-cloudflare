@@ -14,18 +14,27 @@ import { initEra2012 } from './eras/era-2012.js';
 import { initEra2024 } from './eras/era-2024.js';
 import { initEra2099 } from './eras/era-2099.js';
 
+// 单个模块初始化失败只记录日志，不影响其余展厅与全局控件绑定
+function safeInit(name, fn) {
+  try {
+    fn();
+  } catch (e) {
+    console.error(`[${name}] 初始化失败:`, e);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // 1. 初始化各基础管理器
-  navigationManager.init();
-  eggsManager.init();
+  safeInit('navigation', () => navigationManager.init());
+  safeInit('eggs', () => eggsManager.init());
 
   // 2. 初始化各年代展厅
-  initEra1998();
-  initEra2003();
-  initEra2008();
-  initEra2012();
-  initEra2024();
-  initEra2099();
+  safeInit('era-1998', initEra1998);
+  safeInit('era-2003', initEra2003);
+  safeInit('era-2008', initEra2008);
+  safeInit('era-2012', initEra2012);
+  safeInit('era-2024', initEra2024);
+  safeInit('era-2099', initEra2099);
 
   // 3. 声音开关绑定
   const soundToggleBtn = document.getElementById('sound-toggle-btn');

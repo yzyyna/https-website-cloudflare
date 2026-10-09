@@ -1676,7 +1676,11 @@ class Renderer {
       }
       const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      return ok ? { fb, tex, rb, w, h } : null;
+      if (ok) return { fb, tex, rb, w, h };
+      gl.deleteFramebuffer(fb);
+      gl.deleteTexture(tex);
+      if (rb) gl.deleteRenderbuffer(rb);
+      return null;
     };
     let t = null;
     if (this.hdr) t = mk(gl.RGBA16F, gl.HALF_FLOAT);

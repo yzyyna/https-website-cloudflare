@@ -28,9 +28,21 @@ function getAvatarSvg(seed) {
   let hash = 0;
   for (let i = 0; i < s.length; i++) hash = s.charCodeAt(i) + ((hash << 5) - hash);
   const pair = colors[Math.abs(hash) % colors.length];
-  const char = (s[0] || 'U').toUpperCase();
+  const char = escapeHTML((s[0] || 'U').toUpperCase());
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><defs><linearGradient id="g_${Math.abs(hash)}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="${pair[0]}"/><stop offset="100%" stop-color="${pair[1]}"/></linearGradient></defs><rect width="40" height="40" rx="20" fill="url(#g_${Math.abs(hash)})"/><text x="20" y="25" font-family="-apple-system,sans-serif" font-weight="700" font-size="18" fill="#ffffff" text-anchor="middle">${char}</text></svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+// 头像 data URI 白名单校验：仅接受本项目生成的 SVG（encodeURIComponent 输出字符集），否则回退为本地生成
+const AVATAR_PREFIX = 'data:image/svg+xml;utf8,';
+const AVATAR_MAX_LEN = 8000;
+const AVATAR_BODY_RE = /^[A-Za-z0-9\-_.!~*'()%]*$/;
+function ensureAvatar(value, seed) {
+  if (typeof value === 'string' && value.length <= AVATAR_MAX_LEN && value.startsWith(AVATAR_PREFIX)
+    && AVATAR_BODY_RE.test(value.slice(AVATAR_PREFIX.length))) {
+    return value;
+  }
+  return getAvatarSvg(seed);
 }
 
 // Application State
@@ -50,6 +62,7 @@ const STATE = {
   ],
   learnIndex: 0,
   isFlipped: false,
+  sessionCompleted: false, // 本轮闪卡是否已结算，防止重复加经验
   posts: [
     { id: 1, author: 'Alex', avatar: getAvatarSvg('Alex'), content: '今天终于突破了 B2 等级的职场沟通测试！感谢大家的资料分享。', likes: 124, comments: 12, time: '2小时前', liked: false },
     { id: 2, author: 'Sarah', avatar: getAvatarSvg('Sarah'), content: '大家有没有好的商务英文跟读技巧推荐？感觉会议发言语调总是偏生硬。', likes: 45, comments: 38, time: '5小时前', liked: false },
@@ -58,71 +71,103 @@ const STATE = {
 };
 
 // LocalStorage Persistence
+// 存储键带版本号；旧版无版本号键仅作只读回退，不删除，保证旧数据可回滚
+const STORAGE_KEY = 'linguajourney_state_v1';
+const LEGACY_STORAGE_KEY = 'linguajourney_state';
+const KNOWN_MODULE_IDS = ['m1', 'm2', 'm3', 'm4', 'm5'];
+
+// 数值清洗：非有限数（NaN / Infinity / 非数字字符串）一律回退到默认值
+function toSafeInt(value, min, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.max(min, Math.floor(n)) : fallback;
+}
+
 function loadState() {
   try {
-    const saved = localStorage.getItem('linguajourney_state');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.user && typeof parsed.user === 'object' && typeof parsed.user.name === 'string') {
-        STATE.user = {
-          name: parsed.user.name.slice(0, 30),
-          avatar: typeof parsed.user.avatar === 'string' && parsed.user.avatar.startsWith('data:image/svg+xml')
-            ? parsed.user.avatar
-            : getAvatarSvg(parsed.user.name)
-        };
-      }
-      if (parsed.progress && typeof parsed.progress === 'object') {
-        STATE.progress = {
-          ...STATE.progress,
-          level: Math.max(1, Math.floor(Number(parsed.progress.level) || 1)),
-          exp: Math.max(0, Math.floor(Number(parsed.progress.exp) || 0)),
-          completedModules: Array.isArray(parsed.progress.completedModules) ? parsed.progress.completedModules : ['m1']
-        };
-      }
-      if (Array.isArray(parsed.posts) && parsed.posts.length > 0) {
-        STATE.posts = parsed.posts.map(p => ({
-          id: p.id || Date.now(),
-          author: String(p.author || '学员').slice(0, 30),
-          avatar: typeof p.avatar === 'string' && p.avatar.startsWith('data:image/svg+xml')
-            ? p.avatar
-            : getAvatarSvg(p.author || 'User'),
-          content: String(p.content || '').slice(0, 500),
-          likes: Math.max(0, Math.floor(Number(p.likes) || 0)),
-          comments: Math.max(0, Math.floor(Number(p.comments) || 0)),
-          time: String(p.time || '刚刚').slice(0, 20),
-          liked: Boolean(p.liked)
-        }));
-      }
+    const saved = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!saved) return;
+    const parsed = JSON.parse(saved);
+    if (!parsed || typeof parsed !== 'object') return;
+
+    if (parsed.user && typeof parsed.user === 'object' && typeof parsed.user.name === 'string') {
+      const name = parsed.user.name.slice(0, 30);
+      STATE.user = { name, avatar: ensureAvatar(parsed.user.avatar, name) };
+    }
+    if (parsed.progress && typeof parsed.progress === 'object') {
+      const exp = toSafeInt(parsed.progress.exp, 0, 0);
+      STATE.progress = {
+        ...STATE.progress,
+        exp,
+        level: Math.floor(exp / 100) + 1, // 与 addExp 的升级公式保持一致
+        completedModules: Array.isArray(parsed.progress.completedModules)
+          ? parsed.progress.completedModules.filter(id => typeof id === 'string' && KNOWN_MODULE_IDS.includes(id))
+          : ['m1'],
+      };
+    }
+    if (Array.isArray(parsed.posts) && parsed.posts.length > 0) {
+      STATE.posts = parsed.posts
+        .filter(p => p && typeof p === 'object')
+        .map(p => {
+          const author = String(p.author || '学员').slice(0, 30);
+          return {
+            id: toSafeInt(p.id, 0, Date.now()),
+            author,
+            avatar: ensureAvatar(p.avatar, author),
+            content: String(p.content || '').slice(0, 500),
+            likes: toSafeInt(p.likes, 0, 0),
+            comments: toSafeInt(p.comments, 0, 0),
+            time: String(p.time || '刚刚').slice(0, 20),
+            liked: Boolean(p.liked)
+          };
+        });
     }
   } catch (e) {
     console.warn('Failed to load state from localStorage', e);
   }
 }
 
+let storageWarned = false;
 function saveState() {
   try {
-    localStorage.setItem('linguajourney_state', JSON.stringify({
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
       user: STATE.user,
       progress: STATE.progress,
       posts: STATE.posts,
     }));
   } catch (e) {
     console.warn('Failed to save state to localStorage', e);
+    // 隐私模式或配额满：数据仅保留在当前页面内存中，只提示一次
+    if (!storageWarned) {
+      storageWarned = true;
+      showToast('本地存储不可用，本次学习数据刷新后将丢失');
+    }
   }
 }
 
 // Router & Navigation
+// 路由白名单：未知 hash 一律回退到 home
+const VALID_ROUTES = ['home', 'dashboard', 'course', 'learn', 'community', 'login'];
+function normalizeRoute(raw) {
+  const r = String(raw || '').replace(/^#/, '');
+  return VALID_ROUTES.includes(r) ? r : 'home';
+}
+
 function navigate(route) {
-  STATE.currentRoute = route;
-  window.location.hash = route;
-  renderRoute(route);
+  const target = normalizeRoute(route);
+  if (window.location.hash.replace(/^#/, '') === target) {
+    // hash 未变化时 hashchange 不会触发，直接渲染
+    handleHashChange();
+  } else {
+    // 只改 hash，由 hashchange 统一渲染，避免双重渲染
+    window.location.hash = target;
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function handleHashChange() {
-  const hash = window.location.hash.replace('#', '') || 'home';
-  STATE.currentRoute = hash;
-  renderRoute(hash);
+  const route = normalizeRoute(window.location.hash);
+  STATE.currentRoute = route;
+  renderRoute(route);
 }
 
 function renderRoute(route) {
@@ -180,7 +225,7 @@ function updateUserUI() {
 }
 
 function loginUser(name) {
-  const cleanName = name.trim() || '学员';
+  const cleanName = name.trim().slice(0, 30) || '学员';
   STATE.user = {
     name: cleanName,
     avatar: getAvatarSvg(cleanName),
@@ -361,7 +406,7 @@ function renderCourse() {
 
 function handleModuleClick(id, type, isLocked) {
   if (isLocked) {
-    alert('请先完成前置模块后再解锁此内容！');
+    showToast('请先完成前置模块后再解锁此内容！');
     return;
   }
   navigate('learn');
@@ -371,6 +416,7 @@ function handleModuleClick(id, type, isLocked) {
 function resetLearnSession() {
   STATE.learnIndex = 0;
   STATE.isFlipped = false;
+  STATE.sessionCompleted = false;
   document.getElementById('learn-session-active').style.display = 'block';
   document.getElementById('learn-session-complete').style.display = 'none';
   renderFlashcard();
@@ -409,7 +455,14 @@ function renderFlashcard() {
   }
 }
 
+// 翻转动画时长为 0.6s，期间忽略重复触发，避免快速点击导致状态与动画错位
+const FLIP_LOCK_MS = 650;
+let lastFlipAt = 0;
 function toggleCardFlip() {
+  const now = Date.now();
+  if (now - lastFlipAt < FLIP_LOCK_MS) return;
+  lastFlipAt = now;
+
   const cardEl = document.getElementById('flashcard');
   STATE.isFlipped = !STATE.isFlipped;
   if (cardEl) {
@@ -424,13 +477,14 @@ function toggleCardFlip() {
 }
 
 function nextCard() {
-  if (!STATE.isFlipped) return;
+  if (!STATE.isFlipped || STATE.sessionCompleted) return;
 
   if (STATE.learnIndex < STATE.flashcards.length - 1) {
     STATE.learnIndex++;
     renderFlashcard();
   } else {
-    // Complete session
+    // Complete session（sessionCompleted 防止重复点击重复加经验）
+    STATE.sessionCompleted = true;
     document.getElementById('learn-session-active').style.display = 'none';
     document.getElementById('learn-session-complete').style.display = 'block';
     addExp(50);
@@ -441,11 +495,20 @@ function nextCard() {
 function speakCurrentWord(e) {
   if (e) e.stopPropagation();
   const card = STATE.flashcards[STATE.learnIndex];
-  if ('speechSynthesis' in window && card) {
+  if (!card) return;
+  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
+    showToast('当前浏览器不支持语音朗读');
+    return;
+  }
+  try {
+    window.speechSynthesis.cancel(); // 打断上一条朗读，避免排队堆积
     const utterance = new SpeechSynthesisUtterance(card.word);
     utterance.lang = 'en-US';
     utterance.rate = 0.9;
     window.speechSynthesis.speak(utterance);
+  } catch (err) {
+    console.warn('Speech synthesis failed', err);
+    showToast('语音朗读暂不可用');
   }
 }
 
@@ -458,9 +521,8 @@ function renderCommunity() {
     const safeAuthor = escapeHTML(post.author);
     const safeContent = escapeHTML(post.content);
     const safeTime = escapeHTML(post.time);
-    const safeAvatar = typeof post.avatar === 'string' && post.avatar.startsWith('data:image/svg+xml')
-      ? post.avatar
-      : getAvatarSvg(post.author);
+    // src 属性同样需要转义；头像先经白名单校验
+    const safeAvatar = escapeHTML(ensureAvatar(post.avatar, post.author));
 
     return `
     <div class="post-card">
@@ -502,7 +564,7 @@ function submitNewPost() {
   const textarea = document.getElementById('new-post-content');
   if (!textarea || !textarea.value.trim()) return;
 
-  const content = textarea.value.trim();
+  const content = textarea.value.trim().slice(0, 500);
   const authorName = STATE.user ? STATE.user.name : '学员';
   const avatarUrl = STATE.user ? STATE.user.avatar : getAvatarSvg('Guest');
 
@@ -532,9 +594,56 @@ function toggleLike(id) {
   renderCommunity();
 }
 
+// 剪贴板：优先 Clipboard API，失败或不可用时降级为 execCommand('copy')
+function legacyCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try {
+    ok = document.execCommand('copy');
+  } catch (e) {
+    ok = false;
+  }
+  ta.remove();
+  return ok;
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    return navigator.clipboard.writeText(text)
+      .then(() => true)
+      .catch(() => legacyCopy(text));
+  }
+  return Promise.resolve(legacyCopy(text));
+}
+
 function sharePost(id) {
-  navigator.clipboard?.writeText(window.location.href);
-  alert('链接已复制到剪贴板！');
+  copyToClipboard(window.location.href).then(ok => {
+    showToast(ok ? '链接已复制到剪贴板！' : '复制失败，请手动复制地址栏中的链接');
+  });
+}
+
+// 站内非阻塞提示（替代 alert）：单例节点，重复调用会覆盖文案并重置计时
+let toastTimer = null;
+function showToast(message) {
+  let box = document.getElementById('toast');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'toast';
+    box.className = 'toast';
+    box.setAttribute('role', 'status');
+    box.setAttribute('aria-live', 'polite');
+    document.body.appendChild(box);
+  }
+  box.textContent = message;
+  box.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => box.classList.remove('show'), 2600);
 }
 
 // App Initialization
@@ -544,8 +653,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Route listening
   window.addEventListener('hashchange', handleHashChange);
-  const initialHash = window.location.hash.replace('#', '') || 'home';
-  navigate(initialHash);
+  navigate(normalizeRoute(window.location.hash));
+
+  // 键盘可达：challenge-card 与闪卡响应 Enter / Space（事件委托，单次注册）
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const el = e.target;
+    if (!(el instanceof HTMLElement) || !el.matches('.challenge-card, .flashcard')) return;
+    e.preventDefault();
+    el.click();
+  });
 
   // Login name input preview
   const loginInput = document.getElementById('login-name-input');

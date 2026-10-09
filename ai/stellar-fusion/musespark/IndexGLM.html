@@ -1437,11 +1437,10 @@ class EnergyNetwork {
     }
     this.stations = [
       { name: 'ORBITAL STATION A', ring: 0, phase: 0.90, world: [0,0,0], screen: null },
-      { name: 'ORBITAL STATION B', ring: 0, phase: 0.90 + 0.5 % 1, world: [0,0,0], screen: null },
+      { name: 'ORBITAL STATION B', ring: 0, phase: 0.42, world: [0,0,0], screen: null },
       { name: 'ORBITAL STATION C', ring: 1, phase: 0.93, world: [0,0,0], screen: null },
       { name: 'ORBITAL STATION D', ring: 2, phase: 0.96, world: [0,0,0], screen: null }
     ];
-    this.stations[1].phase = 0.42;
     this.satellites = [
       { name: 'RELAY SAT-1', r: 1.75, incl: 0.5, speed: 0.5, phase: 0.50, world: [0,0,0], screen: null },
       { name: 'RELAY SAT-2', r: 2.05, incl: -0.3, speed: -0.35, phase: 0.56, world: [0,0,0], screen: null },
@@ -1699,7 +1698,11 @@ class Renderer {
       }
       const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      return ok ? { fb, tex, rb, w, h } : null;
+      if (ok) return { fb, tex, rb, w, h };
+      gl.deleteFramebuffer(fb);
+      gl.deleteTexture(tex);
+      if (rb) gl.deleteRenderbuffer(rb);
+      return null;
     };
     let t = null;
     if (this.hdr) t = mk(gl.RGBA16F, gl.HALF_FLOAT);

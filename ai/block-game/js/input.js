@@ -126,6 +126,12 @@
 
     document.addEventListener('pointerlockchange', function () {
       if (!self.isTouchActive()) {
+        /* 锁定丢失（如 Esc 被浏览器吞掉）时 keyup/mouseup 可能丢失，清空按键与鼠标状态防卡键 */
+        if (!self.isLocked()) {
+          self.keys = {};
+          self.mouse.left = false;
+          self.mouse.right = false;
+        }
         if (self.onLockChange) self.onLockChange(self.isLocked());
       }
     });

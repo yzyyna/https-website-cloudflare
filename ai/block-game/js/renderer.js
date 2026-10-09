@@ -233,36 +233,99 @@
     }
   };
 
-  Renderer.prototype.uploadChunk = function (chunk, mesh) {
-    var gl = this.gl;
-    if (!chunk.mesh) {
-      chunk.mesh = {
-        vboS: gl.createBuffer(), iboS: gl.createBuffer(), nS: 0, idxTypeS: 0,
-        vboT: gl.createBuffer(), iboT: gl.createBuffer(), nT: 0, idxTypeT: 0
-      };
-    }
-    var m = chunk.mesh;
-    gl.bindBuffer(gl.ARRAY_BUFFER, m.vboS);
-    gl.bufferData(gl.ARRAY_BUFFER, mesh.solid.vert, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.iboS);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.solid.idx, gl.STATIC_DRAW);
-    m.idxTypeS = (mesh.solid.idx instanceof Uint32Array) ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT;
-    m.nS = mesh.solid.idx.length;
+  /* 无 OES_element_index_uint 时：把 32 位索引网格按三角形切成若干批，每批局部顶点 <= 65536，
+     输出 Uint16 索引 + 逐批拷贝的顶点数据（每顶点 7 个 float，布局不变） */
+  function splitForU16(vert, idx) {
+    var U16 = 65536;
+    var nVert = vert.length / 7;
+    var map = new Int32Array(nVert);
+    for (var i = 0; i < nVert; i++) map[i] = -1;
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, m.vboT);
-    gl.bufferData(gl.ARRAY_BUFFER, mesh.trans.vert, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, m.iboT);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.trans.idx, gl.STATIC_DRAW);
-    m.idxTypeT = (mesh.trans.idx instanceof Uint32Array) ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT;
-    m.nT = mesh.trans.idx.length;
+    var batches = [];
+    var cur = null;
+    function open() { cur = { src: [], ind: [] }; batches.push(cur); }
+    open();
+
+    for (var t = 0; t < idx.length; t += 3) {
+      var need = 0, k;
+      for (k = 0; k < 3; k++) if (map[idx[t + k]] < 0) need++;
+      if (cur.src.length + need > U16) {
+        /* 当前批放不下：释放本批占用的映射，开新批 */
+        for (var s = 0; s < cur.src.length; s++) map[cur.src[s]] = -1;
+        open();
+      }
+      for (k = 0; k < 3; k++) {
+        var v = idx[t + k];
+        if (map[v] < 0) { map[v] = cur.src.length; cur.src.push(v); }
+        cur.ind.push(map[v]);
+      }
+    }
+
+    var pieces = [];
+    for (var b = 0; b < batches.length; b++) {
+      var bt = batches[b];
+      var vf = new Float32Array(bt.src.length * 7);
+      for (var j = 0; j < bt.src.length; j++) {
+        var sv = bt.src[j] * 7;
+        for (var c = 0; c < 7; c++) vf[j * 7 + c] = vert[sv + c];
+      }
+      pieces.push({ vert: vf, idx: new Uint16Array(bt.ind) });
+    }
+    return pieces;
+  }
+
+  /* 按 CPU 侧网格数据创建 GPU 绘制批次；索引类型由数组类型与扩展可用性共同决定 */
+  Renderer.prototype._makeDraws = function (part) {
+    var gl = this.gl;
+    if (!part.idx.length) return [];
+    var needSplit = (part.idx instanceof Uint32Array) && !this.uint32Ext;
+    var pieces = needSplit ? splitForU16(part.vert, part.idx) : [part];
+    var draws = [];
+    for (var i = 0; i < pieces.length; i++) {
+      var p = pieces[i];
+      if (!p.idx.length) continue;
+      var vbo = gl.createBuffer(), ibo = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.bufferData(gl.ARRAY_BUFFER, p.vert, gl.STATIC_DRAW);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, p.idx, gl.STATIC_DRAW);
+      draws.push({
+        vbo: vbo, ibo: ibo, n: p.idx.length,
+        type: (p.idx instanceof Uint32Array) ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT
+      });
+    }
+    return draws;
+  };
+
+  Renderer.prototype._freeDraws = function (draws) {
+    var gl = this.gl;
+    for (var i = 0; i < draws.length; i++) {
+      gl.deleteBuffer(draws[i].vbo);
+      gl.deleteBuffer(draws[i].ibo);
+    }
+  };
+
+  Renderer.prototype.uploadChunk = function (chunk, mesh) {
+    if (chunk.mesh) this._freeDraws(chunk.mesh.solid.concat(chunk.mesh.trans));
+    chunk.mesh = {
+      solid: this._makeDraws(mesh.solid),
+      trans: this._makeDraws(mesh.trans)
+    };
   };
 
   Renderer.prototype.disposeChunk = function (chunk) {
-    var gl = this.gl;
     if (chunk.mesh) {
-      gl.deleteBuffer(chunk.mesh.vboS); gl.deleteBuffer(chunk.mesh.iboS);
-      gl.deleteBuffer(chunk.mesh.vboT); gl.deleteBuffer(chunk.mesh.iboT);
+      this._freeDraws(chunk.mesh.solid.concat(chunk.mesh.trans));
       chunk.mesh = null;
+    }
+  };
+
+  Renderer.prototype._drawDraws = function (draws) {
+    var gl = this.gl;
+    for (var i = 0; i < draws.length; i++) {
+      this._bindChunkAttribs(draws[i].vbo);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, draws[i].ibo);
+      gl.drawElements(gl.TRIANGLES, draws[i].n, draws[i].type, 0);
     }
   };
 
@@ -333,10 +396,8 @@
     var i, ch;
     for (i = 0; i < opts.chunks.length; i++) {
       ch = opts.chunks[i];
-      if (!ch.mesh || ch.mesh.nS === 0) continue;
-      this._bindChunkAttribs(ch.mesh.vboS);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ch.mesh.iboS);
-      gl.drawElements(gl.TRIANGLES, ch.mesh.nS, ch.mesh.idxTypeS, 0);
+      if (!ch.mesh) continue;
+      this._drawDraws(ch.mesh.solid);
     }
 
     /* --- 引信激活的 TNT 实体渲染 --- */
@@ -372,10 +433,8 @@
     gl.disable(gl.CULL_FACE); /* 临时关闭面剔除，使水下仰视水面双面可见 */
     for (i = opts.chunks.length - 1; i >= 0; i--) {
       ch = opts.chunks[i];
-      if (!ch.mesh || ch.mesh.nT === 0) continue;
-      this._bindChunkAttribs(ch.mesh.vboT);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ch.mesh.iboT);
-      gl.drawElements(gl.TRIANGLES, ch.mesh.nT, ch.mesh.idxTypeT, 0);
+      if (!ch.mesh) continue;
+      this._drawDraws(ch.mesh.trans);
     }
     gl.enable(gl.CULL_FACE);
 

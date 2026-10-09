@@ -109,6 +109,7 @@ export function initEra2003() {
     const messages = museumStore.getState().guestbookMessages || [];
     guestbookListEl.innerHTML = '';
     messages.forEach((msg) => {
+      if (!msg || typeof msg !== 'object') return; // 跳过损坏的历史存档条目
       const item = document.createElement('div');
       item.className = 'guestbook-message-card';
       item.innerHTML = `
@@ -131,7 +132,7 @@ export function initEra2003() {
       const text = guestTextInput?.value.trim();
 
       if (!text) {
-        alert('请输入留言内容哦~');
+        eggsManager.showToast('请输入留言内容哦~');
         return;
       }
 

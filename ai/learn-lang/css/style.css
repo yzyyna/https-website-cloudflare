@@ -168,9 +168,7 @@ body {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-main);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .logout-btn {
@@ -1331,7 +1329,7 @@ body {
     min-height: 56px;
     padding: 8px 4px;
   }
-  .nav-item, .logout-btn, .login-btn-sidebar, .btn, .btn-white {
+  .nav-item, .logout-btn, .login-btn-sidebar, .btn, .btn-white, .action-btn {
     min-height: 44px;
   }
   .module-card {
@@ -1379,5 +1377,41 @@ body {
   }
   .card-translation {
     font-size: 22px;
+  }
+}
+
+/* 键盘焦点可见（challenge-card / 闪卡 / 按钮等） */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* 站内非阻塞提示 toast（替代 alert） */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 16px);
+  z-index: 1000;
+  max-width: min(90vw, 420px);
+  padding: 12px 18px;
+  background: #1e293b;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+@media (max-width: 768px) {
+  .toast {
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   }
 }

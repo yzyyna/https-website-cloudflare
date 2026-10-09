@@ -287,12 +287,13 @@ const logger=new Logger();
 class EventBus{constructor(){this.map=new Map();this.count=0} on(e,fn){if(!this.map.has(e))this.map.set(e,new Set());this.map.get(e).add(fn);return ()=>this.off(e,fn)} once(e,fn){const w=(...a)=>{fn(...a);this.off(e,w)};return this.on(e,w)} off(e,fn){const s=this.map.get(e);if(s) s.delete(fn)} emit(e,...a){this.count++;const s=this.map.get(e);if(s) for(const fn of [...s]) try{fn(...a)}catch(err){logger.error('EventBus','emit error',{e,err})}}}
 
 /* ========== StorageManager ========== */
-class StorageManager{constructor(prefix='iot:'){this.p=prefix;this.q=[]} key(k){return this.p+k} get(k,def=null){try{const v=localStorage.getItem(this.key(k));return v?JSON.parse(v):def}catch(e){logger.warn('Storage','get fail',{k,e});return def}} set(k,v){try{localStorage.setItem(this.key(k),JSON.stringify(v))}catch(e){logger.error('Storage','quota or serialize',{k,e});if(e.name==='QuotaExceededError'){try{localStorage.clear()}catch{}}} } remove(k){localStorage.removeItem(this.key(k))} clear(){for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith(this.p)) localStorage.removeItem(k)}} migrate(){const ver=this.get('version',0);if(ver<1){this.set('version',1)}} debouncedSet(k,v,ms=300){clearTimeout(this['_t_'+k]);this['_t_'+k]=setTimeout(()=>this.set(k,v),ms)}}
+class StorageManager{constructor(prefix='iot:'){this.p=prefix;this.q=[]} key(k){return this.p+k} get(k,def=null){try{const v=localStorage.getItem(this.key(k));return v?JSON.parse(v):def}catch(e){logger.warn('Storage','get fail',{k,e});return def}} set(k,v){try{localStorage.setItem(this.key(k),JSON.stringify(v))}catch(e){logger.error('Storage','quota or serialize',{k,e});if(e.name==='QuotaExceededError'){try{this.clear()}catch{}}} } remove(k){localStorage.removeItem(this.key(k))} clear(){for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith(this.p)) localStorage.removeItem(k)}} migrate(){const ver=this.get('version',0);if(ver<1){this.set('version',1)}} debouncedSet(k,v,ms=300){clearTimeout(this['_t_'+k]);this['_t_'+k]=setTimeout(()=>this.set(k,v),ms)}}
 const storage=new StorageManager();
 
 /* ========== ErrorManager ========== */
 class ErrorManager{constructor(bus){this.bus=bus} handle(err,ctx){logger.error('ErrorManager',ctx,{err:err.message||err});toast(err.message||String(err));this.bus.emit('error',err,ctx)}}
-function toast(msg,ms=2200){const el=$('#toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),ms)}
+let toastTimer=0;
+function toast(msg,ms=2200){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),ms)}
 
 /* ========== Store ========== */
 class Store{constructor(initial){this.state=initial;this.subs=new Set();this.updateCount=0} getState(){return this.state} setState(patch){this.state={...this.state,...patch};this.updateCount++;for(const fn of this.subs) fn(this.state)} subscribe(fn){this.subs.add(fn);return ()=>this.subs.delete(fn)} dispatch(action){if(typeof action==='function'){this.setState(action(this.state));}else if(action && action.type){if(action.type==='SET'){this.setState(action.payload)} else {logger.warn('Store','unknown action',{action})}}}}
@@ -307,10 +308,13 @@ const defaultGroups=[
   {id:'g_off',name:'离线设备',parent:'g_root',children:['g_net','g_maint']},
   {id:'g_net',name:'网络异常',parent:'g_off',children:[]},{id:'g_maint',name:'维护中',parent:'g_off',children:[]},
 ];
+const isStrArr=(a)=>Array.isArray(a)&&a.every(x=>typeof x==='string');
+function loadStored(k,def,ok){ const v=storage.get(k,null); return v!==null&&ok(v)?v:def }
+function loadGroups(){ return loadStored('groups',defaultGroups,g=>Array.isArray(g)&&g.length>0&&g.every(x=>x&&typeof x.id==='string'&&typeof x.name==='string'&&(x.parent==null||typeof x.parent==='string')&&Array.isArray(x.children)&&isStrArr(x.children))) }
 const bus=new EventBus();
 const errorManager=new ErrorManager(bus);
 const store=new Store({
-  devices:[], deviceMap:new Map(), groups:storage.get('groups',defaultGroups), collapsedGroups:new Set(), tags:storage.get('tags',['高优','核心','边缘','实验']), alarms:[], filters:{search:'',nameOp:'',nameVal:'',cpuOp:'',cpuVal:'',tempOp:'',tempVal:'',latOp:'',latVal:'',status:'',region:[],logic:'AND'}, sorting:[], selection:new Set(), selectedGroup:'g_root', ui:{paused:false,theme:storage.get('theme','light'),connection:'connected'}, tasks:{total:0,success:0,failed:0,running:0,progress:0}, history:[]
+  devices:[], deviceMap:new Map(), groups:loadGroups(), collapsedGroups:new Set(), tags:loadStored('tags',['高优','核心','边缘','实验'],isStrArr), alarms:[], filters:{search:'',nameOp:'',nameVal:'',cpuOp:'',cpuVal:'',tempOp:'',tempVal:'',latOp:'',latVal:'',status:'',region:[],logic:'AND'}, sorting:[], selection:new Set(), selectedGroup:'g_root', ui:{paused:false,theme:loadStored('theme','light',v=>v==='light'||v==='dark'),connection:'connected'}, tasks:{total:0,success:0,failed:0,running:0,progress:0}, history:[]
 });
 
 /* ========== Data generation ========== */
@@ -361,12 +365,6 @@ class FilterEngine{
   filter(devices, filters){ const fn=this.compile(filters); return devices.filter(fn)}
 }
 const filterEngine=new FilterEngine();
-
-/* ========== SearchEngine ========== */
-class SearchEngine{constructor(){this.cache=new Map()} search(devices, q){ if(!q) return devices; const k=q.toLowerCase(); if(this.cache.has(k)) return this.cache.get(k).slice(0,2000); // limit preview
-    const res=devices.filter(d=> d.id.toLowerCase().includes(k)|| d.name.includes(q)|| d.region.includes(q)|| d.city.includes(q)); this.cache.set(k,res); if(this.cache.size>100) this.cache.delete(this.cache.keys().next().value); return res}
-}
-const searchEngine=new SearchEngine();
 
 /* ========== Sorting ========== */
 function stableSort(arr, sorting){
@@ -424,7 +422,8 @@ class VirtualList{
   }
   onScroll(){
     this.updateVisibleRange();
-    requestAnimationFrame(()=>this.render());
+    if(this.rafId) return;
+    this.rafId=requestAnimationFrame(()=>{ this.rafId=0; this.render(); });
   }
   scrollToIndex(idx){
     const safeIdx=clamp(idx,0,Math.max(0,this.data.length-1));
@@ -462,6 +461,7 @@ class VirtualList{
   destroy(){
     this.vp.removeEventListener('scroll',this.onScroll);
     window.removeEventListener('resize',this.onResize);
+    if(this.rafId) cancelAnimationFrame(this.rafId);
   }
 }
 
@@ -504,13 +504,13 @@ const dedup=new AlarmDeduplicator(); const alarmManager=new AlarmManager(dedup);
 
 /* ========== TaskQueue ========== */
 class TaskQueue{
-  constructor(concurrency=10){this.concurrency=concurrency;this.queue=[];this.running=0;this.paused=false;this.idSeq=0}
+  constructor(concurrency=10){this.concurrency=concurrency;this.queue=[];this.running=0;this.paused=false;this.idSeq=0;this.gen=0}
   add(task){task.id=task.id||uid('task');task.status='pending';task.retryCount=task.retryCount||0;task.priority=task.priority||0;this.queue.push(task);this.queue.sort((a,b)=>b.priority-a.priority);return task.id}
   start(){if(this.paused) return; const next=()=>{ if(this.paused) return; while(this.running<this.concurrency && this.queue.length){const t=this.queue.shift(); if(t.status==='canceled') continue; this.running++; t.status='running'; bus.emit('task:progress',t); this.exec(t).finally(()=>{this.running--; next(); if(this.running===0 && this.queue.length===0) bus.emit('task:completed')}) }};
     next();
   }
-  async exec(t){ try{ await t.run(); t.status='success'; }catch(e){ if(t.retryCount < (t.maxRetries||2)){ const delay=500*Math.pow(2,t.retryCount)+Math.random()*200; t.retryCount++; t.status='retry'; setTimeout(()=>{ this.queue.unshift(t); this.start(); },delay); } else { t.status='failed'; t.error=e.message||String(e)} } bus.emit('task:progress',t); updateBatchUI(); }
-  pause(){this.paused=true} resume(){this.paused=false;this.start()} cancel(){for(const t of this.queue) t.status='canceled'; this.queue=[]; this.running=0; bus.emit('task:completed')} retryFailed(tasks){for(const t of tasks){ if(t.status==='failed'){ t.status='pending'; t.error=null; this.add(t)}} this.start()}
+  async exec(t){ try{ await t.run(); t.status='success'; }catch(e){ if(t.retryCount < (t.maxRetries||2)){ const delay=500*Math.pow(2,t.retryCount)+Math.random()*200; t.retryCount++; t.status='retry'; const gen=this.gen; setTimeout(()=>{ if(gen!==this.gen){ t.status='canceled'; return; } this.queue.unshift(t); this.start(); },delay); } else { t.status='failed'; t.error=e.message||String(e)} } bus.emit('task:progress',t); updateBatchUI(); }
+  pause(){this.paused=true} resume(){this.paused=false;this.start()} cancel(){this.gen++; for(const t of this.queue) t.status='canceled'; this.queue=[]; bus.emit('task:completed')} retryFailed(tasks){for(const t of tasks){ if(t.status==='failed'){ t.status='pending'; t.error=null; this.add(t)}} this.start()}
 }
 const taskQueue=new TaskQueue(10);
 
@@ -556,7 +556,7 @@ class FakeWebSocket{
         const d2=store.getState().deviceMap.get(m.deviceId);
         if(!d2) continue;
         // version check: newVersion <= currentVersion 必须丢弃（乱序/重复防护）
-        if(m.version <= d2.version){ logger.debug('WS','drop stale',{id:m.deviceId,v:m.version,cur:d2.version}); continue; }
+        if(m.version <= d2.version){ logger.log('debug','WS','drop stale',{id:m.deviceId,v:m.version,cur:d2.version}); continue; }
         // apply
         Object.assign(d2,m.patch); d2.version=m.version; d2.lastUpdate=m.timestamp; d2._seq=m.seq;
         // history for chart
@@ -590,6 +590,7 @@ function flushUpdates(){
   if(currentDrawerId && batch.some(d=>d.id===currentDrawerId)) renderDrawer(currentDrawerId, true);
 }
 let refreshTimer=null;
+let renderRaf=0;
 function scheduleRefresh(batch){
   const filters=getActiveFilters();
   const sorting=getSorting();
@@ -604,8 +605,8 @@ function scheduleRefresh(batch){
         if(vlist.data[i]) visibleIds.add(vlist.data[i].id);
       }
       const needRerender = batch.some(d => visibleIds.has(d.id));
-      if(needRerender){
-        requestAnimationFrame(()=>vlist.render());
+      if(needRerender && !renderRaf){
+        renderRaf=requestAnimationFrame(()=>{ renderRaf=0; vlist.render(); });
       }
       return;
     }
@@ -661,7 +662,8 @@ function renderAlarms(){
 function renderGroups(){
   const groups=store.getState().groups; const sel=store.getState().selectedGroup; const map=new Map(groups.map(g=>[g.id,g])); const roots=groups.filter(g=>!g.parent);
   const collapsed = store.getState().collapsedGroups || new Set();
-  function renderNode(g,depth=0){
+  const shown=new Set();
+  function renderNode(g,depth=0){ if(shown.has(g.id)) return ''; shown.add(g.id);
     const kids=(g.children||[]).map(id=>map.get(id)).filter(Boolean);
     const active=sel===g.id?' active':'';
     const hasKids=kids.length>0;
@@ -715,7 +717,7 @@ function updateDrawerMetrics(d){
   if(elPower) elPower.textContent=fmt(d.power)+'W';
   if(elLat) elLat.textContent=d.latency+'ms';
   if(elBat) elBat.textContent=d.battery+'%';
-  const elStatus=$('#dwStatus'); if(elStatus) elStatus.innerHTML=`<span class="status ${d.status}">${d.status}</span>`;
+  const elStatus=$('#dwStatus'); if(elStatus) elStatus.innerHTML=`<span class="status ${escapeHTML(d.status)}">${escapeHTML(d.status)}</span>`;
   const elVer=$('#dwVersion'); if(elVer) elVer.textContent=`${d.version} · seq ${d._seq}`;
   const elUpdate=$('#dwLastUpdate'); if(elUpdate) elUpdate.textContent=new Date(d.lastUpdate).toLocaleString();
   updateDrawerCharts(d);
@@ -854,8 +856,8 @@ function init(){
   // generate devices
   const t0=performance.now(); const {arr,map}=genDevices(50000); store.setState({devices:arr,deviceMap:map}); logger.info('Init',`generated 50000 in ${fmt(performance.now()-t0,1)}ms`,{});
   // restore persisted
-  const savedFilters=storage.get('filters',null); if(savedFilters){ $('#searchInput').value=savedFilters.search||''; $('#fNameOp').value=savedFilters.nameOp||''; $('#fNameVal').value=savedFilters.nameVal||''; $('#fCpuOp').value=savedFilters.cpuOp||''; $('#fCpuVal').value=savedFilters.cpuVal||''; $('#fTempOp').value=savedFilters.tempOp||''; $('#fTempVal').value=savedFilters.tempVal||''; $('#fLatOp').value=savedFilters.latOp||''; $('#fLatVal').value=savedFilters.latVal||''; $('#fStatus').value=savedFilters.status||''; if(savedFilters.region) [...$('#fRegion').options].forEach(o=>o.selected=savedFilters.region.includes(o.value)); if(savedFilters.groupId) store.setState({selectedGroup:savedFilters.groupId}); }
-  const savedSorting=storage.get('sorting',null); if(savedSorting && savedSorting.length){ if(savedSorting[0]){$('#sort1').value=savedSorting[0].key; $('#sort1Dir').value=savedSorting[0].dir} if(savedSorting[1]){$('#sort2').value=savedSorting[1].key; $('#sort2Dir').value=savedSorting[1].dir} if(savedSorting[2]){$('#sort3').value=savedSorting[2].key; $('#sort3Dir').value=savedSorting[2].dir} }
+  const savedFilters=loadStored('filters',null,v=>typeof v==='object'&&!Array.isArray(v)); if(savedFilters){ $('#searchInput').value=savedFilters.search||''; $('#fNameOp').value=savedFilters.nameOp||''; $('#fNameVal').value=savedFilters.nameVal||''; $('#fCpuOp').value=savedFilters.cpuOp||''; $('#fCpuVal').value=savedFilters.cpuVal||''; $('#fTempOp').value=savedFilters.tempOp||''; $('#fTempVal').value=savedFilters.tempVal||''; $('#fLatOp').value=savedFilters.latOp||''; $('#fLatVal').value=savedFilters.latVal||''; $('#fStatus').value=savedFilters.status||''; if(Array.isArray(savedFilters.region)) [...$('#fRegion').options].forEach(o=>o.selected=savedFilters.region.includes(o.value)); if(savedFilters.groupId) store.setState({selectedGroup:savedFilters.groupId}); }
+  const savedSorting=loadStored('sorting',null,v=>Array.isArray(v)&&v.every(x=>x&&typeof x==='object')); if(savedSorting && savedSorting.length){ if(savedSorting[0]){$('#sort1').value=savedSorting[0].key; $('#sort1Dir').value=savedSorting[0].dir} if(savedSorting[1]){$('#sort2').value=savedSorting[1].key; $('#sort2Dir').value=savedSorting[1].dir} if(savedSorting[2]){$('#sort3').value=savedSorting[2].key; $('#sort3Dir').value=savedSorting[2].dir} }
   // vlist
   vlist=new VirtualList($('#viewport'),$('#content'),$('#phantom'),40,12);
   recompute(); renderGroups(); updateSelectInfo(); renderAlarms(); updateHeader();
@@ -904,7 +906,7 @@ $('#groupTree').addEventListener('drop',e=>{
   if(gDrag && gid && gDrag!==gid){ // group reorder: prevent cycle
     const groups=store.getState().groups; const map=new Map(groups.map(g=>[g.id,g])); const drag=map.get(gDrag), tgt=map.get(gid); if(!drag||!tgt) return;
     // check cycle: tgt is descendant of drag?
-    let cur=tgt; let isDesc=false; while(cur){ if(cur.id===drag.id) {isDesc=true;break} cur=cur.parent?map.get(cur.parent):null}
+    let cur=tgt; let isDesc=false; for(let n=0;cur&&n<=groups.length;n++){ if(cur.id===drag.id) {isDesc=true;break} cur=cur.parent?map.get(cur.parent):null}
     if(isDesc) return toast('不能形成循环引用');
     const prevParent=drag.parent;
     const cmd={execute(){ // remove from old parent children
@@ -989,7 +991,7 @@ $('#btnDisconnect').onclick=()=>{fakeWs.disconnect(); store.setState({ui:{...sto
 $('#btnReconnect').onclick=()=>{fakeWs.connect(); store.setState({ui:{...store.getState().ui,connection:'connected'}}); updateHeader()};
 $('#btnTheme').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme'); const nxt=cur==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',nxt); store.setState({ui:{...store.getState().ui,theme:nxt}}); storage.set('theme',nxt); $('#btnTheme').textContent=nxt==='dark'?'☀️ 浅色':'🌙 深色'};
 $('#btnDebug').onclick=()=>$('#debugPanel').classList.toggle('open');
-$('#btnLogs').onclick=()=>{$('#logModal').classList.add('open'); const el=$('#logList'); el.innerHTML=logger.recent(500).map(l=>`<div>[${new Date(l.time).toLocaleTimeString()}] <b>${l.level}</b> ${l.module} ${l.event} <small>${JSON.stringify(l.meta).slice(0,120)}</small></div>`).join('')};
+$('#btnLogs').onclick=()=>{$('#logModal').classList.add('open'); const el=$('#logList'); el.innerHTML=logger.recent(500).map(l=>`<div>[${new Date(l.time).toLocaleTimeString()}] <b>${escapeHTML(l.level)}</b> ${escapeHTML(l.module)} ${escapeHTML(l.event)} <small>${escapeHTML(JSON.stringify(l.meta).slice(0,120))}</small></div>`).join('')};
 $('#btnCloseLog').onclick=()=>$('#logModal').classList.remove('open');
 $('#btnCloseDrawer').onclick=closeDrawer;
 $('#drawer').onclick=(e)=>{if(e.target.id==='drawer') closeDrawer()};
@@ -1018,6 +1020,7 @@ $('#importFile').onchange=async (e)=>{
     if(!Array.isArray(json)) throw new Error('JSON 必须是数组');
     const errors=[]; const seen=new Set(); const normalized=[];
     json.forEach((d,i)=>{
+      if(!d||typeof d!=='object'){ errors.push(`行 ${i}: 非对象记录`); return; }
       if(!d.id || typeof d.id!=='string' || !/^DEV-\d{6}$/.test(d.id)) errors.push(`行 ${i}: 非法 id ${d.id}`);
       else if(seen.has(d.id)) errors.push(`行 ${i}: 重复 id ${d.id}`);
       else if(typeof d.temperature!=='number' && d.temperature!==undefined) errors.push(`行 ${i}: temperature 类型错误`);

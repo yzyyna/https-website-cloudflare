@@ -17,8 +17,8 @@
       --bg-surface: #ffffff;
       --bg-surface-secondary: #fbfbfd;
       --text-primary: #1d1d1f;
-      --text-secondary: #86868b;
-      --text-tertiary: #a1a1a6;
+      --text-secondary: #6e6e73;
+      --text-tertiary: #6e6e73;
       --accent-blue: #0071e3;
       --accent-blue-hover: #0077ed;
       --border-subtle: rgba(0, 0, 0, 0.08);
@@ -37,6 +37,10 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
+    [hidden] {
+      display: none !important;
+    }
+
     body {
       font-family: var(--font-stack);
       background-color: var(--bg-body);
@@ -45,6 +49,7 @@
       display: flex;
       flex-direction: column;
       line-height: 1.5;
+      padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
 
     /* Apple-style Global Nav */
@@ -52,6 +57,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
+      padding-top: env(safe-area-inset-top);
       background: rgba(255, 255, 255, 0.82);
       backdrop-filter: saturate(180%) blur(20px);
       -webkit-backdrop-filter: saturate(180%) blur(20px);
@@ -97,6 +103,9 @@
       text-decoration: none;
       font-size: 13px;
       font-weight: 400;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
       transition: color 0.15s ease;
     }
 
@@ -114,6 +123,7 @@
       font-size: 12px;
       font-weight: 500;
       padding: 6px 14px;
+      min-height: 44px;
       border-radius: 980px;
       text-decoration: none;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -199,6 +209,7 @@
       font-size: 13px;
       font-weight: 500;
       padding: 7px 17px;
+      min-height: 44px;
       border-radius: 980px;
       cursor: pointer;
       transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease,
@@ -364,6 +375,7 @@
       font-size: 13px;
       font-weight: 500;
       padding: 10px 16px;
+      min-height: 44px;
       border-radius: 980px;
       text-align: center;
       transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
@@ -385,6 +397,9 @@
       font-size: 12px;
       font-weight: 500;
       padding: 9px 12px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
       border-radius: 980px;
       transition: all 0.15s ease;
     }
@@ -421,6 +436,9 @@
     .footer-links a {
       color: var(--text-secondary);
       text-decoration: none;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
       transition: color 0.15s ease;
     }
 
@@ -451,7 +469,7 @@
   <!-- Navigation Bar -->
   <header>
     <div class="nav-inner">
-      <a href="/" class="nav-brand">
+      <a href="./" class="nav-brand">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
           <polyline points="2 17 12 22 22 17"></polyline>
@@ -461,13 +479,13 @@
       </a>
 
       <ul class="nav-links">
-        <li><a href="/">站点首页</a></li>
-        <li><a href="/fortrust/">资源中心 🔒</a></li>
+        <li class="platform-link"><a href="/">站点首页</a></li>
+        <li class="platform-link"><a href="/fortrust/">资源中心 🔒</a></li>
       </ul>
 
       <div class="nav-actions">
-        <a href="/" class="btn-pill btn-pill-secondary">← 首页</a>
-        <a href="/_auth?logout=1&scope=ai" class="btn-pill btn-pill-secondary">退出登录</a>
+        <a href="/" class="btn-pill btn-pill-secondary platform-link">← 首页</a>
+        <a href="/_auth?logout=1&scope=ai" class="btn-pill btn-pill-secondary platform-link">退出登录</a>
       </div>
     </div>
   </header>
@@ -485,10 +503,10 @@
 
     <!-- Filter Buttons -->
     <div class="filter-bar">
-      <button class="filter-btn active" data-filter="all">全部应用</button>
-      <button class="filter-btn" data-filter="webgl">3D & WebGL</button>
-      <button class="filter-btn" data-filter="interactive">趣味交互</button>
-      <button class="filter-btn" data-filter="productivity">数据与效率</button>
+      <button class="filter-btn active" data-filter="all" aria-pressed="true">全部应用</button>
+      <button class="filter-btn" data-filter="webgl" aria-pressed="false">3D & WebGL</button>
+      <button class="filter-btn" data-filter="interactive" aria-pressed="false">趣味交互</button>
+      <button class="filter-btn" data-filter="productivity" aria-pressed="false">数据与效率</button>
     </div>
 
     <!-- Projects Grid -->
@@ -507,9 +525,9 @@
             </div>
             <span class="project-slug">block-game</span>
           </div>
-          <h2 class="project-name">MiniCraft · 3D 方块世界</h2>
+          <h2 class="project-name">MiniCraft · 方块世界</h2>
           <p class="project-desc">
-            纯原生 WebGL 1.0 实现的体素沙盒世界。包含贪心网格生成、三维柏林噪声地形、动态光影与游戏存档。
+            纯原生 WebGL 1.0 实现的体素沙盒世界。包含区块化面剔除网格、逐顶点 AO、三维柏林噪声地形、动态光影与游戏存档。
           </p>
           <div class="tag-group">
             <span class="tag highlight">WebGL 1.0</span>
@@ -518,7 +536,7 @@
           </div>
         </div>
         <div class="card-actions">
-          <a href="./block-game/" class="btn-launch" target="_blank">
+          <a href="./block-game/" class="btn-launch" target="_blank" rel="noopener">
             <span>启动应用</span>
             <span>↗</span>
           </a>
@@ -550,7 +568,7 @@
           </div>
         </div>
         <div class="card-actions">
-          <a href="./cyber-potato/" class="btn-launch" target="_blank">
+          <a href="./cyber-potato/" class="btn-launch" target="_blank" rel="noopener">
             <span>启动应用</span>
             <span>↗</span>
           </a>
@@ -580,7 +598,7 @@
           </div>
         </div>
         <div class="card-actions">
-          <a href="./internet-museum/" class="btn-launch" target="_blank">
+          <a href="./internet-museum/" class="btn-launch" target="_blank" rel="noopener">
             <span>启动应用</span>
             <span>↗</span>
           </a>
@@ -600,18 +618,18 @@
             </div>
             <span class="project-slug">learn-lang</span>
           </div>
-          <h2 class="project-name">LinguaJourney 语言学习</h2>
+          <h2 class="project-name">LinguaJourney · 多语种学习平台</h2>
           <p class="project-desc">
-            沉浸式多语种学习单页应用。集成 3D 拟真翻转闪卡、单词原声发音评测、记忆曲线与互动测试。
+            沉浸式多语种学习单页应用。集成 3D 翻转记忆闪卡、Web Speech 单词朗读与学习活跃度图表。
           </p>
           <div class="tag-group">
             <span class="tag highlight">SPA 平台</span>
             <span class="tag">3D 闪卡</span>
-            <span class="tag">原声发音</span>
+            <span class="tag">语音朗读</span>
           </div>
         </div>
         <div class="card-actions">
-          <a href="./learn-lang/" class="btn-launch" target="_blank">
+          <a href="./learn-lang/" class="btn-launch" target="_blank" rel="noopener">
             <span>启动应用</span>
             <span>↗</span>
           </a>
@@ -632,9 +650,9 @@
             </div>
             <span class="project-slug">iot-hub</span>
           </div>
-          <h2 class="project-name">IoT 实时数据调度控制台</h2>
+          <h2 class="project-name">IoT Data Center · 实时数据调度控制台</h2>
           <p class="project-desc">
-            高性能单文件海量物联网设备调度与状态监控面板。包含 5 万级设备虚拟滚动列表与动态拓扑。
+            高性能单文件海量物联网设备调度与状态监控面板。包含 5 万级设备虚拟滚动列表与多层级分组树导航。
           </p>
           <div class="tag-group">
             <span class="tag highlight">虚拟滚动</span>
@@ -643,7 +661,7 @@
           </div>
         </div>
         <div class="card-actions">
-          <a href="./iot-hub/" class="btn-launch" target="_blank">
+          <a href="./iot-hub/" class="btn-launch" target="_blank" rel="noopener">
             <span>启动应用</span>
             <span>↗</span>
           </a>
@@ -669,7 +687,7 @@
             </div>
             <span class="project-slug">stellar-fusion</span>
           </div>
-          <h2 class="project-name">HELIOS 3D 聚变控制台</h2>
+          <h2 class="project-name">HELIOS & STELLAR · 3D 星际能源控制台</h2>
           <p class="project-desc">
             原生 WebGL 2.0 (GLSL ES 3.00) 构建的 3D 星际能源监控系统。支持 Gemini 与 MuseSpark 双模型实现横向对照。
           </p>
@@ -680,12 +698,12 @@
           </div>
         </div>
         <div class="card-actions">
-          <a href="./stellar-fusion/" class="btn-launch" target="_blank">
+          <a href="./stellar-fusion/" class="btn-launch" target="_blank" rel="noopener">
             <span>主控台</span>
             <span>↗</span>
           </a>
-          <a href="./stellar-fusion/gemini/" class="btn-subitem" target="_blank">Gemini</a>
-          <a href="./stellar-fusion/musespark/" class="btn-subitem" target="_blank">MuseSpark</a>
+          <a href="./stellar-fusion/gemini/" class="btn-subitem" target="_blank" rel="noopener">Gemini</a>
+          <a href="./stellar-fusion/musespark/" class="btn-subitem" target="_blank" rel="noopener">MuseSpark</a>
         </div>
       </div>
 
@@ -714,7 +732,7 @@
           </div>
         </div>
         <div class="card-actions">
-          <a href="./tank-battle/" class="btn-launch" target="_blank">
+          <a href="./tank-battle/" class="btn-launch" target="_blank" rel="noopener">
             <span>启动战局</span>
             <span>↗</span>
           </a>
@@ -729,33 +747,40 @@
     <div class="footer-inner">
       <div>Web Lab &middot; Pure Native JavaScript & WebGL Applications</div>
       <ul class="footer-links">
-        <li><a href="/">平台首页</a></li>
-        <li><a href="/fortrust/">Fortrust 资源中心</a></li>
-        <li><a href="/_auth?logout=1&scope=ai">退出登录</a></li>
+        <li class="platform-link"><a href="/">平台首页</a></li>
+        <li class="platform-link"><a href="/fortrust/">Fortrust 资源中心</a></li>
+        <li class="platform-link"><a href="/_auth?logout=1&scope=ai">退出登录</a></li>
       </ul>
     </div>
   </footer>
 
   <!-- Filter Script -->
   <script>
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const cards = document.querySelectorAll('.project-card');
+    (function () {
+      // file:// 下部署路径（/、/fortrust/、/_auth）不可用，隐藏平台入口
+      if (location.protocol === 'file:') {
+        document.querySelectorAll('.platform-link').forEach(el => { el.hidden = true; });
+      }
 
-    filterBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const cards = document.querySelectorAll('.project-card');
 
-        const filter = btn.dataset.filter;
-        cards.forEach(card => {
-          if (filter === 'all' || card.dataset.category === filter) {
-            card.style.display = 'flex';
-          } else {
-            card.style.display = 'none';
-          }
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+          });
+          btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
+
+          const filter = btn.dataset.filter;
+          cards.forEach(card => {
+            card.style.display = (filter === 'all' || card.dataset.category === filter) ? 'flex' : 'none';
+          });
         });
       });
-    });
+    })();
   </script>
 
 </body>

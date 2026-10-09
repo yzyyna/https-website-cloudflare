@@ -23,7 +23,8 @@ window.PotatoAudio = (function () {
       }
     }
     if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
+      const p = audioCtx.resume();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
     }
     return audioCtx;
   }
@@ -196,6 +197,7 @@ window.PotatoAudio = (function () {
 
   return {
     isMuted: () => isMuted,
+    unlock: () => getContext(), // 在用户手势中调用以创建/恢复 AudioContext
     setMuted,
     toggleMute,
     playTypewriter,

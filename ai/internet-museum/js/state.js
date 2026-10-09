@@ -166,7 +166,10 @@ class MuseumStore {
           if (typeof parsed.connected1998 === 'boolean') base.connected1998 = parsed.connected1998;
           if (typeof parsed.counter2003 === 'number') base.counter2003 = Math.max(0, parsed.counter2003 | 0);
           if (typeof parsed.music2003Playing === 'boolean') base.music2003Playing = parsed.music2003Playing;
-          if (Array.isArray(parsed.guestbookMessages)) base.guestbookMessages = parsed.guestbookMessages;
+          if (typeof parsed.moodIndex === 'number') base.moodIndex = Math.max(0, parsed.moodIndex | 0);
+          if (Array.isArray(parsed.guestbookMessages)) {
+            base.guestbookMessages = parsed.guestbookMessages.filter(m => m && typeof m === 'object');
+          }
           if (Array.isArray(parsed.forumPosts)) base.forumPosts = parsed.forumPosts;
           if (typeof parsed.forumSignature === 'string') base.forumSignature = parsed.forumSignature;
           if (typeof parsed.spaceSkin === 'string') base.spaceSkin = parsed.spaceSkin;

@@ -29,9 +29,10 @@
 1. **直接双击运行（免服务器）**：进入任意子目录，双击其中的 `index.html` 即可离线体验。
 2. **本地静态服务（可选）**：
    ```bash
-   cd /Users/fortrust/Documents/AItestProjects
+   cd <仓库根目录>
    python3 -m http.server 8080
    ```
+   - [http://localhost:8080/](http://localhost:8080/)（门户主页，含全部子项目卡片与分类筛选）
    - [http://localhost:8080/block-game/](http://localhost:8080/block-game/)
    - [http://localhost:8080/cyber-potato/](http://localhost:8080/cyber-potato/)
    - [http://localhost:8080/internet-museum/](http://localhost:8080/internet-museum/)

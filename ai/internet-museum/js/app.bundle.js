@@ -169,7 +169,10 @@ class MuseumStore {
           if (typeof parsed.connected1998 === 'boolean') base.connected1998 = parsed.connected1998;
           if (typeof parsed.counter2003 === 'number') base.counter2003 = Math.max(0, parsed.counter2003 | 0);
           if (typeof parsed.music2003Playing === 'boolean') base.music2003Playing = parsed.music2003Playing;
-          if (Array.isArray(parsed.guestbookMessages)) base.guestbookMessages = parsed.guestbookMessages;
+          if (typeof parsed.moodIndex === 'number') base.moodIndex = Math.max(0, parsed.moodIndex | 0);
+          if (Array.isArray(parsed.guestbookMessages)) {
+            base.guestbookMessages = parsed.guestbookMessages.filter(m => m && typeof m === 'object');
+          }
           if (Array.isArray(parsed.forumPosts)) base.forumPosts = parsed.forumPosts;
           if (typeof parsed.forumSignature === 'string') base.forumSignature = parsed.forumSignature;
           if (typeof parsed.spaceSkin === 'string') base.spaceSkin = parsed.spaceSkin;
@@ -1540,6 +1543,7 @@ function initEra2003() {
     const messages = museumStore.getState().guestbookMessages || [];
     guestbookListEl.innerHTML = '';
     messages.forEach((msg) => {
+      if (!msg || typeof msg !== 'object') return; // 跳过损坏的历史存档条目
       const item = document.createElement('div');
       item.className = 'guestbook-message-card';
       item.innerHTML = `
@@ -1562,7 +1566,7 @@ function initEra2003() {
       const text = guestTextInput?.value.trim();
 
       if (!text) {
-        alert('请输入留言内容哦~');
+        eggsManager.showToast('请输入留言内容哦~');
         return;
       }
 
@@ -2664,18 +2668,27 @@ function initEra2099() {
 
 
 
+// 单个模块初始化失败只记录日志，不影响其余展厅与全局控件绑定
+function safeInit(name, fn) {
+  try {
+    fn();
+  } catch (e) {
+    console.error(`[${name}] 初始化失败:`, e);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // 1. 初始化各基础管理器
-  navigationManager.init();
-  eggsManager.init();
+  safeInit('navigation', () => navigationManager.init());
+  safeInit('eggs', () => eggsManager.init());
 
   // 2. 初始化各年代展厅
-  initEra1998();
-  initEra2003();
-  initEra2008();
-  initEra2012();
-  initEra2024();
-  initEra2099();
+  safeInit('era-1998', initEra1998);
+  safeInit('era-2003', initEra2003);
+  safeInit('era-2008', initEra2008);
+  safeInit('era-2012', initEra2012);
+  safeInit('era-2024', initEra2024);
+  safeInit('era-2099', initEra2099);
 
   // 3. 声音开关绑定
   const soundToggleBtn = document.getElementById('sound-toggle-btn');

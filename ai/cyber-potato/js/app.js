@@ -36,17 +36,29 @@
   let pokeTimestamps = [];
   let rageTimeout = null;
 
+  // 动画定时器句柄（重复触发时先清理，避免旧定时器提前移除新动画类）
+  let shakeTimer = null;
+  let squashTimer = null;
+  let blushTimer = null;
+  const pressTimers = new Map();
+
+  // 触觉反馈（Android Vibration API；iOS 静默降级无副作用）
+  function haptic(ms) {
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') navigator.vibrate(ms);
+    } catch (e) {}
+  }
+
   // 屏幕震颤与移动端震动反馈 (Haptic)
   function triggerScreenShake(hapticMs = 40) {
     if (elCrtScreen) {
       elCrtScreen.classList.remove('screen-shake');
       void elCrtScreen.offsetWidth;
       elCrtScreen.classList.add('screen-shake');
-      setTimeout(() => elCrtScreen.classList.remove('screen-shake'), 350);
+      clearTimeout(shakeTimer);
+      shakeTimer = setTimeout(() => elCrtScreen.classList.remove('screen-shake'), 350);
     }
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      try { navigator.vibrate(hapticMs); } catch (e) {}
-    }
+    haptic(hapticMs);
   }
 
   // 1. 初始化入口
@@ -69,9 +81,7 @@
 
     // 页面首次手势无感激活 Web Audio
     const unlockAudio = () => {
-      if (window.PotatoAudio && typeof window.PotatoAudio.playBip !== 'undefined') {
-        // trigger getContext
-      }
+      if (window.PotatoAudio) window.PotatoAudio.unlock();
       window.removeEventListener('pointerdown', unlockAudio);
       window.removeEventListener('keydown', unlockAudio);
     };
@@ -281,7 +291,7 @@
 
       // 精力突破，过载温度暴涨
       state.stats.energy = Math.min(150, state.stats.energy + 25);
-      state.stats.overheat = (state.stats.overheat || 0) + 35;
+      state.stats.overheat = Math.min(100, (state.stats.overheat || 0) + 35);
       state.counters.coffeeCount = (state.counters.coffeeCount || 0) + 1;
 
       window.PotatoAudio.playCoffee();
@@ -326,7 +336,7 @@
 
       if (gotGlasses) {
         window.PotatoDialogue.say('👓 啪的一声！由于被迫输入过多学术垃圾，你的土豆脸上硬生生长出了一副黑框眼镜！', 'academic');
-      } else if (state.accessories.active['glasses']) {
+      } else if (state.accessories.unlocked['glasses']) {
         window.PotatoDialogue.say(null, 'academic');
       } else {
         const count = state.counters.bookCount;
@@ -380,7 +390,8 @@
 
       // 脸红 2.5 秒
       elPotatoChar.classList.add('has-blush');
-      setTimeout(() => elPotatoChar.classList.remove('has-blush'), 2500);
+      clearTimeout(blushTimer);
+      blushTimer = setTimeout(() => elPotatoChar.classList.remove('has-blush'), 2500);
 
       window.PotatoDialogue.say(null, 'pet');
       checkUnlocks();
@@ -457,7 +468,8 @@
     elPotatoChar.classList.remove('is-squashing');
     void elPotatoChar.offsetWidth; // 触发 reflow
     elPotatoChar.classList.add('is-squashing');
-    setTimeout(() => {
+    clearTimeout(squashTimer);
+    squashTimer = setTimeout(() => {
       elPotatoChar.classList.remove('is-squashing');
     }, 380);
   }
@@ -478,12 +490,6 @@
 
   // 8. 模态框与工具栏
   function bindModals() {
-    /* 触觉反馈（Android Vibration API；iOS 静默降级无副作用） */
-    function haptic(ms) {
-      try {
-        if (typeof navigator.vibrate === 'function') navigator.vibrate(ms);
-      } catch (e) {}
-    }
     // 声音开关
     btnMute.addEventListener('click', () => {
       const muted = window.PotatoAudio.toggleMute();
@@ -541,8 +547,8 @@
     // 核心测试：快进 24 小时直接写辞职信！
     document.getElementById('btnDebugForward24H').addEventListener('click', () => {
       modalTimeMachine.classList.remove('open');
+      // 辞职弹窗由 onStateChanged 统一触发，此处不再重复调用 showResignationModal
       window.PotatoState.fastForward(86400);
-      showResignationModal();
     });
 
     // 一键补满
@@ -638,11 +644,13 @@
   function bindKeyboardShortcuts() {
     window.addEventListener('keydown', (e) => {
       // 避免输入框冲突
-      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) return;
+      // 组合键（如 Ctrl+R、Cmd+W）不触发养成动作
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
 
       const key = e.key.toLowerCase();
-      // 长按键盘防刷防挂
-      if (e.repeat && ['4', 'p', '1', 'f', '2', 'c'].includes(key)) return;
+      // 长按键盘防刷防挂（所有键均过滤自动重复）
+      if (e.repeat) return;
       const btnMap = {
         '1': 'btnFeed',
         'f': 'btnFeed',
@@ -680,7 +688,8 @@
         if (btn) {
           if (key === ' ') e.preventDefault();
           btn.classList.add('is-active-press');
-          setTimeout(() => btn.classList.remove('is-active-press'), 140);
+          clearTimeout(pressTimers.get(btn));
+          pressTimers.set(btn, setTimeout(() => btn.classList.remove('is-active-press'), 140));
           btn.click();
         }
       }

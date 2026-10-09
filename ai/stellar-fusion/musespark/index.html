@@ -20,6 +20,7 @@ body{font-family:var(--mono);color:var(--tx);font-size:12px;user-select:none;-we
   background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(1,4,10,.55) 100%)}
 #ui{position:fixed;inset:0;z-index:2;pointer-events:none}
 #ui .panel,#ui button,#ui input,#ui canvas{pointer-events:auto}
+#ui #hudTL,#ui #hudTR,#ui #hudBL,#ui #hudBR,#ui #titlebar{pointer-events:none}
 
 .panel{background:linear-gradient(160deg,var(--bg1),var(--bg2));border:1px solid var(--bd);
   border-radius:10px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
@@ -170,6 +171,7 @@ button.btn:active,.seg button:active{transform:scale(.96)}
   #hudBL{width:168px;font-size:9px}
   #hudBR{width:104px}
   #hudBR .s{font-size:7px}
+  #sidebar.open ~ .fab,#sidebar.open ~ #timelineWrap{pointer-events:none}
   #hudTL .row.opt,#hudTR .row.opt{display:none}
 }
 @media (max-height:460px){
@@ -1435,11 +1437,10 @@ class EnergyNetwork {
     }
     this.stations = [
       { name: 'ORBITAL STATION A', ring: 0, phase: 0.90, world: [0,0,0], screen: null },
-      { name: 'ORBITAL STATION B', ring: 0, phase: 0.90 + 0.5 % 1, world: [0,0,0], screen: null },
+      { name: 'ORBITAL STATION B', ring: 0, phase: 0.42, world: [0,0,0], screen: null },
       { name: 'ORBITAL STATION C', ring: 1, phase: 0.93, world: [0,0,0], screen: null },
       { name: 'ORBITAL STATION D', ring: 2, phase: 0.96, world: [0,0,0], screen: null }
     ];
-    this.stations[1].phase = 0.42;
     this.satellites = [
       { name: 'RELAY SAT-1', r: 1.75, incl: 0.5, speed: 0.5, phase: 0.50, world: [0,0,0], screen: null },
       { name: 'RELAY SAT-2', r: 2.05, incl: -0.3, speed: -0.35, phase: 0.56, world: [0,0,0], screen: null },
@@ -1697,7 +1698,11 @@ class Renderer {
       }
       const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      return ok ? { fb, tex, rb, w, h } : null;
+      if (ok) return { fb, tex, rb, w, h };
+      gl.deleteFramebuffer(fb);
+      gl.deleteTexture(tex);
+      if (rb) gl.deleteRenderbuffer(rb);
+      return null;
     };
     let t = null;
     if (this.hdr) t = mk(gl.RGBA16F, gl.HALF_FLOAT);
@@ -2054,6 +2059,7 @@ class Timeline {
     this.audio = audio;
     this.dragging = false;
     this.last = 0;
+    this.lastDragT = 0;
     this.modeEl = document.getElementById('tlMode');
     this.timeEl = document.getElementById('tlTime');
     canvas.addEventListener('pointerdown', e => {
@@ -2065,6 +2071,8 @@ class Timeline {
     const end = () => { this.dragging = false; };
     canvas.addEventListener('pointerup', end);
     canvas.addEventListener('pointercancel', end);
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
     document.getElementById('tlLive').addEventListener('click', () => {
       state.viewOffset = 0;
       this.#updateMode();
@@ -2077,6 +2085,7 @@ class Timeline {
     let off = (1 - x) * 60;
     if (off < 0.6) off = 0;
     this.state.viewOffset = Utils.clamp(off, 0, 59);
+    this.lastDragT = performance.now();
     this.#updateMode();
   }
   #updateMode() {
@@ -2101,6 +2110,7 @@ class Timeline {
     this.w = w; this.h = h;
   }
   draw(now) {
+    if (this.dragging && performance.now() - this.lastDragT > 1500) this.dragging = false;
     if (now - this.last < 120 && !this.dragging) return;
     this.last = now;
     const g = this.g, st = this.state, w = this.w, h = this.h;
