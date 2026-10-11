@@ -338,7 +338,7 @@ footer {
       </div>
       <div class="actions">
         <a class="btn btn-primary" href="./gemini/index.html" target="_blank">新标签页打开 ↗</a>
-        <button class="btn btn-secondary" onclick="loadPreview('./gemini/index.html', 'Gemini 版 · HELIOS-X', this)">下方快速预览</button>
+        <button class="btn btn-secondary" onclick="loadPreview('./gemini/index.html', 'Gemini 版 · HELIOS-X')">下方快速预览</button>
       </div>
     </div>
 
@@ -363,7 +363,7 @@ footer {
       </div>
       <div class="actions">
         <a class="btn btn-primary" href="./musespark/index.html" target="_blank" style="background:rgba(167,139,255,0.15);border-color:rgba(167,139,255,0.4);color:var(--violet)">新标签页打开 ↗</a>
-        <button class="btn btn-secondary" onclick="loadPreview('./musespark/index.html', 'MuseSpark 版 · STELLAR CORE', this)">下方快速预览</button>
+        <button class="btn btn-secondary" onclick="loadPreview('./musespark/index.html', 'MuseSpark 版 · STELLAR CORE')">下方快速预览</button>
       </div>
     </div>
 
@@ -387,7 +387,7 @@ footer {
       </div>
       <div class="actions">
         <a class="btn btn-primary" href="./musespark/IndexGLM.html" target="_blank" style="background:rgba(255,180,84,0.15);border-color:rgba(255,180,84,0.4);color:var(--amber)">新标签页打开 ↗</a>
-        <button class="btn btn-secondary" onclick="loadPreview('./musespark/IndexGLM.html', '标杆对照版 · HELIOS-7', this)">下方快速预览</button>
+        <button class="btn btn-secondary" onclick="loadPreview('./musespark/IndexGLM.html', '标杆对照版 · HELIOS-7')">下方快速预览</button>
       </div>
     </div>
   </div>
@@ -417,6 +417,7 @@ footer {
 function setPreview(url, title, tabEl, scrollToView) {
   var frame = document.getElementById('previewFrame');
   var titleEl = document.getElementById('previewTitle');
+  try { frame.contentWindow.stop(); } catch (e) {}
   frame.src = url;
   titleEl.textContent = '当前预览：' + title;
 
@@ -432,7 +433,7 @@ function setPreview(url, title, tabEl, scrollToView) {
   }
 }
 
-function loadPreview(url, title, triggerBtn) {
+function loadPreview(url, title) {
   setPreview(url, title, null, true);
 }
 

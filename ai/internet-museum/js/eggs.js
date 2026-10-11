@@ -56,14 +56,28 @@ export class EggsManager {
       });
     }
 
-    // 重置进度按钮
+    // 重置进度按钮：两步确认代替阻塞式 confirm
     const resetBtn = document.getElementById('btn-reset-progress');
     if (resetBtn) {
+      let armed = false;
+      let armTimer = 0;
+      const defaultLabel = resetBtn.textContent;
       resetBtn.addEventListener('click', () => {
-        if (window.confirm('确定要清除所有考古进度与彩蛋记录，重新开始探索吗？')) {
-          museumStore.resetAll();
-          window.location.reload();
+        if (!armed) {
+          armed = true;
+          resetBtn.textContent = '⚠️ 再次点击确认清除';
+          resetBtn.dataset.armed = '1';
+          clearTimeout(armTimer);
+          armTimer = setTimeout(() => {
+            armed = false;
+            delete resetBtn.dataset.armed;
+            resetBtn.textContent = defaultLabel;
+          }, 5000);
+          return;
         }
+        clearTimeout(armTimer);
+        museumStore.resetAll();
+        window.location.reload();
       });
     }
 

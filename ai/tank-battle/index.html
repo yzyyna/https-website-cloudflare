@@ -574,6 +574,8 @@
     .modal-box {
       position: relative;
       width: min(560px, 94vw);
+      max-height: 88vh;
+      overflow-y: auto;
       background:
         linear-gradient(180deg, rgba(17, 26, 46, 0.96), rgba(9, 14, 26, 0.97));
       border: 1px solid rgba(255, 255, 255, 0.13);
@@ -791,7 +793,7 @@
       transform: translateX(-50%) translateY(0) scale(1);
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 768px), (pointer: coarse) {
       #mobile-controls {
         display: block;
       }
@@ -1120,6 +1122,7 @@
       constructor() {
         this.ctx = null;
         this.enabled = true;
+        this.disabled = false;
         this.masterGain = null;
         this.lastShootTime = 0;
         this.lastHitTime = 0;
@@ -1127,16 +1130,23 @@
       }
 
       init() {
-        if (!this.ctx) {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (!AC) return;
-          this.ctx = new AC();
-          this.masterGain = this.ctx.createGain();
-          this.masterGain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-          this.masterGain.connect(this.ctx.destination);
-        }
-        if (this.ctx && this.ctx.state === 'suspended') {
-          this.ctx.resume().catch(() => {});
+        if (this.disabled || !this.enabled) return;
+        try {
+          if (!this.ctx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) { this.disabled = true; return; }
+            this.ctx = new AC();
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+            this.masterGain.connect(this.ctx.destination);
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+          }
+        } catch (err) {
+          console.error(err);
+          this.disabled = true;
+          this.ctx = null;
         }
       }
 
@@ -1149,9 +1159,9 @@
       }
 
       playShoot(type = 'normal') {
-        if (!this.enabled) return;
+        if (this.disabled || !this.enabled) return;
         this.init();
-        if (!this.ctx) return;
+        if (this.disabled || !this.ctx) return;
 
         const now = this.ctx.currentTime;
         if (now - this.lastShootTime < 0.055) return; // Audio throttle limit
@@ -1184,9 +1194,9 @@
       }
 
       playHit(isSteel = false) {
-        if (!this.enabled) return;
+        if (this.disabled || !this.enabled) return;
         this.init();
-        if (!this.ctx) return;
+        if (this.disabled || !this.ctx) return;
 
         const now = this.ctx.currentTime;
         if (now - this.lastHitTime < 0.04) return;
@@ -1209,9 +1219,9 @@
       }
 
       playExplosion(isBig = false) {
-        if (!this.enabled) return;
+        if (this.disabled || !this.enabled) return;
         this.init();
-        if (!this.ctx) return;
+        if (this.disabled || !this.ctx) return;
 
         const now = this.ctx.currentTime;
         if (now - this.lastExplodeTime < 0.08) return;
@@ -1244,9 +1254,9 @@
       }
 
       playPowerup() {
-        if (!this.enabled) return;
+        if (this.disabled || !this.enabled) return;
         this.init();
-        if (!this.ctx) return;
+        if (this.disabled || !this.ctx) return;
         const now = this.ctx.currentTime;
         [440, 554, 659, 880].forEach((freq, idx) => {
           const osc = this.ctx.createOscillator();
@@ -1264,9 +1274,9 @@
       }
 
       playVictory() {
-        if (!this.enabled) return;
+        if (this.disabled || !this.enabled) return;
         this.init();
-        if (!this.ctx) return;
+        if (this.disabled || !this.ctx) return;
         const now = this.ctx.currentTime;
         const notes = [523.25, 659.25, 783.99, 1046.50];
         notes.forEach((freq, idx) => {
@@ -1322,19 +1332,22 @@
         let centerx = center[0], centery = center[1], centerz = center[2];
 
         z0 = eyex - centerx; z1 = eyey - centery; z2 = eyez - centerz;
-        len = 1 / Math.hypot(z0, z1, z2);
+        len = Math.hypot(z0, z1, z2);
+        len = len > 1e-9 ? 1 / len : 0;
         z0 *= len; z1 *= len; z2 *= len;
 
         x0 = upy * z2 - upz * z1;
         x1 = upz * z0 - upx * z2;
         x2 = upx * z1 - upy * z0;
-        len = 1 / Math.hypot(x0, x1, x2);
+        len = Math.hypot(x0, x1, x2);
+        len = len > 1e-9 ? 1 / len : 0;
         x0 *= len; x1 *= len; x2 *= len;
 
         y0 = z1 * x2 - z2 * x1;
         y1 = z2 * x0 - z0 * x2;
         y2 = z0 * x1 - z1 * x0;
-        len = 1 / Math.hypot(y0, y1, y2);
+        len = Math.hypot(y0, y1, y2);
+        len = len > 1e-9 ? 1 / len : 0;
         y0 *= len; y1 *= len; y2 *= len;
 
         out[0] = x0; out[1] = y0; out[2] = z0; out[3] = 0;
@@ -1619,13 +1632,26 @@
         const gl = this.gl;
         const vs = this.compileShader(gl.VERTEX_SHADER, VS_SOURCE);
         const fs = this.compileShader(gl.FRAGMENT_SHADER, FS_SOURCE);
+        if (!vs || !fs) {
+          this.failed = true;
+          this.showWebGLFallback();
+          return;
+        }
         const program = gl.createProgram();
+        if (!program) {
+          this.failed = true;
+          this.showWebGLFallback();
+          return;
+        }
         gl.attachShader(program, vs);
         gl.attachShader(program, fs);
         gl.linkProgram(program);
 
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
           console.error(gl.getProgramInfoLog(program));
+          this.failed = true;
+          this.showWebGLFallback();
+          return;
         }
 
         this.program = program;
@@ -1649,10 +1675,16 @@
       compileShader(type, src) {
         const gl = this.gl;
         const s = gl.createShader(type);
+        if (!s) {
+          console.error('WebGL createShader failed');
+          return null;
+        }
         gl.shaderSource(s, src);
         gl.compileShader(s);
         if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
           console.error(gl.getShaderInfoLog(s));
+          gl.deleteShader(s);
+          return null;
         }
         return s;
       }
@@ -1708,12 +1740,6 @@
         gl.uniform3fv(this.uniforms.pointLightColor, this.pointLight.color);
         gl.uniform1f(this.uniforms.pointLightIntensity, this.pointLight.intensity);
 
-        // Point light decay (slower so explosions leave a visible afterglow)
-        if (this.pointLight.intensity > 0.01) {
-          this.pointLight.intensity *= 0.92;
-        } else {
-          this.pointLight.intensity = 0;
-        }
       }
 
       setCamera(eye, center, up, fov = 45) {
@@ -2282,6 +2308,7 @@
         window.addEventListener('blur', () => {
           this.isMouseDown = false;
           this.touchFiring = false;
+          this.touchFireId = null;
           this.keys = {};
           this.joystickVector.x = 0;
           this.joystickVector.z = 0;
@@ -2380,22 +2407,29 @@
         window.addEventListener('touchcancel', releaseJoystick, { passive: true });
 
         // Touch Fire Button (Long press auto-fire, isolated from joystick)
+        this.touchFireId = null;
         this.dom.btnTouchFire.addEventListener('touchstart', e => {
           e.preventDefault();
           e.stopPropagation();
+          if (this.touchFireId !== null) return;
+          this.touchFireId = e.changedTouches[0].identifier;
           this.touchFiring = true;
           this.tryPlayerShoot();
         }, { passive: false });
 
+        const releaseTouchFire = e => {
+          if (this.touchFireId === null) return;
+          if (![...e.changedTouches].some(t => t.identifier === this.touchFireId)) return;
+          this.touchFireId = null;
+          this.touchFiring = false;
+        };
         this.dom.btnTouchFire.addEventListener('touchend', e => {
           e.preventDefault();
           e.stopPropagation();
-          this.touchFiring = false;
+          releaseTouchFire(e);
         }, { passive: false });
 
-        this.dom.btnTouchFire.addEventListener('touchcancel', () => {
-          this.touchFiring = false;
-        });
+        this.dom.btnTouchFire.addEventListener('touchcancel', releaseTouchFire);
 
         this.dom.btnTouchView.addEventListener('touchstart', e => {
           e.preventDefault();
@@ -2437,6 +2471,7 @@
 
       startStage(idx) {
         if (this.scene.failed) return; // WebGL unavailable: block gameplay
+        if (!Number.isInteger(idx) || idx < 0) return;
         if (idx >= STAGE_CONFIGS.length) {
           this.triggerVictoryAll();
           return;
@@ -2521,8 +2556,12 @@
 
         // 3 Safe Spawn Points at Top (x=1.5, x=7.5, x=13.5, z=1.5)
         const spawnCols = [1.5, 7.5, 13.5];
+        for (let i = spawnCols.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [spawnCols[i], spawnCols[j]] = [spawnCols[j], spawnCols[i]];
+        }
         let safeSpawn = null;
-        for (let sx of spawnCols.sort(() => Math.random() - 0.5)) {
+        for (let sx of spawnCols) {
           // Check collision with walls and other tanks
           if (!this.checkTileCollision(sx, 1.5, 0.45) && !this.enemies.some(e => Math.hypot(e.x - sx, e.z - 1.5) < 1.6)) {
             safeSpawn = { x: sx, z: 1.5 };
@@ -2759,14 +2798,20 @@
             break;
           case 'bomb':
             this.enemies.forEach(e => {
-              if (!e.isBoss) {
+              if (!e.isBoss && !e.dead) {
                 e.dead = true;
                 this.kills++;
                 this.stageKills++;
+                this.score += e.type === 'heavy' ? 400 : 200;
                 this.spawnExplosion(e.x, 0.5, e.z, false);
+                if (e.isFlashing || Math.random() < 0.15) {
+                  const types = ['star', 'shield', 'bomb', 'clock', 'shovel', 'health', 'speed'];
+                  this.powerups.push(new PowerUp(e.x, e.z, types[Math.floor(Math.random() * types.length)]));
+                }
               }
             });
             this.showToast('💣 全屏战术核爆引爆！全歼普通敌军');
+            this.updateHUD();
             this.checkStageProgress();
             break;
           case 'clock':
@@ -2815,10 +2860,12 @@
 
       triggerStageClear() {
         this.state = 'CLEARED';
+        this.dom.bossContainer.classList.remove('active');
         sound.playVictory();
 
         const cfg = STAGE_CONFIGS[this.currentStageIdx];
         const stageScore = this.stageKills * 200 + 1000;
+        this.score += stageScore;
         const acc = this.shotsFired > 0 ? ((this.shotsHit / this.shotsFired) * 100).toFixed(1) : '100.0';
 
         this.dom.clearTitle.textContent = `${cfg.title} · 作战大捷！`;
@@ -2833,6 +2880,7 @@
 
       triggerVictoryAll() {
         this.state = 'VICTORY';
+        this.dom.bossContainer.classList.remove('active');
         sound.playVictory();
 
         this.dom.vicTotalKills.textContent = `${this.kills} 辆`;
@@ -2842,6 +2890,7 @@
 
       triggerGameOver(reason) {
         this.state = 'GAMEOVER';
+        this.dom.bossContainer.classList.remove('active');
         this.dom.gameoverReason.textContent = reason;
         this.dom.goStage.textContent = STAGE_CONFIGS[this.currentStageIdx].title;
         this.dom.goScore.textContent = `${this.score}`;
@@ -2857,7 +2906,7 @@
         if (this.player) {
           const hpPct = Math.max(0, (this.player.hp / this.player.maxHp) * 100);
           this.dom.hudHpBar.style.width = `${hpPct}%`;
-          this.dom.hudHpVal.textContent = `${this.player.hp}/${this.player.maxHp}`;
+          this.dom.hudHpVal.textContent = `${Math.max(0, this.player.hp)}/${this.player.maxHp}`;
           const rankNames = ['Lv.1 轻坦', 'Lv.2 突击坦', 'Lv.3 重炮战车', 'Lv.4 磁暴毁灭者'];
           this.dom.hudRank.textContent = rankNames[this.player.level - 1] || 'Lv.4 终极战车';
 
@@ -2894,14 +2943,24 @@
         const boss = this.enemies.find(e => e.isBoss && !e.dead);
         if (boss) {
           const bossHpPct = Math.max(0, (boss.hp / boss.maxHp) * 100);
+          this.dom.bossContainer.classList.add('active');
           this.dom.bossHpFill.style.width = `${bossHpPct}%`;
           this.dom.bossHpText.textContent = `${Math.ceil(bossHpPct)}%`;
+        } else {
+          this.dom.bossContainer.classList.remove('active');
         }
       }
 
       renderRadar() {
         const ctx = this.radarCtx;
+        const canvas = this.radarCanvas;
         const w = 110, h = 110;
+        const px = Math.round((canvas.clientWidth || w) * Math.min(window.devicePixelRatio || 1, 2));
+        if (canvas.width !== px) {
+          canvas.width = px;
+          canvas.height = px;
+        }
+        ctx.setTransform(px / w, 0, 0, px / w, 0, 0);
         ctx.clearRect(0, 0, w, h);
 
         const scale = w / MAP_SIZE;
@@ -3218,17 +3277,25 @@
         let lastTime = performance.now();
 
         const loop = (time) => {
-          const dt = Math.max(0, Math.min((time - lastTime) / 1000, 0.1));
-          lastTime = time;
+          try {
+            const dt = Math.max(0, Math.min((time - lastTime) / 1000, 0.1));
+            lastTime = time;
 
-          if (this.state === 'PLAYING') {
-            this.update(dt);
+            if (this.state === 'PLAYING') {
+              this.update(dt);
+            }
+
+            // Point light decay, frame-rate independent (slower so explosions leave a visible afterglow)
+            const light = this.scene.pointLight;
+            light.intensity = light.intensity > 0.01 ? light.intensity * Math.pow(0.92, dt * 60) : 0;
+
+            this.render(dt);
+            this.renderRadar();
+          } catch (err) {
+            console.error(err);
+          } finally {
+            requestAnimationFrame(loop);
           }
-
-          this.render();
-          this.renderRadar();
-
-          requestAnimationFrame(loop);
         };
         requestAnimationFrame(loop);
       }
@@ -3378,7 +3445,12 @@
                   e.dead = true;
                   this.kills++;
                   this.stageKills++;
+                  this.score += e.isBoss ? 5000 : (e.type === 'heavy' ? 400 : 200);
                   this.spawnExplosion(e.x, 0.5, e.z, e.isBoss);
+                  if (e.isFlashing || Math.random() < 0.15) {
+                    const types = ['star', 'shield', 'bomb', 'clock', 'shovel', 'health', 'speed'];
+                    this.powerups.push(new PowerUp(e.x, e.z, types[Math.floor(Math.random() * types.length)]));
+                  }
                   this.updateHUD();
                   this.checkStageProgress();
                 }
@@ -3497,7 +3569,7 @@
       /* ========================================================
          10. 3D Scene Rendering Pipeline
          ======================================================== */
-      render() {
+      render(dt = 0.016) {
         const sc = this.scene;
         if (sc.failed) return;
         sc.beginFrame();
@@ -3510,7 +3582,7 @@
         const sx = (Math.random() - 0.5) * this.shake * 0.4;
         const sy = (Math.random() - 0.5) * this.shake * 0.4;
         const sz = (Math.random() - 0.5) * this.shake * 0.4;
-        if (this.shake > 0.01) this.shake *= 0.88; else this.shake = 0;
+        if (this.shake > 0.01) this.shake *= Math.pow(0.88, dt * 60); else this.shake = 0;
 
         const isMobile = (this.scene.aspect || 1.0) < 1.05 || window.innerWidth <= 768;
 

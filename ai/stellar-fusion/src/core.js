@@ -1533,7 +1533,8 @@ class Chart {
     this.w = w; this.h = h;
   }
   draw(state, now) {
-    if (now - this.last < 130 && this.hoverX < 0) return;
+    // now 为秒（调用点传 this.tSec）；节流阈值同为秒
+    if (now - this.last < 0.13 && this.hoverX < 0) return;
     this.last = now;
     const g = this.g, c = this.cfg;
     const padL = c.padL || 42, padR = 8, padT = 8, padB = 14;
@@ -1796,8 +1797,10 @@ class Timeline {
     this.w = w; this.h = h;
   }
   draw(now) {
+    // lastDragT 为 performance.now() 毫秒戳，此行保持毫秒语义（1500ms）不动
     if (this.dragging && performance.now() - this.lastDragT > 1500) this.dragging = false;
-    if (now - this.last < 120 && !this.dragging) return;
+    // now 为秒（调用点传 this.tSec）；节流阈值同为秒
+    if (now - this.last < 0.12 && !this.dragging) return;
     this.last = now;
     const g = this.g, st = this.state, w = this.w, h = this.h;
     const data = st.getWindow('power', 60);

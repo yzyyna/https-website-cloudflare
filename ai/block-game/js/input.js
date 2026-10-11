@@ -26,6 +26,7 @@
     this.touchMove = { mf: 0, ms: 0 };
     this.touchJump = false;
     this.touchSprint = false;
+    this.touchDescend = false; /* 飞行下降按钮（按住=Shift语义） */
     this.moveTouchId = null;
     this.lookTouchId = null;
     this.lastLookX = 0;
@@ -224,6 +225,10 @@
     this.touchMove.mf = 0;
     this.touchMove.ms = 0;
     this.touchJump = false;
+    this.touchSprint = false;
+    this.touchDescend = false;
+    this.lastSpace = 0;
+    this.lastJumpTouch = 0;
     this.moveTouchId = null;
     this.lookTouchId = null;
     this._resetJoystickVisual();
@@ -262,6 +267,7 @@
           if (self.onRequestLock) self.onRequestLock();
           return;
         }
+        if (self.moveTouchId !== null) return;
         var touch = e.changedTouches[0];
         self.moveTouchId = touch.identifier;
         var rect = joyBase ? joyBase.getBoundingClientRect() : joyZone.getBoundingClientRect();
@@ -346,9 +352,11 @@
     function bindTouchBtn(id, onStart, onEnd) {
       var btn = document.getElementById(id);
       if (!btn) return;
+      var lastTouch = 0;
       btn.addEventListener('touchstart', function (e) {
         e.preventDefault();
         e.stopPropagation();
+        lastTouch = performance.now();
         MC.Sound.init();
         if (onStart) onStart();
       }, { passive: false });
@@ -361,6 +369,15 @@
         e.preventDefault();
         if (onEnd) onEnd();
       }, { passive: false });
+      /* click 兜底：桌面端切到触屏模式时无 touch 事件，用 click 复用同一 handler；
+         触屏后的合成 click 在 800ms 内直接忽略，避免一次按压触发两次；
+         onEnd 延迟 150ms，让 tick 至少能采样到一次按压（挖/放是按住语义） */
+      btn.addEventListener('click', function () {
+        if (performance.now() - lastTouch < 800) return;
+        MC.Sound.init();
+        if (onStart) onStart();
+        if (onEnd) setTimeout(onEnd, 150);
+      });
     }
 
     bindTouchBtn('btn-touch-jump', function () {
@@ -396,6 +413,42 @@
         self.touchSprint = !self.touchSprint;
         sprintBtn.classList.toggle('active', self.touchSprint);
       }, { passive: false });
+      /* click 兜底：桌面端强制触屏模式时鼠标可点（触屏合成 click 由 800ms 窗口去重） */
+      sprintBtn.addEventListener('click', function () {
+        self.touchSprint = !self.touchSprint;
+        sprintBtn.classList.toggle('active', self.touchSprint);
+      });
+    }
+
+    /* 飞行开关：触屏没有 F 键，之前是死按钮，补上绑定（含 click 兜底） */
+    var flyBtn = document.getElementById('btn-touch-fly');
+    if (flyBtn) {
+      var doToggleFly = function () {
+        if (self.onToggleFly) self.onToggleFly();
+      };
+      flyBtn.addEventListener('touchstart', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        doToggleFly();
+      }, { passive: false });
+      flyBtn.addEventListener('click', doToggleFly);
+    }
+
+    /* 飞行下降：按住下降（与 Shift 同语义），松开停止；飞行中才显示 */
+    var downBtn = document.getElementById('btn-touch-down');
+    if (downBtn) {
+      downBtn.addEventListener('touchstart', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        self.touchDescend = true;
+      }, { passive: false });
+      var endDescend = function () { self.touchDescend = false; };
+      downBtn.addEventListener('touchend', endDescend, { passive: true });
+      downBtn.addEventListener('touchcancel', endDescend, { passive: true });
+      downBtn.addEventListener('click', function () {
+        self.touchDescend = true;
+        setTimeout(endDescend, 200);
+      });
     }
 
     var pauseBtn = document.getElementById('btn-touch-pause');
@@ -435,7 +488,7 @@
       mf: totalMf,
       ms: totalMs,
       jump: !!k['Space'] || this.touchJump,
-      shift: !!k['ShiftLeft'] || !!k['ShiftRight'] || this.touchSprint,
+      shift: !!k['ShiftLeft'] || !!k['ShiftRight'] || this.touchSprint || this.touchDescend,
       ctrl: !!k['ControlLeft'] || !!k['ControlRight']
     };
   };

@@ -236,7 +236,7 @@ html{scroll-behavior:smooth}
         <div class="phantom" id="phantom"></div>
         <div class="content" id="content"></div>
       </div>
-      <div class="footer"><span id="footerInfo">-</span><span style="display:flex;gap:6px"><button class="btn small" id="btnScrollTop">Home 顶部</button><button class="btn small" id="btnScrollMid">滚动到 40000</button><button class="btn small" id="btnDisconnect">模拟断线</button><button class="btn small" id="btnReconnect">重连</button></span></div>
+      <div class="footer"><span id="footerInfo">-</span><span style="display:flex;gap:6px"><button class="btn small" id="btnScrollTop">Home 顶部</button><button class="btn small" id="btnScrollMid">滚动到一半</button><button class="btn small" id="btnDisconnect">模拟断线</button><button class="btn small" id="btnReconnect">重连</button></span></div>
     </div>
 
     <div class="alarm-panel">
@@ -277,17 +277,17 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const debounce=(fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
 const fmt=(n,d=1)=>Number(n).toFixed(d);
 const escapeHTML=(s)=>{if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')};
-const escapeCsvCell=(v)=>{if(v==null)return'""';const s=String(v);if(s.includes('"')||s.includes(',')||s.includes('\n')||s.includes('\r'))return '"'+s.replace(/"/g,'""')+'"';return s};
+const escapeCsvCell=(v)=>{if(v==null)return'""';let s=String(v);if(/^[=+\-@\t\r\n ]/.test(s)&&!/^[+-]?\d/.test(s.trimStart()))s="'"+s;if(s.includes('"')||s.includes(',')||s.includes('\n')||s.includes('\r'))return '"'+s.replace(/"/g,'""')+'"';return s};
 
 /* ========== Logger ========== */
 class Logger{constructor(){this.logs=[];this.debug=true} log(level,module,event,meta={}){const e={time:Date.now(),level,module,event,meta};this.logs.push(e);if(this.logs.length>500)this.logs.shift();if(this.debug && level!=='debug') console[level==='error'?'error':level==='warn'?'warn':'log'](`[${level}] ${module} ${event}`,meta)} debug(m,e,meta){this.log('debug',m,e,meta)} info(m,e,meta){this.log('info',m,e,meta)} warn(m,e,meta){this.log('warn',m,e,meta)} error(m,e,meta){this.log('error',m,e,meta)} recent(n=100){return this.logs.slice(-n)}}
 const logger=new Logger();
 
 /* ========== EventBus ========== */
-class EventBus{constructor(){this.map=new Map();this.count=0} on(e,fn){if(!this.map.has(e))this.map.set(e,new Set());this.map.get(e).add(fn);return ()=>this.off(e,fn)} once(e,fn){const w=(...a)=>{fn(...a);this.off(e,w)};return this.on(e,w)} off(e,fn){const s=this.map.get(e);if(s) s.delete(fn)} emit(e,...a){this.count++;const s=this.map.get(e);if(s) for(const fn of [...s]) try{fn(...a)}catch(err){logger.error('EventBus','emit error',{e,err})}}}
+class EventBus{constructor(){this.map=new Map();this.count=0} on(e,fn){if(!this.map.has(e))this.map.set(e,new Set());this.map.get(e).add(fn);return ()=>this.off(e,fn)} once(e,fn){const w=(...a)=>{try{fn(...a)}finally{this.off(e,w)}};return this.on(e,w)} off(e,fn){const s=this.map.get(e);if(s){s.delete(fn);if(s.size===0)this.map.delete(e)}} emit(e,...a){this.count++;const s=this.map.get(e);if(s) for(const fn of [...s]) try{fn(...a)}catch(err){logger.error('EventBus','emit error',{e,err})}}}
 
 /* ========== StorageManager ========== */
-class StorageManager{constructor(prefix='iot:'){this.p=prefix;this.q=[]} key(k){return this.p+k} get(k,def=null){try{const v=localStorage.getItem(this.key(k));return v?JSON.parse(v):def}catch(e){logger.warn('Storage','get fail',{k,e});return def}} set(k,v){try{localStorage.setItem(this.key(k),JSON.stringify(v))}catch(e){logger.error('Storage','quota or serialize',{k,e});if(e.name==='QuotaExceededError'){try{this.clear()}catch{}}} } remove(k){localStorage.removeItem(this.key(k))} clear(){for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith(this.p)) localStorage.removeItem(k)}} migrate(){const ver=this.get('version',0);if(ver<1){this.set('version',1)}} debouncedSet(k,v,ms=300){clearTimeout(this['_t_'+k]);this['_t_'+k]=setTimeout(()=>this.set(k,v),ms)}}
+class StorageManager{constructor(prefix='iot:'){this.p=prefix;this.q=[];this._pending={}} key(k){return this.p+k} get(k,def=null){try{const v=localStorage.getItem(this.key(k));return v?JSON.parse(v):def}catch(e){logger.warn('Storage','get fail',{k,e});return def}} set(k,v){try{localStorage.setItem(this.key(k),JSON.stringify(v));return true}catch(e){logger.error('Storage','quota or serialize',{k,e});return false} } remove(k){localStorage.removeItem(this.key(k))} clear(){for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith(this.p)) localStorage.removeItem(k)}} migrate(){const ver=this.get('version',0);if(ver<1){/* 返回值忽略：版本写入失败不影响运行 */this.set('version',1)}} debouncedSet(k,v,ms=300){this._pending[k]=v;clearTimeout(this['_t_'+k]);this['_t_'+k]=setTimeout(()=>{delete this._pending[k];/* 返回值忽略：防抖写入失败仅日志 */this.set(k,v)},ms)} flush(){for(const k of Object.keys(this._pending)){try{this.set(k,this._pending[k])}catch(e){}} this._pending={}; for(const k of Object.keys(this)){if(k.startsWith('_t_')){clearTimeout(this[k]);delete this[k]}}}}
 const storage=new StorageManager();
 
 /* ========== ErrorManager ========== */
@@ -299,10 +299,10 @@ function toast(msg,ms=2200){const el=$('#toast');el.textContent=msg;el.classList
 class Store{constructor(initial){this.state=initial;this.subs=new Set();this.updateCount=0} getState(){return this.state} setState(patch){this.state={...this.state,...patch};this.updateCount++;for(const fn of this.subs) fn(this.state)} subscribe(fn){this.subs.add(fn);return ()=>this.subs.delete(fn)} dispatch(action){if(typeof action==='function'){this.setState(action(this.state));}else if(action && action.type){if(action.type==='SET'){this.setState(action.payload)} else {logger.warn('Store','unknown action',{action})}}}}
 const defaultGroups=[
   {id:'g_root',name:'全部设备',parent:null,children:['g_east','g_south','g_north','g_off']},
-  {id:'g_east',name:'华东',parent:'g_root',children:['g_sh','g_hz','g_nj']},
-  {id:'g_sh',name:'上海',parent:'g_east',children:[]},{id:'g_hz',name:'杭州',parent:'g_east',children:[]},{id:'g_nj',name:'南京',parent:'g_east',children:[]},
-  {id:'g_south',name:'华南',parent:'g_root',children:['g_sz','g_gz','g_xm']},
-  {id:'g_sz',name:'深圳',parent:'g_south',children:[]},{id:'g_gz',name:'广州',parent:'g_south',children:[]},{id:'g_xm',name:'厦门',parent:'g_south',children:[]},
+  {id:'g_east',name:'华东',parent:'g_root',children:['g_sh','g_hz','g_nj','g_su']},
+  {id:'g_sh',name:'上海',parent:'g_east',children:[]},{id:'g_hz',name:'杭州',parent:'g_east',children:[]},{id:'g_nj',name:'南京',parent:'g_east',children:[]},{id:'g_su',name:'苏州',parent:'g_east',children:[]},
+  {id:'g_south',name:'华南',parent:'g_root',children:['g_sz','g_gz','g_xm','g_dg']},
+  {id:'g_sz',name:'深圳',parent:'g_south',children:[]},{id:'g_gz',name:'广州',parent:'g_south',children:[]},{id:'g_xm',name:'厦门',parent:'g_south',children:[]},{id:'g_dg',name:'东莞',parent:'g_south',children:[]},
   {id:'g_north',name:'华北',parent:'g_root',children:['g_bj','g_tj']},
   {id:'g_bj',name:'北京',parent:'g_north',children:[]},{id:'g_tj',name:'天津',parent:'g_north',children:[]},
   {id:'g_off',name:'离线设备',parent:'g_root',children:['g_net','g_maint']},
@@ -310,7 +310,7 @@ const defaultGroups=[
 ];
 const isStrArr=(a)=>Array.isArray(a)&&a.every(x=>typeof x==='string');
 function loadStored(k,def,ok){ const v=storage.get(k,null); return v!==null&&ok(v)?v:def }
-function loadGroups(){ return loadStored('groups',defaultGroups,g=>Array.isArray(g)&&g.length>0&&g.every(x=>x&&typeof x.id==='string'&&typeof x.name==='string'&&(x.parent==null||typeof x.parent==='string')&&Array.isArray(x.children)&&isStrArr(x.children))) }
+function loadGroups(){ return loadStored('groups',JSON.parse(JSON.stringify(defaultGroups)),g=>Array.isArray(g)&&g.length>0&&g.every(x=>x&&typeof x.id==='string'&&typeof x.name==='string'&&(x.parent==null||typeof x.parent==='string')&&Array.isArray(x.children)&&isStrArr(x.children))) }
 const bus=new EventBus();
 const errorManager=new ErrorManager(bus);
 const store=new Store({
@@ -332,7 +332,7 @@ function genDevices(n=50000){
     const dev={id,name,region,city,groupIds:[],status,cpu:Math.round(base.cpu),memory:30+Math.floor(Math.random()*60),temperature:Number(base.temp.toFixed(1)),power:Number(base.pow.toFixed(1)),voltage:220+Math.round((Math.random()-0.5)*10),current:Number((base.pow/220).toFixed(1)),latency:Math.round(base.lat),battery:Math.round(base.bat),network:randPick(['5G','4G','WiFi','有线']),lastUpdate:Date.now()-Math.floor(Math.random()*1e7),alarms:[],tags:Math.random()<0.2?[randPick(store.getState().tags)]:[],version:1,history:[],_seq:1};
     dev.groupIds.push(region==='华东'?'g_east':region==='华南'?'g_south':'g_north');
     // city group
-    const cg={上海:'g_sh',杭州:'g_hz',南京:'g_nj',深圳:'g_sz',广州:'g_gz',厦门:'g_xm',北京:'g_bj',天津:'g_tj',苏州:'g_sh',东莞:'g_sz'}[city]; if(cg) dev.groupIds.push(cg);
+    const cg={上海:'g_sh',杭州:'g_hz',南京:'g_nj',深圳:'g_sz',广州:'g_gz',厦门:'g_xm',北京:'g_bj',天津:'g_tj',苏州:'g_su',东莞:'g_dg'}[city]; if(cg) dev.groupIds.push(cg);
     if(status==='offline') dev.groupIds.push('g_net'); if(status==='maintenance') dev.groupIds.push('g_maint');
     arr[i]=dev; map.set(id,dev);
   }
@@ -347,10 +347,10 @@ class FilterEngine{
     const fn=(d)=>{
       const tests=[];
       if(filters.search){const s=filters.search.toLowerCase(); tests.push(d.id.toLowerCase().includes(s)||d.name.includes(filters.search)||d.region.includes(filters.search)||d.city.includes(filters.search))}
-      if(filters.nameOp && filters.nameVal){const v=filters.nameVal; const n=d.name; let ok=false; if(filters.nameOp==='contains') ok=n.includes(v); else if(filters.nameOp==='notContains') ok=!n.includes(v); else if(filters.nameOp==='equals') ok=n===v; else if(filters.nameOp==='starts') ok=n.startsWith(v); else if(filters.nameOp==='ends') ok=n.endsWith(v); tests.push(ok)}
-      if(filters.cpuOp && filters.cpuVal!==''){const c=Number(filters.cpuVal); const x=d.cpu; tests.push(filters.cpuOp==='>'?x>c:filters.cpuOp==='>='?x>=c:filters.cpuOp==='<'?x<c:filters.cpuOp==='<='?x<=c:x===c)}
-      if(filters.tempOp && filters.tempVal){if(filters.tempOp==='between'){const [a,b]=String(filters.tempVal).split('-').map(Number); tests.push(d.temperature>=a && d.temperature<=b)} else {const c=Number(filters.tempVal); tests.push(filters.tempOp==='>'?d.temperature>c:filters.tempOp==='>='?d.temperature>=c:filters.tempOp==='<'?d.temperature<c:d.temperature<=c)}}
-      if(filters.latOp && filters.latVal!==''){const c=Number(filters.latVal); tests.push(filters.latOp==='>'?d.latency>c:filters.latOp==='>='?d.latency>=c:filters.latOp==='<'?d.latency<c:d.latency<=c)}
+      if(filters.nameOp && filters.nameVal){const v=filters.nameVal; const n=d.name; let ok=false; if(filters.nameOp==='contains') ok=n.includes(v); else if(filters.nameOp==='notContains') ok=!n.includes(v); else if(filters.nameOp==='equals') ok=n===v; else if(filters.nameOp==='starts') ok=n.startsWith(v); else if(filters.nameOp==='ends') ok=n.endsWith(v); else ok=(n===v); tests.push(ok)}
+      if(filters.cpuOp && filters.cpuVal!==''){const c=Number(filters.cpuVal); if(!Number.isFinite(c)){ toast('CPU 筛选值非法，已忽略该条件'); } else {const x=d.cpu; tests.push(filters.cpuOp==='>'?x>c:filters.cpuOp==='>='?x>=c:filters.cpuOp==='<'?x<c:filters.cpuOp==='<='?x<=c:x===c)}}
+      if(filters.tempOp && filters.tempVal){if(filters.tempOp==='between'){const m=/^(.+)-(.+)$/.exec(String(filters.tempVal)); const a=m?Number(m[1]):NaN, b=m?Number(m[2]):NaN; tests.push(Number.isFinite(a)&&Number.isFinite(b)&&d.temperature>=a&&d.temperature<=b)} else {const c=Number(filters.tempVal); if(!Number.isFinite(c)){ toast('温度筛选值非法，已忽略该条件'); } else {tests.push(filters.tempOp==='>'?d.temperature>c:filters.tempOp==='>='?d.temperature>=c:filters.tempOp==='<'?d.temperature<c:filters.tempOp==='<='?d.temperature<=c:d.temperature===c)}}}
+      if(filters.latOp && filters.latVal!==''){const c=Number(filters.latVal); if(!Number.isFinite(c)){ toast('延迟筛选值非法，已忽略该条件'); } else {tests.push(filters.latOp==='>'?d.latency>c:filters.latOp==='>='?d.latency>=c:filters.latOp==='<'?d.latency<c:filters.latOp==='<='?d.latency<=c:d.latency===c)}}
       if(filters.status) tests.push(d.status===filters.status)
       if(filters.region && filters.region.length) tests.push(filters.region.includes(d.region))
       if(filters.groupId) tests.push(d.groupIds.includes(filters.groupId))
@@ -397,6 +397,10 @@ class VirtualList{
     this.renderCount=0;
     this.avgMs=0;
   }
+  scheduleRender(){
+    if(this.rafId) return;
+    this.rafId=requestAnimationFrame(()=>{ this.rafId=0; this.render(); });
+  }
   setData(data){
     this.data=data;
     const totalH=data.length*this.rowH;
@@ -406,11 +410,11 @@ class VirtualList{
       this.vp.scrollTop = maxScroll;
     }
     this.updateVisibleRange();
-    this.render();
+    this.scheduleRender();
   }
   onResize(){
     this.updateVisibleRange();
-    this.render();
+    this.scheduleRender();
   }
   updateVisibleRange(){
     const st=this.vp.scrollTop, vh=this.vp.clientHeight||500;
@@ -422,8 +426,7 @@ class VirtualList{
   }
   onScroll(){
     this.updateVisibleRange();
-    if(this.rafId) return;
-    this.rafId=requestAnimationFrame(()=>{ this.rafId=0; this.render(); });
+    this.scheduleRender();
   }
   scrollToIndex(idx){
     const safeIdx=clamp(idx,0,Math.max(0,this.data.length-1));
@@ -447,7 +450,7 @@ class VirtualList{
       row.className='row'+(sel.has(d.id)?' sel':'');
       row.dataset.id=d.id;
       row.draggable=true;
-      row.innerHTML=`<div><input type="checkbox" ${sel.has(d.id)?'checked':''}></div><div class="id">${escapeHTML(d.id)}</div><div>${escapeHTML(d.name)}</div><div>${d.cpu}%<div class="meter"><i style="width:${clamp(d.cpu,0,100)}%"></i></div></div><div>${fmt(d.temperature)}°C</div><div>${fmt(d.power)}W</div><div>${d.latency}ms</div><div>${d.battery}%</div><div><span class="tag">${escapeHTML(d.region)}</span> ${escapeHTML(d.city)}</div><div><span class="status ${escapeHTML(d.status)}">${escapeHTML(d.status)}</span></div>`;
+      row.innerHTML=`<div><input type="checkbox" ${sel.has(d.id)?'checked':''}></div><div class="id">${escapeHTML(d.id)}</div><div>${escapeHTML(d.name)}</div><div>${escapeHTML(String(d.cpu))}%<div class="meter"><i style="width:${clamp(Number(d.cpu)||0,0,100)}%"></i></div></div><div>${fmt(d.temperature)}°C</div><div>${fmt(d.power)}W</div><div>${escapeHTML(String(d.latency))}ms</div><div>${escapeHTML(String(d.battery))}%</div><div><span class="tag">${escapeHTML(d.region)}</span> ${escapeHTML(d.city)}</div><div><span class="status ${escapeHTML(d.status)}">${escapeHTML(d.status)}</span></div>`;
       row.addEventListener('click',(e)=>{ if(e.target.type==='checkbox'){toggleSelection(d.id,e)} else {handleRowClick(d.id,e)} });
       row.addEventListener('dragstart',(e)=>{e.dataTransfer.setData('text/plain',d.id);e.dataTransfer.effectAllowed='move'});
       frag.appendChild(row);
@@ -493,11 +496,11 @@ function handleRowClick(id,e){
 }
 
 /* ========== AlarmDeduplicator & AlarmManager ========== */
-class AlarmDeduplicator{constructor(){this.map=new Map()} key(deviceId,type){return deviceId+':'+type} canCreate(deviceId,type,now=Date.now()){const k=this.key(deviceId,type);const last=this.map.get(k); if(!last) return true; if(now-last.ts>5*60*1000) return true; if(last.resolved) return true; return false} mark(deviceId,type,now){this.map.set(this.key(deviceId,type),{ts:now,resolved:false})} resolve(deviceId,type){const k=this.key(deviceId,type);const v=this.map.get(k); if(v) v.resolved=true}}
-class AlarmManager{constructor(dedup){this.dedup=dedup} evaluate(device){
+class AlarmDeduplicator{constructor(){this.map=new Map()} key(deviceId,type){return deviceId+':'+type} canCreate(deviceId,type,now=Date.now()){const EXP=5*60*1000; for(const [k,v] of this.map){ if(now-v.ts>EXP) this.map.delete(k) } const last=this.map.get(this.key(deviceId,type)); return !last || now-last.ts>EXP} mark(deviceId,type,now=Date.now()){this.map.set(this.key(deviceId,type),{ts:now})}}
+class AlarmManager{constructor(dedup){this.dedup=dedup} evaluate(device){this.evaluateBatch([device])} evaluateBatch(devices){
   const rules=[{type:'temperature',level:'critical',check:d=>d.temperature>80,thr:80},{type:'cpu',level:'critical',check:d=>d.cpu>95,thr:95},{type:'latency',level:'warning',check:d=>d.latency>500,thr:500},{type:'battery',level:'warning',check:d=>d.battery<10,thr:10}];
-  const now=Date.now(); const alarms=store.getState().alarms; let changed=false;
-  for(const r of rules){const hit=r.check(device); const key=device.id+':'+r.type; if(hit){ if(this.dedup.canCreate(device.id,r.type,now)){ this.dedup.mark(device.id,r.type,now); const alarm={id:uid('ALM'),deviceId:device.id,type:r.type,level:r.level,value:device[r.type==='temperature'?'temperature':r.type],threshold:r.thr,timestamp:now,acknowledged:false}; alarms.unshift(alarm); bus.emit('alarm:new',alarm); changed=true; logger.warn('Alarm',`new ${r.type}`,{deviceId:device.id,value:alarm.value}) } } else { this.dedup.resolve(device.id,r.type); }}
+  const now=Date.now(); const alarms=store.getState().alarms.slice(); let changed=false;
+  for(const device of devices){ for(const r of rules){ if(!r.check(device)||!this.dedup.canCreate(device.id,r.type,now)) continue; this.dedup.mark(device.id,r.type,now); const alarm={id:uid('ALM'),deviceId:device.id,type:r.type,level:r.level,value:device[r.type==='temperature'?'temperature':r.type],threshold:r.thr,timestamp:now,acknowledged:false}; alarms.unshift(alarm); bus.emit('alarm:new',alarm); changed=true; logger.warn('Alarm',`new ${r.type}`,{deviceId:device.id,value:alarm.value}) } }
   if(changed){store.setState({alarms:alarms.slice(0,2000)}); renderAlarms()}
 }}
 const dedup=new AlarmDeduplicator(); const alarmManager=new AlarmManager(dedup);
@@ -509,8 +512,8 @@ class TaskQueue{
   start(){if(this.paused) return; const next=()=>{ if(this.paused) return; while(this.running<this.concurrency && this.queue.length){const t=this.queue.shift(); if(t.status==='canceled') continue; this.running++; t.status='running'; bus.emit('task:progress',t); this.exec(t).finally(()=>{this.running--; next(); if(this.running===0 && this.queue.length===0) bus.emit('task:completed')}) }};
     next();
   }
-  async exec(t){ try{ await t.run(); t.status='success'; }catch(e){ if(t.retryCount < (t.maxRetries||2)){ const delay=500*Math.pow(2,t.retryCount)+Math.random()*200; t.retryCount++; t.status='retry'; const gen=this.gen; setTimeout(()=>{ if(gen!==this.gen){ t.status='canceled'; return; } this.queue.unshift(t); this.start(); },delay); } else { t.status='failed'; t.error=e.message||String(e)} } bus.emit('task:progress',t); updateBatchUI(); }
-  pause(){this.paused=true} resume(){this.paused=false;this.start()} cancel(){this.gen++; for(const t of this.queue) t.status='canceled'; this.queue=[]; bus.emit('task:completed')} retryFailed(tasks){for(const t of tasks){ if(t.status==='failed'){ t.status='pending'; t.error=null; this.add(t)}} this.start()}
+  async exec(t){ try{ await t.run(); t.status='success'; }catch(e){ if(t.canceled){ t.status='canceled'; } else if(t.retryCount < (t.maxRetries??2)){ const delay=500*Math.pow(2,t.retryCount)+Math.random()*200; t.retryCount++; t.status='retry'; const gen=this.gen; setTimeout(()=>{ if(gen!==this.gen||t.canceled){ t.status='canceled'; return; } this.queue.unshift(t); this.start(); },delay); } else { t.status='failed'; t.error=e.message||String(e)} } bus.emit('task:progress',t); updateBatchUI(); }
+  pause(){this.paused=true} resume(){this.paused=false;this.start()} cancel(){this.gen++; for(const t of this.queue) t.status='canceled'; this.queue=[]; this.running=0; bus.emit('task:completed')} retryFailed(tasks){for(const t of tasks){ if(t.status==='failed'){ t.status='pending'; t.error=null; this.add(t)}} this.start()}
 }
 const taskQueue=new TaskQueue(10);
 
@@ -521,8 +524,8 @@ const history=new HistoryManager();
 /* ========== FakeWebSocket ========== */
 class FakeWebSocket{
   constructor(bus,opts={}){this.bus=bus;this.timer=null;this.connected=true;this.msgCount=0;this.opts=opts;this.seq=0}
-  connect(){this.connected=true; bus.emit('connection:restored'); logger.info('FakeWS','connected',{}); this.start()}
-  disconnect(){this.connected=false; clearInterval(this.timer); bus.emit('connection:lost'); logger.warn('FakeWS','disconnected',{})}
+  connect(){clearTimeout(this.reconnectTimer); this.connected=true; bus.emit('connection:restored'); logger.info('FakeWS','connected',{}); this.start()}
+  disconnect(){this.connected=false; clearInterval(this.timer); clearTimeout(this.reconnectTimer); bus.emit('connection:lost'); logger.warn('FakeWS','disconnected',{})}
   start(){clearInterval(this.timer); this.timer=setInterval(()=>{ if(!store.getState().ui.paused && this.connected) this.tick(); }, 320); // ~3 ticks/sec, each batch 30-80 => 100-240/sec
   }
   tick(){
@@ -567,21 +570,21 @@ class FakeWebSocket{
       bus.emit('ws:batch',toSend.length);
     },delay);
     // occasional disconnect
-    if(Math.random()<0.008){ this.disconnect(); setTimeout(()=>this.connect(), 1200+Math.random()*1200); }
+    if(Math.random()<0.008){ this.disconnect(); this.reconnectTimer=setTimeout(()=>this.connect(), 1200+Math.random()*1200); }
   }
-  destroy(){clearInterval(this.timer)}
+  destroy(){clearInterval(this.timer); clearTimeout(this.reconnectTimer)}
 }
 const fakeWs=new FakeWebSocket(bus);
 
 /* ========== UpdateScheduler (batch via rAF) ========== */
-let pendingUpdates=new Map(); let rafId=null; let upsCounter=0; let lastUpsTs=Date.now();
+let pendingUpdates=new Map(); let rafId=null; let upsCounter=0;
 function enqueueUpdate(dev){ pendingUpdates.set(dev.id,dev); if(!rafId) rafId=requestAnimationFrame(flushUpdates)}
 function flushUpdates(){
-  rafId=null; const batch=[...pendingUpdates.values()]; pendingUpdates.clear();
+  rafId=null; const alive=store.getState().deviceMap; const batch=[...pendingUpdates.values()].filter(d=>alive.has(d.id)); pendingUpdates.clear();
   if(!batch.length) return;
   upsCounter+=batch.length;
-  // apply alarm dedup
-  for(const d of batch) alarmManager.evaluate(d);
+  // 合并一次提交：循环只收集，最后一次 setState + renderAlarms（见 evaluateBatch）
+  alarmManager.evaluateBatch(batch);
   // smart refresh
   scheduleRefresh(batch);
   // update header stats
@@ -631,7 +634,7 @@ function recompute(){
   const t0=performance.now();
   const devices=store.getState().devices;
   const filters=getActiveFilters(); const sorting=getSorting();
-  // persist
+  // persist (返回值忽略：筛选/排序持久化失败不影响本次渲染)
   storage.debouncedSet('filters',filters); storage.debouncedSet('sorting',sorting);
   let res=filterEngine.filter(devices,filters);
   if(filters.search){ // use search engine for large set optimization (already filtered but keep cache)
@@ -691,15 +694,15 @@ function renderDrawer(id, preserveScroll=false){
 }
 function buildDrawer(d){
   const body=$('#drawerBody');
-  body.innerHTML=`<div class="kv"><b>ID</b><span id="dwDevId" data-id="${escapeHTML(d.id)}">${escapeHTML(d.id)}</span><b>名称</b><span id="dwName">${escapeHTML(d.name)}</span><b>区域</b><span>${escapeHTML(d.region)} / ${escapeHTML(d.city)}</span><b>状态</b><span id="dwStatus"><span class="status ${escapeHTML(d.status)}">${escapeHTML(d.status)}</span></span><b>网络</b><span>${escapeHTML(d.network)}</span><b>版本</b><span id="dwVersion">${d.version} · seq ${d._seq}</span><b>更新</b><span id="dwLastUpdate">${new Date(d.lastUpdate).toLocaleString()}</span></div>
-  <div class="grid2"><div class="pill">CPU <b id="dwCpu">${d.cpu}%</b></div><div class="pill">内存 <b>${d.memory}%</b></div><div class="pill">温度 <b id="dwTemp">${fmt(d.temperature)}°C</b></div><div class="pill">功率 <b id="dwPower">${fmt(d.power)}W</b></div><div class="pill">电压 <b>${d.voltage}V</b></div><div class="pill">电流 <b>${d.current}A</b></div><div class="pill">延迟 <b id="dwLat">${d.latency}ms</b></div><div class="pill">电量 <b id="dwBat">${d.battery}%</b></div></div>
+  body.innerHTML=`<div class="kv"><b>ID</b><span id="dwDevId" data-id="${escapeHTML(d.id)}">${escapeHTML(d.id)}</span><b>名称</b><span id="dwName">${escapeHTML(d.name)}</span><b>区域</b><span>${escapeHTML(d.region)} / ${escapeHTML(d.city)}</span><b>状态</b><span id="dwStatus"><span class="status ${escapeHTML(d.status)}">${escapeHTML(d.status)}</span></span><b>网络</b><span>${escapeHTML(d.network)}</span><b>版本</b><span id="dwVersion">${escapeHTML(d.version)} · seq ${escapeHTML(d._seq)}</span><b>更新</b><span id="dwLastUpdate">${new Date(d.lastUpdate).toLocaleString()}</span></div>
+  <div class="grid2"><div class="pill">CPU <b id="dwCpu">${escapeHTML(d.cpu)}%</b></div><div class="pill">内存 <b>${escapeHTML(d.memory)}%</b></div><div class="pill">温度 <b id="dwTemp">${fmt(d.temperature)}°C</b></div><div class="pill">功率 <b id="dwPower">${fmt(d.power)}W</b></div><div class="pill">电压 <b>${escapeHTML(d.voltage)}V</b></div><div class="pill">电流 <b>${escapeHTML(d.current)}A</b></div><div class="pill">延迟 <b id="dwLat">${escapeHTML(d.latency)}ms</b></div><div class="pill">电量 <b id="dwBat">${escapeHTML(d.battery)}%</b></div></div>
   <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn small" id="btnMoveToMaint">移至维护组 (乐观更新)</button><button class="btn small" id="btnAddTagToDev">添加标签</button><button class="btn small" id="btnDelDev">删除设备</button><button class="btn small" id="btnFetchDetail">模拟 fetchDetail (竞态)</button></div>
   <div id="fetchState" style="font-size:12px;color:var(--muted)"></div>
   <div class="charts"><div class="chart-wrap"><b style="font-size:12px">CPU</b><canvas id="cCpu"></canvas><div class="chart-tooltip" id="tipCpu"></div></div><div class="chart-wrap"><b style="font-size:12px">温度</b><canvas id="cTemp"></canvas><div class="chart-tooltip" id="tipTemp"></div></div><div class="chart-wrap"><b style="font-size:12px">功率</b><canvas id="cPower"></canvas><div class="chart-tooltip" id="tipPower"></div></div><div class="chart-wrap"><b style="font-size:12px">延迟</b><canvas id="cLat"></canvas><div class="chart-tooltip" id="tipLat"></div></div></div>
   <div><b style="font-size:12px">历史告警</b><div id="dwAlarmList" style="font-size:12px;color:var(--muted)">${store.getState().alarms.filter(a=>a.deviceId===d.id).slice(0,5).map(a=>`· ${escapeHTML(a.type)} ${escapeHTML(a.level)} ${new Date(a.timestamp).toLocaleTimeString()}`).join('<br>')||'无'}</div></div>
   `;
   $('#btnMoveToMaint').onclick=()=>optimisticMove(d.id);
-  $('#btnAddTagToDev').onclick=()=>{const t=prompt('标签名'); if(t){ const cmd={execute(){d.tags=[...new Set([...d.tags,t])]; store.setState({}); recompute(); renderDrawer(d.id,true)}, undo(){d.tags=d.tags.filter(x=>x!==t); store.setState({}); recompute();}}; history.push(cmd); storage.debouncedSet('devices_patch',1)} };
+  $('#btnAddTagToDev').onclick=()=>{const t=prompt('标签名'); if(t){ const cmd={execute(){d.tags=[...new Set([...d.tags,t])]; recompute(); renderDrawer(d.id,true)}, undo(){d.tags=d.tags.filter(x=>x!==t); recompute(); renderDrawer(d.id,true)}}; history.push(cmd); /* 死键 devices_patch 已删除：标签变更直接重算渲染，不再写补丁标记 */} };
   $('#btnDelDev').onclick=()=>deleteDevice(d.id);
   let reqId=0; let abort=null;
   $('#btnFetchDetail').onclick=()=>{
@@ -747,7 +750,7 @@ function initCanvasTooltips(){
   });
 }
 let currentDrawerId=null;
-function openDrawer(id){ currentDrawerId=id; $('#drawer').classList.add('open'); renderDrawer(id); bus.emit('device:selected',id); storage.debouncedSet('selectedDevice',id)}
+function openDrawer(id){ currentDrawerId=id; $('#drawer').classList.add('open'); renderDrawer(id); bus.emit('device:selected',id) /* 死键 selectedDevice 已删除：选中态仅内存维护，不再持久化，避免无读取的死键写入 */}
 function closeDrawer(){ $('#drawer').classList.remove('open'); currentDrawerId=null; bus.emit('device:closed')}
 
 /* ========== Canvas Chart ========== */
@@ -780,8 +783,8 @@ function optimisticMove(deviceId){
   const prev=[...dev.groupIds]; const next=[...new Set([...prev,'g_maint'])];
   // optimistic
   dev.groupIds=next; dev.status='maintenance'; recompute(); renderDrawer(deviceId,true);
-  const cmd={execute(){}, undo(){dev.groupIds=prev; dev.status='online'; recompute(); renderDrawer(deviceId,true)}};
-  history.push({execute(){},undo:cmd.undo});
+  const cmd={execute(){/* redo 不支持：乐观更新已直接生效，execute 留空占位 */}, undo(){dev.groupIds=prev; dev.status='online'; recompute(); renderDrawer(deviceId,true)}};
+  history.push({execute(){/* redo 不支持：乐观更新已直接生效，execute 留空占位 */},undo:cmd.undo});
   // simulate server
   const ok=Math.random()>0.25;
   setTimeout(()=>{ if(ok){ toast('已移动到维护组'); logger.info('Optimistic','move success',{deviceId})} else { cmd.undo(); toast('移动失败，已回滚'); logger.error('Optimistic','move failed rollback',{deviceId}) } }, 600+Math.random()*600);
@@ -821,11 +824,15 @@ function runBatch(type){
     batchGroup = batchGroup.trim() || 'g_maint';
   }
   const count=Math.min(ids.length, 1200); // cap for demo; if 50000 selected would freeze
-  const targets=ids.slice(0,count); batchTasks=[]; taskQueue.cancel();
+  if(ids.length>count) toast(`已选择 ${ids.length} 台，仅处理前 ${count} 台`);
+  const targets=ids.slice(0,count); batchTasks.forEach(t=>t.canceled=true); batchTasks=[]; taskQueue.cancel();
+  // batchGroup 校验：gid 必须存在才允许进 groupIds
+  if(type==='move'){ const groups=store.getState().groups; if(!groups.some(g=>g.id===batchGroup)){ toast('目标分组不存在：'+batchGroup); return; } }
   for(const id of targets){
     const t={id:uid('b'),deviceId:id,type, status:'pending', maxRetries:2, priority:type==='reboot'?1:0, run:()=>new Promise((res,rej)=>{
       const delay=200+Math.random()*800;
       setTimeout(()=>{
+        if(t.canceled) return rej(new Error('canceled'));
         if(Math.random()<0.12) return rej(new Error('random failure'));
         const d=store.getState().deviceMap.get(id); if(!d) return rej(new Error('gone'));
         if(type==='reboot'){ d.status='online'; d.cpu=10+Math.floor(Math.random()*30); }
@@ -840,8 +847,8 @@ function runBatch(type){
   }
   taskQueue.start(); updateBatchUI();
   // optimistic history entry
-  const snapTargets=targets.map(id=>{const d=store.getState().deviceMap.get(id); return {id,groupIds:[...d.groupIds],status:d.status,tags:[...d.tags]}});
-  history.push({execute(){},undo(){ snapTargets.forEach(s=>{const d=store.getState().deviceMap.get(s.id); if(d){d.groupIds=s.groupIds; d.status=s.status; d.tags=s.tags}}); recompute();}});
+  const snapTargets=targets.map(id=>{const d=store.getState().deviceMap.get(id); return {id,groupIds:[...d.groupIds],status:d.status,tags:[...d.tags],cpu:d.cpu,alarms:store.getState().alarms.filter(a=>a.deviceId===id).map(a=>({...a}))}});
+  history.push({execute(){/* redo 不支持：批量变更已直接生效，execute 留空占位 */},undo(){ snapTargets.forEach(s=>{const d=store.getState().deviceMap.get(s.id); if(d){d.groupIds=s.groupIds; d.status=s.status; d.tags=s.tags; d.cpu=s.cpu}}); const cur=store.getState().alarms.filter(a=>!snapTargets.some(s=>s.id===a.deviceId)); store.setState({alarms:[...snapTargets.flatMap(s=>s.alarms),...cur]}); recompute(); renderAlarms();}});
 }
 
 /* ========== Init ========== */
@@ -867,6 +874,7 @@ function init(){
   setInterval(()=>{ updateHeader(); },1000);
   // debounced search
   $('#searchInput').addEventListener('input', debounce(()=>recompute(),250));
+  /* 返回值忽略：版本迁移写入失败不影响运行 */
   storage.migrate();
 }
 
@@ -896,6 +904,7 @@ $('#groupTree').onclick=(e)=>{
   store.setState({selectedGroup:gid});
   renderGroups();
   recompute();
+  /* 返回值忽略：分组选择持久化失败不影响本次切换 */
   storage.debouncedSet('selectedGroup',gid);
 };
 $('#groupTree').addEventListener('dragover',e=>{e.preventDefault(); const n=e.target.closest('.node'); if(n) n.style.outline='2px dashed var(--primary)'});
@@ -920,7 +929,7 @@ $('#groupTree').addEventListener('dragstart',e=>{const n=e.target.closest('.node
 
 $('#btnAddGroup').onclick=()=>{
   const name=$('#newGroupName').value.trim(); if(!name) return toast('请输入分组名'); const id='g_'+uid(); const groups=store.getState().groups; const parentId=store.getState().selectedGroup||'g_root';
-  const cmd={execute(){ groups.push({id,name,parent:parentId,children:[]}); const p=groups.find(g=>g.id===parentId); if(p) p.children.push(id); store.setState({groups:[...groups]}); renderGroups(); storage.debouncedSet('groups',groups)}, undo(){ const idx=groups.findIndex(g=>g.id===id); if(idx>=0) groups.splice(idx,1); const p=groups.find(g=>g.id===parentId); if(p) p.children=p.children.filter(x=>x!==id); store.setState({groups:[...groups]}); renderGroups();}};
+  const cmd={execute(){ groups.push({id,name,parent:parentId,children:[]}); const p=groups.find(g=>g.id===parentId); if(p) p.children.push(id); store.setState({groups:[...groups]}); renderGroups(); /* 返回值忽略：分组持久化失败不影响本次创建 */ storage.debouncedSet('groups',groups)}, undo(){ const idx=groups.findIndex(g=>g.id===id); if(idx>=0) groups.splice(idx,1); const p=groups.find(g=>g.id===parentId); if(p) p.children=p.children.filter(x=>x!==id); store.setState({groups:[...groups]}); renderGroups();}};
   history.push(cmd); $('#newGroupName').value=''; toast('已创建分组'); logger.info('Group','create',{name})};
 $('#btnRenameGroup').onclick=()=>{
   const gid=store.getState().selectedGroup; if(!gid || gid==='g_root') return toast('请选择分组'); const g=store.getState().groups.find(x=>x.id===gid); const name=prompt('新名称',g.name); if(!name) return; const prev=g.name; history.push({execute(){g.name=name; renderGroups()},undo(){g.name=prev; renderGroups()}});
@@ -935,20 +944,21 @@ $('#btnAddTag').onclick=()=>{
   const v=$('#newTag').value.trim(); if(!v) return; const tags=store.getState().tags; if(tags.includes(v)) return toast('已存在'); history.push({execute(){tags.push(v); store.setState({tags:[...tags]}); renderGroups()},undo(){store.setState({tags:tags.filter(x=>x!==v)}); renderGroups()}}); $('#newTag').value='';
 };
 $$('[data-batch]').forEach(b=>b.onclick=()=>runBatch(b.dataset.batch));
-$('#btnCancelTask').onclick=()=>{taskQueue.cancel(); batchTasks.forEach(t=>t.status='canceled'); updateBatchUI(); toast('已取消')};
+$('#btnCancelTask').onclick=()=>{taskQueue.cancel(); batchTasks.forEach(t=>{t.status='canceled'; t.canceled=true}); updateBatchUI(); toast('已取消')};
 $('#btnRetryTask').onclick=()=>{
   const failed=batchTasks.filter(t=>t.status==='failed');
   if(!failed.length) return toast('无失败任务');
   failed.forEach(t=>{
     t.status='pending';
     t.retryCount=0;
+    t.canceled=false;
     t.error=null;
     taskQueue.add(t);
   });
   taskQueue.start();
   toast('已重试失败任务');
 };
-$('#btnAckAll').onclick=()=>{const s=store.getState().alarms; s.forEach(a=>a.acknowledged=true); store.setState({alarms:[...s]}); renderAlarms(); history.push({execute(){},undo(){s.forEach(a=>a.acknowledged=false); renderAlarms()}})};
+$('#btnAckAll').onclick=()=>{const s=store.getState().alarms; const prevAcks=s.map(a=>a.acknowledged); /* history.push 内部已执行 execute，此处不再手动执行，避免双执行 */ history.push({execute(){s.forEach(a=>a.acknowledged=true); store.setState({alarms:[...s]}); renderAlarms()},undo(){s.forEach((a,i)=>a.acknowledged=prevAcks[i]); store.setState({alarms:[...s]}); renderAlarms()}});};
 $('#btnClearAlarm').onclick=()=>{const s=store.getState().alarms.filter(a=>!a.acknowledged); store.setState({alarms:s}); renderAlarms()};
 $('#alarmList').onclick=(e)=>{
   const devLink=e.target.closest('[data-dev]');
@@ -971,17 +981,15 @@ $('#alarmList').onclick=(e)=>{
     const a=store.getState().alarms.find(x=>x.id===id);
     if(a){
       const prev=a.acknowledged;
+      // history.push 内部已执行 execute，此处不再手动执行，避免双执行
       history.push({execute(){a.acknowledged=true; renderAlarms()},undo(){a.acknowledged=prev; renderAlarms()}});
-      a.acknowledged=true;
-      renderAlarms();
     }
   }
   if(del){
     const id=del.dataset.del;
     const prev=[...store.getState().alarms];
+    // history.push 内部已执行 execute，此处不再手动执行，避免双执行
     history.push({execute(){store.setState({alarms:store.getState().alarms.filter(x=>x.id!==id)});renderAlarms()},undo(){store.setState({alarms:prev});renderAlarms()}});
-    store.setState({alarms:store.getState().alarms.filter(x=>x.id!==id)});
-    renderAlarms();
   }
 };
 $('#alarmLevel').onchange=renderAlarms;
@@ -989,7 +997,7 @@ $('#alarmLevel').onchange=renderAlarms;
 $('#btnPause').onclick=()=>{const paused=!store.getState().ui.paused; store.setState({ui:{...store.getState().ui,paused}}); $('#btnPause').textContent=paused?'恢复实时':'暂停实时'; bus.emit(paused?'connection:lost':'connection:restored'); logger.info('WS',paused?'paused':'resumed',{})};
 $('#btnDisconnect').onclick=()=>{fakeWs.disconnect(); store.setState({ui:{...store.getState().ui,connection:'disconnected'}}); updateHeader()};
 $('#btnReconnect').onclick=()=>{fakeWs.connect(); store.setState({ui:{...store.getState().ui,connection:'connected'}}); updateHeader()};
-$('#btnTheme').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme'); const nxt=cur==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',nxt); store.setState({ui:{...store.getState().ui,theme:nxt}}); storage.set('theme',nxt); $('#btnTheme').textContent=nxt==='dark'?'☀️ 浅色':'🌙 深色'};
+$('#btnTheme').onclick=()=>{const cur=document.documentElement.getAttribute('data-theme'); const nxt=cur==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',nxt); store.setState({ui:{...store.getState().ui,theme:nxt}}); /* 返回值忽略：主题持久化失败不影响本次切换 */ storage.set('theme',nxt); $('#btnTheme').textContent=nxt==='dark'?'☀️ 浅色':'🌙 深色'};
 $('#btnDebug').onclick=()=>$('#debugPanel').classList.toggle('open');
 $('#btnLogs').onclick=()=>{$('#logModal').classList.add('open'); const el=$('#logList'); el.innerHTML=logger.recent(500).map(l=>`<div>[${new Date(l.time).toLocaleTimeString()}] <b>${escapeHTML(l.level)}</b> ${escapeHTML(l.module)} ${escapeHTML(l.event)} <small>${escapeHTML(JSON.stringify(l.meta).slice(0,120))}</small></div>`).join('')};
 $('#btnCloseLog').onclick=()=>$('#logModal').classList.remove('open');
@@ -1010,29 +1018,34 @@ $('#cmdModal').onclick=(e)=>{if(e.target.id==='cmdModal') e.currentTarget.classL
 // import/export
 function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 $('#btnExportCsv').onclick=()=>{
-  const rows=filteredSorted; if(!rows.length) return toast('无数据可导出'); const header=['id','name','region','city','status','cpu','temperature','power','latency','battery','version']; const csv=[header.join(',')].concat(rows.slice(0,10000).map(d=> header.map(k=> escapeCsvCell(d[k]??'')).join(','))).join('\n'); download('devices.csv',csv,'text/csv'); logger.info('Export','csv',{count:rows.length})
+  const rows=filteredSorted; if(!rows.length) return toast('无数据可导出'); const header=['id','name','region','city','status','cpu','temperature','power','latency','battery','version']; const limited=rows.slice(0,10000); if(rows.length>limited.length) toast(`数据 ${rows.length} 条，仅导出前 ${limited.length} 条`); const csv='\ufeff'+[header.join(',')].concat(limited.map(d=> header.map(k=> escapeCsvCell(d[k]??'')).join(','))).join('\n'); download('devices.csv',csv,'text/csv;charset=utf-8'); logger.info('Export','csv',{count:limited.length,total:rows.length})
 };
 $('#btnExportJson').onclick=()=>{
-  const data=filteredSorted.slice(0,10000); download('devices.json',JSON.stringify(data,null,2),'application/json'); logger.info('Export','json',{count:data.length})
+  const rows=filteredSorted; const data=rows.slice(0,10000); if(rows.length>data.length) toast(`数据 ${rows.length} 条，仅导出前 ${data.length} 条`); download('devices.json',JSON.stringify(data,null,2),'application/json'); logger.info('Export','json',{count:data.length,total:rows.length})
 };
 $('#importFile').onchange=async (e)=>{
   const file=e.target.files[0]; if(!file) return; try{ const text=await file.text(); const json=JSON.parse(text); // parse
     if(!Array.isArray(json)) throw new Error('JSON 必须是数组');
-    const errors=[]; const seen=new Set(); const normalized=[];
+    const errors=[]; const seen=new Set(); const normalized=[]; const skipped={count:0}; const str=(v,fallback)=>typeof v==='string'&&v.trim()?v:fallback;
+    const num=(v,fallback=0)=>{const n=Number(v); return Number.isFinite(n)?n:fallback};
+    const optNum=(v,fallback)=>{ if(v==null||v==='') return fallback; const n=Number(v); return Number.isFinite(n)?n:fallback };
+    const STATUS_OK=new Set(['online','offline','maintenance','alarm']);
     json.forEach((d,i)=>{
-      if(!d||typeof d!=='object'){ errors.push(`行 ${i}: 非对象记录`); return; }
-      if(!d.id || typeof d.id!=='string' || !/^DEV-\d{6}$/.test(d.id)) errors.push(`行 ${i}: 非法 id ${d.id}`);
-      else if(seen.has(d.id)) errors.push(`行 ${i}: 重复 id ${d.id}`);
-      else if(typeof d.temperature!=='number' && d.temperature!==undefined) errors.push(`行 ${i}: temperature 类型错误`);
-      else { seen.add(d.id); normalized.push({id:d.id,name:d.name||d.id,region:d.region||'华东',city:d.city||'上海',status:d.status||'online',cpu:Number(d.cpu)||0,temperature:Number(d.temperature)||0,power:Number(d.power)||0,latency:Number(d.latency)||0,battery:Number(d.battery)||0,voltage:220,current:1,groupIds:[],tags:[],version:1,lastUpdate:Date.now(),history:[]})}
+      if(!d||typeof d!=='object'){ errors.push(`行 ${i}: 非对象记录`); skipped.count++; return; }
+      if(!d.id || typeof d.id!=='string' || !/^DEV-\d{6}$/.test(d.id)){ errors.push(`行 ${i}: 非法 id ${d.id}`); skipped.count++; return; }
+      else if(seen.has(d.id)){ errors.push(`行 ${i}: 重复 id ${d.id}`); skipped.count++; return; }
+      else if(typeof d.temperature!=='number' && d.temperature!==undefined){ errors.push(`行 ${i}: temperature 类型错误`); skipped.count++; return; }
+      else { seen.add(d.id); normalized.push({id:d.id,name:str(d.name,d.id),region:str(d.region,'华东'),city:str(d.city,'上海'),status:STATUS_OK.has(d.status)?d.status:'online',cpu:num(d.cpu,0),temperature:num(d.temperature,0),power:num(d.power,0),latency:num(d.latency,0),battery:num(d.battery,0),voltage:optNum(d.voltage,220),current:optNum(d.current,1),groupIds:[],tags:[],version:1,lastUpdate:Date.now(),history:[]})}
     });
     // preview
     $('#importModal').classList.add('open'); $('#importBody').innerHTML=`<div style="font-size:12px">解析: ${json.length} 条 · 有效 ${normalized.length} 条 · 错误 ${errors.length} 条</div><div style="max-height:240px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:8px;margin-top:8px;font-family:monospace;font-size:12px">${errors.slice(0,20).map(e=>`<div style="color:var(--danger)">${escapeHTML(e)}</div>`).join('')||'<div style="color:var(--success)">无错误</div>'}<hr>${normalized.slice(0,3).map(d=>`<div>${escapeHTML(JSON.stringify(d).slice(0,140))}</div>`).join('')}</div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn primary" id="btnConfirmImport">确认导入</button><button class="btn" id="btnCancelImport">取消</button></div>`;
     $('#btnCancelImport').onclick=()=>$('#importModal').classList.remove('open');
     $('#btnConfirmImport').onclick=()=>{
       if(errors.length && !confirm(`有 ${errors.length} 条错误，仍导入有效数据？`)) return;
-      const map=store.getState().deviceMap; let added=0; normalized.forEach(d=>{ if(!map.has(d.id)){ store.getState().devices.push(d); map.set(d.id,d); added++ }});
-      recompute(); renderGroups(); toast(`导入完成，新增 ${added} 条`); logger.info('Import','commit',{added,errors:errors.length}); $('#importModal').classList.remove('open');
+      const map=store.getState().deviceMap; const devices=[...store.getState().devices]; let added=0; const addedIds=[]; normalized.forEach(d=>{ if(!map.has(d.id)){ devices.push(d); map.set(d.id,d); added++; addedIds.push(d.id) }}); store.setState({devices});
+      recompute(); renderGroups();
+      history.push({execute(){/* redo 不支持：导入已直接生效，execute 留空占位 */},undo(){ const s=store.getState(); const rest=s.devices.filter(d=>!addedIds.includes(d.id)); const map2=new Map(rest.map(d=>[d.id,d])); store.setState({devices:rest,deviceMap:map2}); recompute(); renderGroups(); }});
+      toast(`导入完成，新增 ${added} 条${skipped.count?`，跳过 ${skipped.count} 条`:''}`); logger.info('Import','commit',{added,skipped:skipped.count,errors:errors.length}); $('#importModal').classList.remove('open');
     };
   }catch(err){ errorManager.handle(err,'import'); toast('导入失败: '+err.message) } e.target.value='';
 };
@@ -1048,9 +1061,9 @@ document.addEventListener('keydown',(e)=>{
   }
   if(e.key==='Escape'){ closeDrawer(); $('#cmdModal').classList.remove('open'); $('#importModal').classList.remove('open'); $('#logModal').classList.remove('open'); $('#sidebar').classList.remove('open'); }
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openCmd(); }
-  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !e.shiftKey){ e.preventDefault(); history.undo(); toast('已撤销'); }
-  if((e.ctrlKey||e.metaKey) && ((e.key.toLowerCase()==='z' && e.shiftKey) || e.key.toLowerCase()==='y')){ e.preventDefault(); history.redo(); toast('已重做'); }
-  if((e.ctrlKey||e.metaKey) && e.shiftKey && e.key.toLowerCase()==='d'){ e.preventDefault(); $('#debugPanel').classList.toggle('open'); }
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !e.shiftKey && !e.repeat){ e.preventDefault(); history.undo(); toast('已撤销'); }
+  if((e.ctrlKey||e.metaKey) && !e.repeat && ((e.key.toLowerCase()==='z' && e.shiftKey) || e.key.toLowerCase()==='y')){ e.preventDefault(); history.redo(); toast('已重做'); }
+  if((e.ctrlKey||e.metaKey) && e.shiftKey && !e.repeat && e.key.toLowerCase()==='d'){ e.preventDefault(); $('#debugPanel').classList.toggle('open'); }
   if(e.key==='ArrowDown' || e.key==='ArrowUp'){ if(document.activeElement===document.body || document.activeElement.id==='viewport' || $('#viewport').contains(document.activeElement)){ e.preventDefault(); const idx=filteredSorted.findIndex(d=>d.id===currentDrawerId); let next= idx>=0? idx + (e.key==='ArrowDown'?1:-1) : 0; next=clamp(next,0,filteredSorted.length-1); const dev=filteredSorted[next]; if(dev){ openDrawer(dev.id); vlist.scrollToIndex(next); // maintain selection
         const sel=new Set(); sel.add(dev.id); store.setState({selection:sel}); updateSelectInfo(); vlist.render(); } } }
   if(e.key==='Enter' && document.activeElement.closest('.cmd-item')){ document.activeElement.click(); }
@@ -1067,7 +1080,7 @@ $('#cmdInput').addEventListener('keydown',(e)=>{
 $('#btnUndo').onclick=()=>{history.undo(); toast('已撤销')};
 $('#btnRedo').onclick=()=>{history.redo(); toast('已重做')};
 $('#btnScrollTop').onclick=()=>vlist.scrollToIndex(0);
-$('#btnScrollMid').onclick=()=>vlist.scrollToIndex(Math.min(40000, Math.floor(filteredSorted.length/2)));
+$('#btnScrollMid').onclick=()=>vlist.scrollToIndex(Math.floor(filteredSorted.length/2));
 $('#btnMobileGroup').onclick=()=>$('#sidebar').classList.toggle('open');
 $('#viewport').setAttribute('tabindex','0');
 $('#list-card')?.addEventListener?.('click',()=>{});
@@ -1079,11 +1092,11 @@ $$('.list-head [data-sort]').forEach(el=>el.onclick=()=>{
 });
 
 // ensure cleanup on unload
-window.addEventListener('beforeunload',()=>{ fakeWs.destroy(); vlist.destroy(); if(rafId) cancelAnimationFrame(rafId); ro.disconnect(); });
+window.addEventListener('beforeunload',()=>{ try{storage.flush()}catch(e){} fakeWs.destroy(); vlist.destroy(); if(rafId) cancelAnimationFrame(rafId); clearTimeout(refreshTimer); if(renderRaf) cancelAnimationFrame(renderRaf); ro.disconnect(); });
 
 init();
 
-// expose for debug
+// expose for debug (仅调试用：自动化测试读取 window.__app，生产逻辑不依赖)
 window.__app={store,bus,filterEngine,vlist,fakeWs,history,taskQueue,logger,storage};
 })();
 </script>

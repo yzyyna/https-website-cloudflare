@@ -103,6 +103,11 @@ export const EGGS_METADATA = {
   }
 };
 
+// 碎片合法 ID 白名单（与 eras/era-2099.js 内 FRAGMENTS_CONFIG 保持一致）
+const VALID_FRAGMENT_IDS = ['frag_1998', 'frag_2003', 'frag_2008', 'frag_2012', 'frag_2024', 'frag_2099'];
+// 空间皮肤白名单
+const VALID_SPACE_SKINS = ['sakura', 'blue', 'night'];
+
 const defaultState = {
   currentEra: 1998,
   soundEnabled: false,
@@ -115,7 +120,6 @@ const defaultState = {
     { name: '风之子', text: '路过踩踩，小窝很漂亮哦，记得回踩！', time: '2003-05-12' },
     { name: '紫水晶女孩', text: '背景音乐很好听，留个脚印 (*^__^*)', time: '2003-06-01' }
   ],
-  visitorCount: 1314,
   // 2008状态
   forumUpvotes: 3,
   forumReplies: [],
@@ -159,22 +163,47 @@ class MuseumStore {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object') {
-          if (Array.isArray(parsed.eggs)) base.eggs = parsed.eggs.filter(x => typeof x === 'string');
+          if (Array.isArray(parsed.eggs)) base.eggs = [...new Set(parsed.eggs.filter(x => typeof x === 'string' && EGGS_METADATA[x]))];
           if (typeof parsed.soundEnabled === 'boolean') base.soundEnabled = parsed.soundEnabled;
-          if (typeof parsed.crtEffect === 'boolean') base.crtEffect = parsed.crtEffect;
           if (typeof parsed.currentEra === 'number') base.currentEra = parsed.currentEra;
           if (typeof parsed.connected1998 === 'boolean') base.connected1998 = parsed.connected1998;
-          if (typeof parsed.counter2003 === 'number') base.counter2003 = Math.max(0, parsed.counter2003 | 0);
-          if (typeof parsed.music2003Playing === 'boolean') base.music2003Playing = parsed.music2003Playing;
           if (typeof parsed.moodIndex === 'number') base.moodIndex = Math.max(0, parsed.moodIndex | 0);
           if (Array.isArray(parsed.guestbookMessages)) {
-            base.guestbookMessages = parsed.guestbookMessages.filter(m => m && typeof m === 'object');
+            base.guestbookMessages = parsed.guestbookMessages
+              .filter(m => m && typeof m === 'object')
+              .map(m => ({
+                name: String(m.name ?? '').slice(0, 30),
+                text: String(m.text ?? '').slice(0, 500),
+                time: String(m.time ?? '').slice(0, 20),
+                ...(typeof m.reply === 'string' ? { reply: m.reply.slice(0, 500) } : {})
+              }));
           }
-          if (Array.isArray(parsed.forumPosts)) base.forumPosts = parsed.forumPosts;
-          if (typeof parsed.forumSignature === 'string') base.forumSignature = parsed.forumSignature;
-          if (typeof parsed.spaceSkin === 'string') base.spaceSkin = parsed.spaceSkin;
+          if (Array.isArray(parsed.forumReplies)) {
+            base.forumReplies = parsed.forumReplies
+              .filter(m => m && typeof m === 'object')
+              .map(m => ({
+                floor: String(m.floor ?? '').slice(0, 20),
+                user: String(m.user ?? '').slice(0, 30),
+                rank: String(m.rank ?? '').slice(0, 20),
+                avatar: String(m.avatar ?? '').slice(0, 10),
+                time: String(m.time ?? '').slice(0, 20),
+                content: String(m.content ?? '').slice(0, 2000),
+                signature: String(m.signature ?? '').slice(0, 200)
+              }));
+          }
+          if (Number.isFinite(parsed.forumUpvotes)) base.forumUpvotes = parsed.forumUpvotes;
+          if (typeof parsed.spaceSkin === 'string' && VALID_SPACE_SKINS.includes(parsed.spaceSkin)) base.spaceSkin = parsed.spaceSkin;
           if (typeof parsed.spaceDecorScore === 'number') base.spaceDecorScore = Math.min(100, Math.max(0, parsed.spaceDecorScore | 0));
-          if (Array.isArray(parsed.spacePosts)) base.spacePosts = parsed.spacePosts;
+          if (Array.isArray(parsed.spacePosts)) {
+            base.spacePosts = parsed.spacePosts
+              .filter(p => p && typeof p === 'object')
+              .map(p => ({
+                text: String(p.text ?? '').slice(0, 500),
+                source: String(p.source ?? '').slice(0, 30),
+                time: String(p.time ?? '').slice(0, 20),
+                likes: Number.isFinite(Number(p.likes)) ? Math.max(0, Math.floor(Number(p.likes))) : 0
+              }));
+          }
           if (parsed.algorithmPreference && typeof parsed.algorithmPreference === 'object') {
             base.algorithmPreference = {
               cat: Number(parsed.algorithmPreference.cat) || 0,
@@ -183,7 +212,7 @@ class MuseumStore {
             };
           }
           if (Array.isArray(parsed.algorithmDismissed)) base.algorithmDismissed = parsed.algorithmDismissed;
-          if (Array.isArray(parsed.restoredFragments)) base.restoredFragments = parsed.restoredFragments.filter(x => typeof x === 'string');
+          if (Array.isArray(parsed.restoredFragments)) base.restoredFragments = [...new Set(parsed.restoredFragments.filter(x => typeof x === 'string' && VALID_FRAGMENT_IDS.includes(x)))];
           if (typeof parsed.restorationComplete === 'boolean') base.restorationComplete = parsed.restorationComplete;
         }
       }

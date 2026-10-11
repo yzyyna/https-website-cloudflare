@@ -32,12 +32,13 @@ window.PotatoState = (function () {
     },
     resigned: false,
     lastSaveTime: Date.now(),
-    lastInteractionTime: Date.now(),
     birthTime: Date.now()
   });
 
   let state = defaultState();
   let tickTimer = null;
+  // 在线累计秒数：与离线同速率，每满 600s neglectScore +1
+  let onlineSeconds = 0;
   let onStateChangeListeners = [];
 
   // 仅接受有限的 number 类型；null / '' / true 等会被 Number() 隐式转换，故不走隐式转换
@@ -88,6 +89,8 @@ window.PotatoState = (function () {
         });
         state.resigned = state.resigned === true;
         state.isSleeping = state.isSleeping === true;
+        // 清理历史存档遗留字段
+        delete state.lastInteractionTime;
 
         // 离线时间推演
         simulateOfflineProgress();
@@ -237,6 +240,13 @@ window.PotatoState = (function () {
         }
       }
 
+      // 在线疏忽累积：与离线同速率，每满 600s 加 1
+      onlineSeconds += 1;
+      if (onlineSeconds >= 600) {
+        onlineSeconds = 0;
+        state.counters.neglectScore = (state.counters.neglectScore || 0) + 1;
+      }
+
       // 长时间心智为 0 且极度饥饿，自动触发辞职
       if (state.stats.sanity <= 0 && state.stats.hunger <= 0 && !state.resigned) {
         state.resigned = true;
@@ -253,6 +263,13 @@ window.PotatoState = (function () {
       save();
       notifyChange({ event: 'tick' });
     }, 1000);
+  }
+
+  function stopTick() {
+    if (tickTimer) {
+      clearInterval(tickTimer);
+      tickTimer = null;
+    }
   }
 
   function addChangeListener(listener) {
@@ -276,6 +293,7 @@ window.PotatoState = (function () {
     reset,
     fastForward,
     startTick,
+    stopTick,
     evaluateStatus,
     addChangeListener,
     notifyChange

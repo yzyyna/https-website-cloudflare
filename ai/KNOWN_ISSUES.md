@@ -20,22 +20,11 @@
 - 新增、删除或重命名 `js/` 下的模块后，必须同步修改 `SECTIONS`。未登记的模块会导致构建报错退出。
 - 每次修改源码后运行 `node internet-museum/build.js`，提交前可用 `--check` 确认 bundle 未过期。
 
-仍需处理的 `alert` / `confirm` 残留（违反第 7 节"禁止阻塞式 alert"）：
+`alert` / `confirm` 已全部消除（2026-10-11）：空说说与空回帖改用 `eggsManager.showToast` 非阻塞提示（回帖同时补上 15 字长度校验，与文案一致）；重置进度改用两步确认按钮（5 秒内再次点击确认），无阻塞弹窗。
 
-- `js/eras/era-2012.js`：说说内容为空时的 `alert`。
-- `js/eras/era-2008.js`：回帖内容为空时的 `alert`（提示文案写明"不少于15字"，但代码只校验非空，两者不一致）。
-- `js/eggs.js`：清除考古进度的 `window.confirm`。
+## 3. block-game：飞行触控按钮已补绑定（2026-10-11）
 
-## 3. block-game：死的触控与飞行 UI
-
-`block-game/index.html` 与 `block-game/css/style.css` 中存在以下元素，但全部 JS 中没有任何对应的事件绑定或读取：
-
-- `#btn-touch-fly`（飞行开关按钮）
-- `#btn-touch-down`（飞行下降按钮）
-- `#fly-badge`（飞行中提示徽标）
-- `#joystick-hint`（摇杆提示文字）
-
-这些元素当前不会产生任何功能，需要决定是补全绑定逻辑，还是删除相应的 HTML 与 CSS。
+`#btn-touch-fly`（开关飞行）、`#btn-touch-down`（按住下降，Shift 语义）、`#fly-badge`（飞行徽标）之前是死元素，现已在 `js/input.js`（`touchDescend` 状态＋触控/`click` 双绑定）与 `js/main.js`（`onToggleFly` 同步徽标/按钮显隐）中补齐绑定。`#joystick-hint` 为纯静态提示文字（`pointer-events: none`），无需绑定。
 
 ## 4. 未在真机验证的项目
 

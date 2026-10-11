@@ -112,7 +112,7 @@ export function initEra2012() {
     btnPublishPost.addEventListener('click', () => {
       const text = postInput?.value.trim();
       if (!text) {
-        alert('说说内容不能为空哦~');
+        eggsManager.showToast('说说内容不能为空哦~');
         return;
       }
 

@@ -263,7 +263,7 @@
       Object.keys(o).forEach(function (idx) {
         var nIdx = +idx;
         var id = o[idx];
-        if (Number.isInteger(nIdx) && nIdx >= 0 && nIdx < 16384 && Number.isInteger(id) && id >= 0 && id <= 255) {
+        if (Number.isInteger(nIdx) && nIdx >= 0 && nIdx < 16384 && Number.isInteger(id) && id >= 0 && id <= 255 && MC.DEFS[id]) {
           m.set(nIdx, id);
         }
       });

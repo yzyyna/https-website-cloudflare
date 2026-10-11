@@ -183,8 +183,8 @@ export function initEra2008() {
   if (btnSubmitReply) {
     btnSubmitReply.addEventListener('click', () => {
       const text = replyInput?.value.trim();
-      if (!text) {
-        alert('请输入回帖内容（字数不少于15字，严禁纯数字纯表情灌水）');
+      if (!text || text.length < 15) {
+        eggsManager.showToast('请输入回帖内容（字数不少于15字）');
         return;
       }
 

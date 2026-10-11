@@ -77,13 +77,14 @@
         var p = saved.player.pos;
         if (isFinite(p[0]) && isFinite(p[1]) && isFinite(p[2])) {
           player.pos = [p[0], p[1], p[2]];
-          player.yaw = +saved.player.yaw || 0;
-          player.pitch = +saved.player.pitch || 0;
+          var sy = +saved.player.yaw, sp = +saved.player.pitch;
+          player.yaw = isFinite(sy) ? sy : 0;
+          player.pitch = isFinite(sp) ? sp : 0;
           player.flying = !!saved.player.flying;
         }
       }
       if (saved.settings) {
-        if (saved.settings.renderDist) settings.renderDist = Math.max(3, Math.min(12, saved.settings.renderDist | 0));
+        if (saved.settings.renderDist) settings.renderDist = Math.max(2, Math.min(12, saved.settings.renderDist | 0));
         settings.muted = !!saved.settings.muted;
         if (saved.settings.controlMode) settings.controlMode = saved.settings.controlMode;
       }
@@ -147,6 +148,8 @@
     hud.showState('title');
     document.getElementById('title-seed').textContent =
       '种子 ' + world.seed + (savedExists ? ' · 已从存档恢复（自动保存中）' : ' · 进度将自动保存');
+    document.getElementById('pause-seed').textContent =
+      '种子 ' + world.seed + (savedExists ? ' · 已从存档恢复（自动保存中）' : ' · 进度将自动保存');
     window.addEventListener('beforeunload', doSave);
     requestAnimationFrame(loop);
     /* rAF 饥饿看门狗：浏览器面板不渲染帧时（后台/遮挡）保底 4Hz 推进，
@@ -167,6 +170,9 @@
     world = new MC.World(seed);
     player = new MC.Player(world, world.spawn);
     loadedOnce = false;
+    savedExists = false;
+    saveTimer = 0;
+    gameTime = 0.25;
     stats.mined = 0;
     stats.placed = 0;
     welcomed = false;
@@ -217,6 +223,13 @@
       if (state !== 'playing') return;
       var on = player.toggleFly();
       hud.toast(on ? '飞行模式：开' : '飞行模式：关');
+      /* 同步触控 UI：飞行徽标与下降按钮的显隐（之前是死元素） */
+      var badge = document.getElementById('fly-badge');
+      if (badge) badge.classList.toggle('hidden', !on);
+      var flyBtn = document.getElementById('btn-touch-fly');
+      if (flyBtn) flyBtn.classList.toggle('active', on);
+      var downBtn = document.getElementById('btn-touch-down');
+      if (downBtn) downBtn.classList.toggle('hidden', !on);
     };
     input.onToggleMute = function () {
       var muted = MC.Sound.toggleMute();
@@ -301,6 +314,7 @@
       hud.invalidateIcons();
       inventory._emit();
       document.getElementById('title-seed').textContent = '种子 ' + world.seed + ' · 进度将自动保存';
+      document.getElementById('pause-seed').textContent = '种子 ' + world.seed + ' · 进度将自动保存';
       hud.toast('新世界已生成');
       input.requestLock();
     });
@@ -313,6 +327,8 @@
       inventory.add(BLOCK.BRICK, 64);
       hud.invalidateIcons();
       inventory._emit();
+      document.getElementById('title-seed').textContent = '种子 ' + world.seed + ' · 进度将自动保存';
+      document.getElementById('pause-seed').textContent = '种子 ' + world.seed + ' · 进度将自动保存';
       hud.toast('新世界已生成');
       input.requestLock();
     });

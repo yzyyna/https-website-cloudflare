@@ -53,6 +53,7 @@ const STATE = {
     level: 1,
     exp: 45,
     completedModules: ['m1'],
+    rewardGranted: false, // 闪卡结算奖励是否已发放（持久化，防止重复进入会话后重复加经验）
   },
   currentRoute: 'home',
   flashcards: [
@@ -102,6 +103,7 @@ function loadState() {
         completedModules: Array.isArray(parsed.progress.completedModules)
           ? parsed.progress.completedModules.filter(id => typeof id === 'string' && KNOWN_MODULE_IDS.includes(id))
           : ['m1'],
+        rewardGranted: parsed.progress.rewardGranted === true,
       };
     }
     if (Array.isArray(parsed.posts) && parsed.posts.length > 0) {
@@ -264,7 +266,6 @@ function renderDashboard() {
 
   const level = STATE.progress.level || 1;
   const exp = STATE.progress.exp || 0;
-  const expForNextLevel = level * 100;
   const currentLevelExp = exp % 100;
   const percent = Math.min(100, Math.round((currentLevelExp / 100) * 100));
 
@@ -487,8 +488,12 @@ function nextCard() {
     STATE.sessionCompleted = true;
     document.getElementById('learn-session-active').style.display = 'none';
     document.getElementById('learn-session-complete').style.display = 'block';
-    addExp(50);
-    completeModule('m1');
+    // 奖励只发放一次：先置标记再 addExp，使标记随同一次 saveState 落库
+    if (!STATE.progress.rewardGranted) {
+      STATE.progress.rewardGranted = true;
+      addExp(50);
+      completeModule('m1');
+    }
   }
 }
 

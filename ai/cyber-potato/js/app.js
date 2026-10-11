@@ -35,6 +35,8 @@
   // 戳一戳连击记录
   let pokeTimestamps = [];
   let rageTimeout = null;
+  // 时钟定时器句柄（pagehide 时清理；visibilitychange 隐藏时不清，游戏需后台跑）
+  let clockTimer = null;
 
   // 动画定时器句柄（重复触发时先清理，避免旧定时器提前移除新动画类）
   let shakeTimer = null;
@@ -689,7 +691,10 @@
           if (key === ' ') e.preventDefault();
           btn.classList.add('is-active-press');
           clearTimeout(pressTimers.get(btn));
-          pressTimers.set(btn, setTimeout(() => btn.classList.remove('is-active-press'), 140));
+          pressTimers.set(btn, setTimeout(() => {
+            btn.classList.remove('is-active-press');
+            pressTimers.delete(btn);
+          }, 140));
           btn.click();
         }
       }
@@ -715,8 +720,20 @@
       elLiveClock.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     }
     tick();
-    setInterval(tick, 1000);
+    if (clockTimer) clearInterval(clockTimer);
+    clockTimer = setInterval(tick, 1000);
   }
+
+  // 游戏需后台跑：visibilitychange 隐藏时不清定时器；pagehide 时清理防泄漏
+  window.addEventListener('pagehide', () => {
+    if (clockTimer) {
+      clearInterval(clockTimer);
+      clockTimer = null;
+    }
+    if (window.PotatoState && typeof window.PotatoState.stopTick === 'function') {
+      window.PotatoState.stopTick();
+    }
+  });
 
   // 页面加载完成后自启动
   window.addEventListener('DOMContentLoaded', init);

@@ -225,6 +225,7 @@
   }
 
   Renderer.prototype.resize = function () {
+    this.dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     var w = Math.floor(window.innerWidth * this.dpr);
     var h = Math.floor(window.innerHeight * this.dpr);
     if (this.canvas.width !== w || this.canvas.height !== h) {
@@ -339,7 +340,7 @@
     if (this.pointBuf) gl.deleteBuffer(this.pointBuf);
     if (this.skyQuadBuf) gl.deleteBuffer(this.skyQuadBuf);
     if (this.starBuf) gl.deleteBuffer(this.starBuf);
-    if (this.cloudBuf) gl.deleteBuffer(this.cloudBuf);
+    /* 云层复用 skyQuadBuf，无独立 cloudBuf */
     if (this.tntBoxBuf) gl.deleteBuffer(this.tntBoxBuf);
   };
 
