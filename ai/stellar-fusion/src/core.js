@@ -1894,6 +1894,9 @@ class HUD {
       e.up.textContent = Math.floor(up / 3600) + ':' + Utils.pad2(Math.floor(up / 60) % 60) + ':' + Utils.pad2(up % 60);
       e.stab.textContent = s.disp('stability').toFixed(2) + '%';
       e.shield.textContent = s.disp('shield').toFixed(2) + '%';
+      e.net.textContent = s.alert ? 'DEGRADED' : 'CONNECTED';
+      e.net.className = 'v ' + (s.alert ? 'am' : 'gr');
+      e.nodes.textContent = this.scene ? String(this.scene.network.cities.length + this.scene.network.stations.length + this.scene.network.satellites.length) : '37';
     }
     const alert = s.alert;
     e.banner.hidden = !alert;
@@ -2130,7 +2133,6 @@ class App {
     this.booted = false;
     this.lastT = 0;
     this.tSec = 0;
-    this.hoverThrottle = 0;
     this.tooltipT = 0;
     this.lowFpsAcc = 0;
     this.autoDropped = 0;
@@ -2172,6 +2174,7 @@ class App {
     document.getElementById('fbReload').addEventListener('click', () => location.reload());
     document.getElementById('pGpu').textContent = this.renderer.gpuName;
     this.hud = new HUD(this.state);
+    this.hud.scene = this.scene;
     this.charts = [
       new Chart(document.getElementById('chPower'), { type: 'line', metric: 'power', label: 'POWER', unit: 'MW', color: '#46e8ff', secs: 40 }),
       new Chart(document.getElementById('chFlow'), { type: 'area', metric: 'flow', label: 'FLOW', unit: 'GW', color: '#2df0c8', fillA: 'rgba(45,240,200,0.4)', secs: 40 }),
@@ -2181,7 +2184,6 @@ class App {
     ];
     this.timeline = new Timeline(document.getElementById('tlCanvas'), this.state, this.audio);
     this.ctrl = new ControlPanel(this.state, this.scene.particles, this.camera, this.audio, this);
-    this.state.selNodePhase = -9;
     if (matchMedia('(pointer:coarse)').matches || innerWidth < 900) {
       this.state.settings.quality = 'MEDIUM';
       document.querySelectorAll('#segQ button').forEach(b =>
@@ -2243,7 +2245,6 @@ class App {
     const st = this.state;
     if (!hit) {
       st.selection = null;
-      st.selNodePhase = -9;
       this.tooltip.style.display = 'none';
       this.audio.click();
       return;
@@ -2255,31 +2256,24 @@ class App {
         this.state.triggerImpulse();
         this.audio.boom();
         st.selection = { type: 'core' };
-        st.selNodePhase = -9;
         break;
       case 'city':
         st.selection = { type: 'city', id: hit.id };
-        st.selNodePhase = this.scene.network.cities[hit.id].phase;
         break;
       case 'station':
         st.selection = { type: 'station', id: hit.id };
-        st.selNodePhase = this.scene.network.stations[hit.id].phase;
         break;
       case 'satellite':
         st.selection = { type: 'satellite', id: hit.id };
-        st.selNodePhase = this.scene.network.satellites[hit.id].phase;
         break;
       case 'earth':
         st.selection = { type: 'earth' };
-        st.selNodePhase = -9;
         break;
       case 'ring':
         st.selection = { type: 'ring', id: hit.id };
-        st.selNodePhase = -9;
         break;
       case 'orbit':
         st.selection = { type: 'orbit' };
-        st.selNodePhase = -9;
         break;
     }
     this.#showTooltip(hit, x, y, true);
@@ -2350,7 +2344,7 @@ class App {
         return `<div class="tt-name">▣ ${s.name}</div>` +
           row('ALTITUDE', Math.round(380 + hit.id * 120) + ' KM') +
           row('VELOCITY', (7.2 + hit.id * 0.3).toFixed(1) + ' KM/S') +
-          row('LOAD', st.regionLoads(this.tSec)[7].v.toFixed(1) + '%') +
+          row('LOAD', st.regionLoads(this.tSec)[hit.id % 8].v.toFixed(1) + '%') +
           row('DOCKS', 2 + hit.id + '/6');
       }
       case 'satellite': {

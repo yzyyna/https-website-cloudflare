@@ -92,8 +92,14 @@ export function initEra2024() {
   const alertBanner = document.getElementById('algorithm-alert-banner');
   const portal2099Btn = document.getElementById('btn-jump-to-2099');
 
-  // 1. 初始化偏好
-  let preference = { ...museumStore.getState().algorithmPreference };
+  // 1. 初始化偏好（损坏存档回退到 0，避免 NaN 污染理解度公式）
+  const savedPref = museumStore.getState().algorithmPreference || {};
+  const numOrZero = (v) => (Number.isFinite(Number(v)) ? Math.max(0, Number(v)) : 0);
+  let preference = {
+    cat: numOrZero(savedPref.cat),
+    productivity: numOrZero(savedPref.productivity),
+    emotion: numOrZero(savedPref.emotion)
+  };
 
   function calculateInsightPercent() {
     const totalPoints = preference.cat + preference.productivity + preference.emotion;
@@ -120,8 +126,17 @@ export function initEra2024() {
     // 达到 80% 触发系统警报和 2099 虫洞
     if (percent >= 80) {
       if (alertBanner) alertBanner.classList.remove('hidden');
-      if (portal2099Btn) portal2099Btn.classList.remove('hidden');
+      if (portal2099Btn) {
+        portal2099Btn.classList.remove('hidden');
+        // 无障碍：虫洞入口出现后明确告知可操作
+        portal2099Btn.setAttribute('aria-live', 'polite');
+      }
       container.classList.add('algorithm-high-control');
+    } else {
+      // 理解度回落后收回警报与入口，保持 UI 与状态一致
+      if (alertBanner) alertBanner.classList.add('hidden');
+      if (portal2099Btn) portal2099Btn.classList.add('hidden');
+      container.classList.remove('algorithm-high-control');
     }
   }
 

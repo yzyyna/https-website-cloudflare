@@ -137,19 +137,7 @@
   }
 }
 
-/* 13. 浮动粒子向上飘动 */
-@keyframes particle-drift {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-50px) rotate(90deg);
-    opacity: 0;
-  }
-}
-
-/* 14. 植物幼芽与蘑菇轻微摇曳 */
+/* 13. 植物幼芽与蘑菇轻微摇曳 */
 @keyframes plant-sway {
   0%, 100% {
     transform: translateX(-50%) rotate(0deg);

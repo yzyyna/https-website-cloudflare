@@ -575,9 +575,10 @@
 }
 
 /* Toast 提示 */
+/* 展厅间过渡 toast 不遮挡底部时间轴导航 */
 .museum-toast {
   position: fixed;
-  bottom: 80px;
+  bottom: 88px;
   left: 50%;
   transform: translateX(-50%) translateY(20px);
   background: rgba(15, 23, 42, 0.95);
@@ -591,6 +592,10 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s, transform 0.3s;
+  /* 长文案自动换行并限制宽度，小屏不溢出 */
+  max-width: min(90vw, 480px);
+  text-align: center;
+  white-space: normal;
 }
 
 .museum-toast.show {

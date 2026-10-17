@@ -329,21 +329,6 @@
 .blush.right { right: 24px; }
 .has-blush .blush { display: block; }
 
-/* 汗滴 (尴尬或无语) */
-.sweat-drop {
-  position: absolute;
-  top: 10px;
-  right: 28px;
-  width: 8px;
-  height: 12px;
-  background-color: #00d0ff;
-  border: 2px solid #005080;
-  border-radius: 50% 50% 50% 50% / 80% 80% 20% 20%;
-  display: none;
-  animation: zzz-float 2s infinite;
-}
-.is-sweating .sweat-drop { display: block; }
-
 /* ===== 奇怪配件槽位系统 (Accessories) ===== */
 
 /* 1. 配件：黑框像素眼镜 (喂书解锁) */

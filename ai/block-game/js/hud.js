@@ -259,6 +259,8 @@
 
   Hud.prototype.setTargetName = function (name) {
     this.el.targetName.textContent = name || '';
+    /* 准星命中反馈：有目标时变绿微发光，无目标恢复白色 */
+    if (this.el.crosshair) this.el.crosshair.classList.toggle('on-target', !!name);
   };
 
   Hud.prototype.setStats = function (text) {

@@ -19,6 +19,9 @@ export class EggsManager {
   constructor() {
     this.modalEl = null;
     this.bookDrawerEl = null;
+    // 单例 toast：重复调用覆盖文案并重置计时，避免多条堆叠遮挡展厅
+    this.toastEl = null;
+    this.toastTimer = 0;
   }
 
   init() {
@@ -26,6 +29,7 @@ export class EggsManager {
     this.bookDrawerEl = document.getElementById('archaeology-book-drawer');
 
     this.bindEvents();
+    this.bindModalEsc();
   }
 
   bindEvents() {
@@ -130,6 +134,17 @@ export class EggsManager {
     }, 200);
   }
 
+  // 彩蛋弹窗支持 Esc 关闭（无障碍：键盘用户可退出遮罩层）
+  bindModalEsc() {
+    if (this._escBound) return;
+    this._escBound = true;
+    window.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (this.modalEl && this.modalEl.classList.contains('visible')) this.closeUnlockModal();
+      if (this.bookDrawerEl && this.bookDrawerEl.classList.contains('visible')) this.closeBook();
+    });
+  }
+
   openBook() {
     this.renderBookGrid();
     if (this.bookDrawerEl) {
@@ -148,16 +163,24 @@ export class EggsManager {
   }
 
   showToast(text) {
-    const toast = document.createElement('div');
-    toast.className = 'museum-toast';
-    toast.textContent = text;
+    // 单例 toast + 最大长度截断（展厅各处直接调用不再担心长文案撑爆小屏）
+    const msg = String(text ?? '').slice(0, 120);
+    let toast = this.toastEl;
+    if (!toast || !toast.isConnected) {
+      toast = document.createElement('div');
+      toast.className = 'museum-toast';
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      this.toastEl = toast;
+    }
+    toast.textContent = msg;
     document.body.appendChild(toast);
+    clearTimeout(this.toastTimer);
     setTimeout(() => {
       toast.classList.add('show');
     }, 10);
-    setTimeout(() => {
+    this.toastTimer = setTimeout(() => {
       toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 300);
     }, 2500);
   }
 

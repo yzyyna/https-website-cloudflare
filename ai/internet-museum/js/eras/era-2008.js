@@ -157,8 +157,10 @@ export function initEra2008() {
     });
   }
 
-  // 3. 顶帖功能与 HOT 标识
-  let upvotes = museumStore.getState().forumUpvotes || 3;
+  // 3. 顶帖功能与 HOT 标识（存档损坏时回退到 3，避免 NaN 污染计数器）
+  let upvotes = Number.isFinite(Number(museumStore.getState().forumUpvotes))
+    ? Math.max(0, Math.floor(Number(museumStore.getState().forumUpvotes)))
+    : 3;
   if (upvoteCountEl) upvoteCountEl.textContent = String(upvotes);
   if (upvotes >= 5 && hotBadge) hotBadge.classList.remove('hidden');
 
@@ -179,12 +181,12 @@ export function initEra2008() {
     });
   }
 
-  // 4. 回帖交互
+  // 4. 回帖交互（失败自动解锁按钮，避免“发送中”卡死；成功才保存存档）
   if (btnSubmitReply) {
     btnSubmitReply.addEventListener('click', () => {
-      const text = replyInput?.value.trim();
+      const text = replyInput?.value.trim().slice(0, 2000);
       if (!text || text.length < 15) {
-        eggsManager.showToast('请输入回帖内容（字数不少于15字）');
+        eggsManager.showToast('回帖不少于 15 字，再多分享一点吧');
         return;
       }
 
@@ -239,7 +241,7 @@ export function initEra2008() {
             forumReplies: [...updatedReplies, botPost]
           });
 
-          eggsManager.showToast('💬 回帖成功！收到论坛网友秒回！');
+          eggsManager.showToast('回帖成功！收到论坛网友秒回！');
         }, 700);
 
         if (replyInput) replyInput.value = '';

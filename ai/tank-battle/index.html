@@ -214,6 +214,7 @@
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       animation: bossPulseGlow 2.2s ease-in-out infinite;
+      pointer-events: none;
     }
 
     @keyframes bossPulseGlow {
@@ -589,7 +590,9 @@
       display: flex;
       flex-direction: column;
       gap: 22px;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
       animation: modalPopIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -759,8 +762,8 @@
     }
 
     @keyframes buffPulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%      { opacity: 0.78; transform: scale(0.97); }
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.72; }
     }
 
     /* Floating Toast Message */
@@ -785,7 +788,8 @@
       transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      white-space: nowrap;
+      white-space: normal;
+      text-align: center;
       max-width: min(560px, 90vw);
     }
     #toast-msg.show {
@@ -940,7 +944,7 @@
           </div>
           <div class="stat-item">
             <span class="stat-label">积分</span>
-            <span class="stat-val" id="hud-score">0</span>
+            <span class="stat-val" id="hud-score" style="color:#38bdf8">0</span>
           </div>
           <div class="stat-item">
             <a href="../" class="btn-hud" title="返回项目集主页">🏠 首页</a>
@@ -967,8 +971,8 @@
     <div class="hud-bottom">
       <div class="hud-card hud-controls-hint">
         <span><span class="key-badge">W A S D</span> / <span class="key-badge">方向键</span> 移动</span>
-        <span><span class="key-badge">鼠标</span> / <span class="key-badge">J</span> 瞄准射击</span>
-        <span><span class="key-badge">空格</span> 强力开火</span>
+        <span><span class="key-badge">鼠标左键</span> / <span class="key-badge">J</span> 开火射击</span>
+        <span><span class="key-badge">空格</span> 连续开火</span>
         <span><span class="key-badge">Shift</span> 极速推进</span>
         <span><span class="key-badge">V</span> 切换等轴/第三人称</span>
         <span><span class="key-badge">P</span> 暂停</span>
@@ -2020,7 +2024,8 @@
       }
 
       update(dt) {
-        this.angle += dt * 3.0;
+        const rate = Math.min(1.0, dt * 3.0);
+        this.angle += rate;
         this.x = this.player.x + Math.sin(this.angle) * this.orbitRadius;
         this.z = this.player.z + Math.cos(this.angle) * this.orbitRadius;
         this.y = 0.85 + Math.sin(this.angle * 2) * 0.15;
@@ -2125,6 +2130,7 @@
         this.canvas.addEventListener('webglcontextlost', (e) => {
           e.preventDefault();
           this.state = 'PAUSED';
+          this.dom.btnPauseToggle.textContent = '▶️';
           this.scene.showWebGLFallback(
             '3D 渲染上下文已丢失',
             '显卡或浏览器图形进程已重置，当前战局无法继续。<br>请刷新页面后重新开始。'
@@ -2293,7 +2299,7 @@
         window.addEventListener('pointerdown', e => {
           if (e.pointerType !== 'mouse') return; // Ignore touch/pen
           if (e.button !== 0) return; // Left button only
-          if (e.target.tagName === 'BUTTON' || e.target.closest('.overlay-modal') || e.target.closest('#mobile-controls')) return;
+          if (e.target.tagName === 'BUTTON' || e.target.closest('.overlay-modal') || e.target.closest('#mobile-controls') || e.target.closest('#hud')) return;
           this.isMouseDown = true;
           this.tryPlayerShoot();
         });
@@ -2458,6 +2464,7 @@
         if (this.state === 'PLAYING') {
           this.state = 'PAUSED';
           this.dom.modalPause.classList.add('active');
+          this.dom.btnPauseToggle.textContent = '▶️';
         } else if (this.state === 'PAUSED') {
           this.resumeGame();
         }
@@ -2465,7 +2472,9 @@
 
       resumeGame() {
         if (this.scene.failed) return; // rendering is unavailable; keep the game frozen
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
         this.state = 'PLAYING';
+        this.dom.btnPauseToggle.textContent = '⏸️';
         this.dom.modalPause.classList.remove('active');
       }
 
@@ -2482,6 +2491,16 @@
 
         // Close all modals
         document.querySelectorAll('.overlay-modal').forEach(m => m.classList.remove('active'));
+        // Drop button focus so Enter/Space during combat can't re-trigger a modal button
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+
+        // Fresh campaign from stage 1: reset cumulative score/kills/accuracy
+        if (idx === 0) {
+          this.score = 0;
+          this.kills = 0;
+          this.shotsFired = 0;
+          this.shotsHit = 0;
+        }
 
         // Reset stage variables
         this.enemiesRemainingToSpawn = cfg.totalEnemies;
@@ -2517,9 +2536,8 @@
         this.applyPlayerRankStats();
         this.player.shieldTime = 3.0; // 3s respawn shield
 
-        // Boss Bar visibility
+        // Boss Bar visibility (updateHUD owns .active: shows only while a live boss exists)
         if (cfg.isBossStage) {
-          this.dom.bossContainer.classList.add('active');
           this.dom.bossHpFill.style.width = '100%';
           this.dom.bossHpText.textContent = '100%';
         } else {
@@ -2527,6 +2545,7 @@
         }
 
         this.state = 'PLAYING';
+        this.dom.btnPauseToggle.textContent = '⏸️';
         this.updateHUD();
         this.showToast(`🔥 部署战区: ${cfg.title}`);
         sound.playPowerup();
@@ -2598,12 +2617,13 @@
         } else if (type === 'sniper') {
           enemy.speed = 2.8; enemy.hp = 2; enemy.maxHp = 2;
         }
+        enemy.cooldown = 0.8 + Math.random() * 1.2; // no synchronized opening volley on spawn
 
         this.enemies.push(enemy);
         this.enemiesRemainingToSpawn--;
 
-        // Spawn Flash Particles
-        for (let i = 0; i < 12; i++) {
+        // Spawn Flash Particles (cheap: 8)
+        for (let i = 0; i < 8; i++) {
           this.particles.push(new Particle(spawnX, 0.4, spawnZ, [1, 1, 1, 1], 0.2, 3));
         }
 
@@ -2656,12 +2676,14 @@
           const offsetL = 0.18;
           this.bullets.push(new Bullet(bx - Math.cos(rad)*offsetL, bz + Math.sin(rad)*offsetL, rad, true, 'heavy', 17));
           this.bullets.push(new Bullet(bx + Math.cos(rad)*offsetL, bz - Math.sin(rad)*offsetL, rad, true, 'heavy', 17));
+          this.shotsFired++; // second barrel: keep accuracy denominator per-shell
           sound.playShoot('heavy');
         } else if (p.level >= 4) {
           // 3-Way Laser / Plasma Shells
           this.bullets.push(new Bullet(bx, bz, rad, true, 'laser', 24));
           this.bullets.push(new Bullet(bx, bz, rad - 0.16, true, 'normal', 20));
           this.bullets.push(new Bullet(bx, bz, rad + 0.16, true, 'normal', 20));
+          this.shotsFired += 2; // two side shells: keep accuracy denominator per-shell
           sound.playShoot('laser');
         }
 
@@ -2860,6 +2882,7 @@
 
       triggerStageClear() {
         this.state = 'CLEARED';
+        this.dom.btnPauseToggle.textContent = '⏸️';
         this.dom.bossContainer.classList.remove('active');
         sound.playVictory();
 
@@ -2880,6 +2903,7 @@
 
       triggerVictoryAll() {
         this.state = 'VICTORY';
+        this.dom.btnPauseToggle.textContent = '⏸️';
         this.dom.bossContainer.classList.remove('active');
         sound.playVictory();
 
@@ -2890,6 +2914,7 @@
 
       triggerGameOver(reason) {
         this.state = 'GAMEOVER';
+        this.dom.btnPauseToggle.textContent = '⏸️';
         this.dom.bossContainer.classList.remove('active');
         this.dom.gameoverReason.textContent = reason;
         this.dom.goStage.textContent = STAGE_CONFIGS[this.currentStageIdx].title;
@@ -2953,9 +2978,12 @@
 
       renderRadar() {
         const ctx = this.radarCtx;
+        if (!ctx) return;
         const canvas = this.radarCanvas;
         const w = 110, h = 110;
-        const px = Math.round((canvas.clientWidth || w) * Math.min(window.devicePixelRatio || 1, 2));
+        // Radar is display:none on small screens: skip the whole 2D pass
+        if (canvas.clientWidth === 0) return;
+        const px = Math.round(canvas.clientWidth * Math.min(window.devicePixelRatio || 1, 2));
         if (canvas.width !== px) {
           canvas.width = px;
           canvas.height = px;
@@ -2965,7 +2993,7 @@
 
         const scale = w / MAP_SIZE;
 
-        // Draw Walls
+        // Draw Walls (radar: brick/steel/water only — trees & ice are passable, no radar noise)
         for (let r = 0; r < MAP_SIZE; r++) {
           for (let c = 0; c < MAP_SIZE; c++) {
             const tile = this.map[r][c];
@@ -2978,16 +3006,15 @@
             } else if (tile === TILE_WATER) {
               ctx.fillStyle = '#0284c7';
               ctx.fillRect(c * scale, r * scale, scale, scale);
+            } else if (tile === TILE_BASE && !this.baseDestroyed) {
+              ctx.fillStyle = '#eab308';
+              ctx.fillRect(c * scale, r * scale, scale, scale);
             }
           }
         }
 
-        // Base Eagle
-        ctx.fillStyle = '#eab308';
-        ctx.fillRect(7 * scale, 13 * scale, scale * 2, scale * 2);
-
-        // Enemies (Red dots)
-        ctx.fillStyle = '#ef4444';
+        // Enemies (orange-red dots; boss = bigger ring)
+        ctx.fillStyle = '#fb923c';
         this.enemies.forEach(e => {
           if (!e.dead) {
             ctx.beginPath();
@@ -3257,9 +3284,9 @@
 
           if (enemy.isBoss) {
             // Boss 3-way spread
-            this.bullets.push(new Bullet(bx, bz, rad, false, 'heavy', 12));
-            this.bullets.push(new Bullet(bx, bz, rad - 0.25, false, 'normal', 11));
-            this.bullets.push(new Bullet(bx, bz, rad + 0.25, false, 'normal', 11));
+            this.bullets.push(new Bullet(bx, bz, rad, false, 'heavy', 10));
+            this.bullets.push(new Bullet(bx, bz, rad - 0.25, false, 'normal', 9));
+            this.bullets.push(new Bullet(bx, bz, rad + 0.25, false, 'normal', 9));
           } else if (enemy.type === 'sniper') {
             this.bullets.push(new Bullet(bx, bz, rad, false, 'laser', 18));
           } else {
@@ -3502,16 +3529,16 @@
             e.update(dt);
             this.updateAI(e, dt);
 
-            // Push player out so enemies can't pin player into a corner
+            // Soft push (player yields 70%, enemy yields 30%): no pin-in-corner, no wall shove
             if (this.player && !this.player.dead) {
               const pd = Math.hypot(e.x - this.player.x, e.z - this.player.z);
               const pMin = (e.size + this.player.size) * 0.48;
               if (pd < pMin && pd > 0.01) {
-                const push = (pMin - pd) * 0.5;
+                const push = (pMin - pd) * 0.25;
                 const px = ((this.player.x - e.x) / pd) * push;
                 const pz = ((this.player.z - e.z) / pd) * push;
-                this.tryPushEntity(this.player, px, pz);
-                this.tryPushEntity(e, -px * 0.4, -pz * 0.4);
+                this.tryPushEntity(this.player, px * 1.4, pz * 1.4);
+                this.tryPushEntity(e, -px * 0.6, -pz * 0.6);
               }
             }
 
@@ -3522,7 +3549,7 @@
                 const dist = Math.hypot(e.x - e2.x, e.z - e2.z);
                 const minDist = (e.size + e2.size) * 0.48;
                 if (dist < minDist && dist > 0.01) {
-                  const push = (minDist - dist) * 0.5;
+                  const push = (minDist - dist) * 0.25;
                   const px = ((e.x - e2.x) / dist) * push;
                   const pz = ((e.z - e2.z) / dist) * push;
                   this.tryPushEntity(e, px, pz);
@@ -3743,7 +3770,7 @@
 
           let bodyColor = tank.isPlayer ? [0.15, 0.75, 0.35, 1.0] : [0.85, 0.25, 0.22, 1.0];
           if (!tank.isPlayer) {
-            if (tank.type === 'scout') bodyColor = [0.25, 0.75, 0.25, 1.0];
+            if (tank.type === 'scout') bodyColor = [0.96, 0.45, 0.25, 1.0];
             if (tank.type === 'speed') bodyColor = [0.92, 0.72, 0.15, 1.0];
             if (tank.type === 'heavy') bodyColor = [0.85, 0.18, 0.22, 1.0];
             if (tank.type === 'sniper') bodyColor = [0.65, 0.25, 0.85, 1.0];

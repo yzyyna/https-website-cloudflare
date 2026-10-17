@@ -230,6 +230,40 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
     }
 
+    .search-input {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: inherit;
+      padding: 7px 16px;
+      min-height: 44px;
+      border-radius: 980px;
+      outline: none;
+      width: 220px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .search-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+    }
+
+    .empty-result {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+      padding: 40px 20px;
+      background: var(--bg-surface);
+      border: 1px dashed var(--border-hover);
+      border-radius: 22px;
+    }
+
     /* Projects Grid */
     .projects-grid {
       display: grid;
@@ -507,6 +541,7 @@
       <button class="filter-btn" data-filter="webgl" aria-pressed="false">3D & WebGL</button>
       <button class="filter-btn" data-filter="interactive" aria-pressed="false">趣味交互</button>
       <button class="filter-btn" data-filter="productivity" aria-pressed="false">数据与效率</button>
+      <input class="search-input" id="portalSearch" type="search" placeholder="搜索应用名称 / 标签…" aria-label="搜索应用">
     </div>
 
     <!-- Projects Grid -->
@@ -689,12 +724,12 @@
           </div>
           <h2 class="project-name">HELIOS & STELLAR · 3D 星际能源控制台</h2>
           <p class="project-desc">
-            原生 WebGL 2.0 (GLSL ES 3.00) 构建的 3D 星际能源监控系统。支持 Gemini 与 MuseSpark 双模型实现横向对照。
+            原生 WebGL 2.0 (GLSL ES 3.00) 构建的 3D 星际能源监控系统。Gemini、MuseSpark 与 HELIOS-7 基准版三版本横向对照。
           </p>
           <div class="tag-group">
             <span class="tag highlight">WebGL 2.0</span>
             <span class="tag">GLSL ES 3.0</span>
-            <span class="tag">双版本对比</span>
+            <span class="tag">三版本对比</span>
           </div>
         </div>
         <div class="card-actions">
@@ -764,6 +799,27 @@
 
       const filterBtns = document.querySelectorAll('.filter-btn');
       const cards = document.querySelectorAll('.project-card');
+      const searchInput = document.getElementById('portalSearch');
+      const grid = document.querySelector('.projects-grid');
+      const emptyEl = document.createElement('div');
+      emptyEl.className = 'empty-result';
+      emptyEl.textContent = '没有匹配的应用，换个关键词或分类试试。';
+      emptyEl.hidden = true;
+      grid.appendChild(emptyEl);
+      let activeFilter = 'all';
+
+      function applyFilter() {
+        const q = (searchInput.value || '').trim().toLowerCase();
+        let visible = 0;
+        cards.forEach(card => {
+          const matchCat = activeFilter === 'all' || card.dataset.category === activeFilter;
+          const matchQ = !q || card.textContent.toLowerCase().includes(q);
+          const show = matchCat && matchQ;
+          card.style.display = show ? 'flex' : 'none';
+          if (show) visible++;
+        });
+        emptyEl.hidden = visible > 0;
+      }
 
       filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -774,12 +830,12 @@
           btn.classList.add('active');
           btn.setAttribute('aria-pressed', 'true');
 
-          const filter = btn.dataset.filter;
-          cards.forEach(card => {
-            card.style.display = (filter === 'all' || card.dataset.category === filter) ? 'flex' : 'none';
-          });
+          activeFilter = btn.dataset.filter;
+          applyFilter();
         });
       });
+
+      searchInput.addEventListener('input', applyFilter);
     })();
   </script>
 

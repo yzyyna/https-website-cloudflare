@@ -56,7 +56,7 @@
    - 在文件管理器或 Finder 中直接双击打开 `index.html` 即可畅玩。
 2. **通过本地静态服务启动**：
    ```bash
-   cd /Users/fortrust/Documents/AItestProjects
+   cd <仓库根目录>
    python3 -m http.server 8080
    ```
    浏览器访问：[http://localhost:8080/cyber-potato/](http://localhost:8080/cyber-potato/)

@@ -57,7 +57,7 @@ node stellar-fusion/build.js --check  # 仅校验生成物是否与源码一致
    - 亦可直接双击 `gemini/index.html` 或 `musespark/index.html` 进行独立体验。
 2. **通过本地静态服务**：
    ```bash
-   cd /Users/fortrust/Documents/AItestProjects
+   cd <仓库根目录>
    python3 -m http.server 8080
    ```
    - 访问门户：[http://localhost:8080/stellar-fusion/](http://localhost:8080/stellar-fusion/)

@@ -203,6 +203,21 @@
       o.onended = cleanup([o, g]);
       o.start(t); o.stop(t + 0.08);
     },
+    /* 落地闷响（高处坠落着地时触发，音高随冲击力微变） */
+    land: function (hard) {
+      if (api.muted || !ensureReady()) return;
+      var t = ctx.currentTime;
+      var o = ctx.createOscillator();
+      var g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(hard ? 130 : 160, t);
+      o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+      g.gain.setValueAtTime(hard ? 0.35 : 0.2, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+      o.connect(g); g.connect(master);
+      o.onended = cleanup([o, g]);
+      o.start(t); o.stop(t + 0.14);
+    },
     ui: function () {
       if (api.muted || !ensureReady()) return;
       var o = ctx.createOscillator();

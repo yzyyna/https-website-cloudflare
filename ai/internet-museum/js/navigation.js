@@ -5,6 +5,7 @@
 
 import { ERAS_CONFIG, museumStore } from './state.js';
 import { audioManager } from './audio.js';
+import { eggsManager } from './eggs.js';
 
 export class NavigationManager {
   constructor() {
@@ -193,6 +194,10 @@ export class NavigationManager {
 
     museumStore.update({ currentEra: targetEra.year });
     audioManager.playEraTransition();
+    // 展厅间过渡提示：切换年代时给出轻量面包屑，避免用户在横向长廊中迷失方位
+    if (typeof eggsManager !== 'undefined' && eggsManager.showToast) {
+      eggsManager.showToast(`已穿越至 ${targetEra.year} · ${targetEra.name}`);
+    }
 
     this.galleryEl.scrollTo({
       left: targetScroll,

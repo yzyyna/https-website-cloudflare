@@ -101,6 +101,7 @@
     if (steps > 10) steps = 10;
     var i, s;
     var wasOnGround = this.onGround;
+    var fallSpeed = this.vel[1];
     this.onGround = false;
     this.hitWall = false;
     for (s = 0; s < steps; s++) {
@@ -108,6 +109,12 @@
       this._moveAxis(1, move[1] / steps, wasOnGround);
       this._moveAxis(0, move[0] / steps, wasOnGround);
       this._moveAxis(2, move[2] / steps, wasOnGround);
+    }
+
+    /* 落地反馈：从高处坠落着地时闷响 + 轻震（飞行/水中不触发） */
+    if (!wasOnGround && this.onGround && !this.flying && !this.inWater && fallSpeed < -9) {
+      if (MC.Sound && MC.Sound.land) MC.Sound.land(fallSpeed < -20);
+      try { if (typeof navigator.vibrate === 'function') navigator.vibrate(12); } catch (e) {}
     }
 
     /* 主动脱困：若玩家初始陷入实体方块，平滑搜索最近开阔空间脱出 */

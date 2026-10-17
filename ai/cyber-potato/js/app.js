@@ -130,9 +130,9 @@
     elFillHunger.style.width = `${Math.min(100, Math.max(0, hunger))}%`;
     setBarColorClass(elFillHunger, hunger);
 
-    // 电力
+    // 电力（允许咖啡超频至 150，显示按 150 归一避免进度条恒满）
     elValEnergy.textContent = `${Math.round(energy)}%`;
-    elFillEnergy.style.width = `${Math.min(100, Math.max(0, energy))}%`;
+    elFillEnergy.style.width = `${Math.min(100, Math.max(0, energy / 1.5))}%`;
     setBarColorClass(elFillEnergy, energy);
 
     // 心智
@@ -580,9 +580,14 @@
       checkUnlocks();
     });
 
-    // 格式化重置
+    // 格式化重置（两步确认：5 秒内再次点击确认，避免阻塞式 confirm）
+    let resetArmedAt = 0;
     document.getElementById('btnDebugReset').addEventListener('click', () => {
-      if (confirm('确定要重置这颗土豆的所有记忆与配件吗？')) {
+      const now = Date.now();
+      const btn = document.getElementById('btnDebugReset');
+      if (now - resetArmedAt < 5000) {
+        resetArmedAt = 0;
+        btn.textContent = '🗑️ 格式化重置本地存档';
         window.PotatoState.reset();
         modalTimeMachine.classList.remove('open');
         modalResignation.classList.remove('open');
@@ -590,6 +595,10 @@
         window.PotatoAccessories.renderWardrobe(window.PotatoState.getState());
         updateUI(window.PotatoState.getState());
         window.PotatoDialogue.say('新生命诞生。一颗崭新、未经职场毒打的马铃薯破土而出。', 'idle');
+      } else {
+        resetArmedAt = now;
+        btn.textContent = '⚠️ 再次点击确认重置';
+        window.PotatoDialogue.say('格式化将清空全部记忆与配件，再点一次确认执行。', 'idle');
       }
     });
 

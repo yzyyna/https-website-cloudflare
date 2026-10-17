@@ -64,6 +64,9 @@ export function initEra1998() {
       // 开始拨号
       btnConnect.disabled = true;
       btnConnect.textContent = '拨号连线中...';
+      // 无障碍：禁用期间明确告知读屏用户
+      btnConnect.setAttribute('aria-disabled', 'true');
+      btnConnect.setAttribute('aria-live', 'polite');
       if (statusLed) statusLed.classList.add('lit');
 
       let progressVal = 10;
@@ -80,9 +83,10 @@ export function initEra1998() {
         () => {
           clearInterval(progressTimer);
           btnConnect.disabled = false;
+          btnConnect.removeAttribute('aria-disabled');
           museumStore.update({ connected1998: true });
           applyConnectedUI();
-          eggsManager.showToast('🎉 成功连接到 1998 年互联网世界！');
+          eggsManager.showToast('已成功连接到 1998 年互联网世界！');
         }
       );
     });

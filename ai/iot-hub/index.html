@@ -37,6 +37,8 @@ html{scroll-behavior:smooth}
 .btn:active{transform:scale(.97)}
 .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}.btn.primary:hover{background:var(--primary2);box-shadow:0 4px 14px rgba(37,99,235,.3)}
 .btn.ghost{background:transparent}.btn.small{padding:5px 8px;font-size:12px}
+.btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+.btn:disabled:hover{box-shadow:none;border-color:var(--border)}
 .badge{padding:2px 6px;border-radius:999px;font-size:11px;border:1px solid var(--border);background:var(--panel2)}
 .dot{width:8px;height:8px;border-radius:999px;display:inline-block}
 .layout{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 58px)}
@@ -86,13 +88,14 @@ html{scroll-behavior:smooth}
 .drawer{position:fixed;inset:0 0 0 auto;width:min(520px,92vw);background:var(--panel);border-left:1px solid var(--border);box-shadow:var(--shadow);transform:translateX(100%);transition:.22s;z-index:40;display:flex;flex-direction:column}
 .drawer.open{transform:none}
 .drawer-head{padding:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.drawer-body{padding:12px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.drawer-body{padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom));overflow:auto;display:flex;flex-direction:column;gap:10px}
 .kv{display:grid;grid-template-columns:120px 1fr;gap:8px;font-size:12px}
 .kv b{color:var(--muted);font-weight:600}
-.chart-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--panel2);padding:8px}
+.chart-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--panel2);padding:8px;position:relative}
 .chart-wrap canvas{width:100%;height:180px;display:block}
+.chart-meta{font-size:11px;color:var(--muted);padding:2px 2px 0}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:900px){.charts{grid-template-columns:1fr}.list-head,.row{grid-template-columns:36px 120px 1fr 70px 70px 70px} .list-head span:nth-child(n+7),.row div:nth-child(n+7){display:none} .layout{grid-template-columns:1fr}}
+@media(max-width:900px){.charts{grid-template-columns:1fr}.list-head,.row{grid-template-columns:36px 110px 1fr 70px 70px 70px} .list-head span:nth-child(n+7),.row div:nth-child(n+7){display:none} .layout{grid-template-columns:1fr}}
 @media(max-width:640px){
   .top{padding:8px;flex-wrap:wrap;gap:8px;padding-top:max(8px,env(safe-area-inset-top))}
   .brand{font-size:13px;width:100%}
@@ -108,6 +111,8 @@ html{scroll-behavior:smooth}
   .btn.small{padding:9px 12px;font-size:13px}
   .toolbar-row input,.toolbar-row select,.search-wrap input{padding:11px 12px;font-size:15px}
   .node{padding:11px 10px;font-size:14px}
+  .tree-toggle{width:28px;height:28px;font-size:13px}
+  .row input[type=checkbox]{width:18px;height:18px}
   .viewport{height:calc(100vh - 200px)}
   .toast{bottom:max(18px,env(safe-area-inset-bottom));max-width:calc(100vw - 32px);text-align:center}
   .debug{right:8px;bottom:max(8px,env(safe-area-inset-bottom));width:calc(100vw - 16px)}
@@ -197,7 +202,7 @@ html{scroll-behavior:smooth}
         <select id="fLatOp"><option value="">延迟</option><option value=">">></option><option value=">=">>=</option><option value="<"><</option><option value="<="><=</option></select>
         <input id="fLatVal" type="number" placeholder="延迟" style="width:100px">
         <select id="fStatus"><option value="">状态</option><option value="online">online</option><option value="offline">offline</option><option value="warning">warning</option><option value="maintenance">maintenance</option></select>
-        <select id="fRegion" multiple style="min-width:140px;height:34px"><option value="华东">华东</option><option value="华南">华南</option><option value="华北">华北</option></select>
+        <select id="fRegion" multiple title="可多选（Ctrl/Cmd+点击）" style="min-width:140px;height:34px"><option value="华东">华东</option><option value="华南">华南</option><option value="华北">华北</option></select>
         <select id="fLogic"><option value="AND">AND</option><option value="OR">OR</option></select>
         <button class="btn small primary" id="btnApplyFilter">应用筛选</button>
       </div>
@@ -223,7 +228,7 @@ html{scroll-behavior:smooth}
         <button class="btn small" data-batch="tag">批量打标签</button>
         <button class="btn small" data-batch="move">批量移动分组</button>
         <button class="btn small" data-batch="ack">批量确认告警</button>
-        <div class="progress" title="并发 10"><i id="batchProgress"></i></div>
+        <div class="progress" title="并发 10" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="batchProgress"></i></div>
         <span class="badge" id="batchStat">总数 0 成功 0 失败 0 进行中 0</span>
         <button class="btn small" id="btnCancelTask">取消</button>
         <button class="btn small" id="btnRetryTask">重试失败</button>
@@ -276,6 +281,7 @@ const nowStr=()=>new Date().toLocaleString();
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const debounce=(fn,ms)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
 const fmt=(n,d=1)=>Number(n).toFixed(d);
+const fmtInt=(n)=>Number(n||0).toLocaleString('en-US');
 const escapeHTML=(s)=>{if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')};
 const escapeCsvCell=(v)=>{if(v==null)return'""';let s=String(v);if(/^[=+\-@\t\r\n ]/.test(s)&&!/^[+-]?\d/.test(s.trimStart()))s="'"+s;if(s.includes('"')||s.includes(',')||s.includes('\n')||s.includes('\r'))return '"'+s.replace(/"/g,'""')+'"';return s};
 
@@ -344,6 +350,7 @@ class FilterEngine{
   constructor(){this.cache=new Map()}
   compile(filters){
     const key=JSON.stringify(filters); if(this.cache.has(key)) return this.cache.get(key);
+    if(this.cache.size>200){ const oldest=this.cache.keys().next().value; this.cache.delete(oldest); }
     const fn=(d)=>{
       const tests=[];
       if(filters.search){const s=filters.search.toLowerCase(); tests.push(d.id.toLowerCase().includes(s)||d.name.includes(filters.search)||d.region.includes(filters.search)||d.city.includes(filters.search))}
@@ -449,6 +456,7 @@ class VirtualList{
       const row=document.createElement('div');
       row.className='row'+(sel.has(d.id)?' sel':'');
       row.dataset.id=d.id;
+      row.title=`${d.id} ${d.name} ${d.region}${d.city} · ${d.status}`;
       row.draggable=true;
       row.innerHTML=`<div><input type="checkbox" ${sel.has(d.id)?'checked':''}></div><div class="id">${escapeHTML(d.id)}</div><div>${escapeHTML(d.name)}</div><div>${escapeHTML(String(d.cpu))}%<div class="meter"><i style="width:${clamp(Number(d.cpu)||0,0,100)}%"></i></div></div><div>${fmt(d.temperature)}°C</div><div>${fmt(d.power)}W</div><div>${escapeHTML(String(d.latency))}ms</div><div>${escapeHTML(String(d.battery))}%</div><div><span class="tag">${escapeHTML(d.region)}</span> ${escapeHTML(d.city)}</div><div><span class="status ${escapeHTML(d.status)}">${escapeHTML(d.status)}</span></div>`;
       row.addEventListener('click',(e)=>{ if(e.target.type==='checkbox'){toggleSelection(d.id,e)} else {handleRowClick(d.id,e)} });
@@ -496,12 +504,12 @@ function handleRowClick(id,e){
 }
 
 /* ========== AlarmDeduplicator & AlarmManager ========== */
-class AlarmDeduplicator{constructor(){this.map=new Map()} key(deviceId,type){return deviceId+':'+type} canCreate(deviceId,type,now=Date.now()){const EXP=5*60*1000; for(const [k,v] of this.map){ if(now-v.ts>EXP) this.map.delete(k) } const last=this.map.get(this.key(deviceId,type)); return !last || now-last.ts>EXP} mark(deviceId,type,now=Date.now()){this.map.set(this.key(deviceId,type),{ts:now})}}
+class AlarmDeduplicator{constructor(){this.map=new Map();this.EXP=5*60*1000} key(deviceId,type){return deviceId+':'+type} sweep(now=Date.now()){for(const [k,v] of this.map){ if(now-v.ts>this.EXP) this.map.delete(k) }} canCreate(deviceId,type,now=Date.now()){const last=this.map.get(this.key(deviceId,type)); return !last || now-last.ts>this.EXP} mark(deviceId,type,now=Date.now()){this.map.set(this.key(deviceId,type),{ts:now})}}
 class AlarmManager{constructor(dedup){this.dedup=dedup} evaluate(device){this.evaluateBatch([device])} evaluateBatch(devices){
   const rules=[{type:'temperature',level:'critical',check:d=>d.temperature>80,thr:80},{type:'cpu',level:'critical',check:d=>d.cpu>95,thr:95},{type:'latency',level:'warning',check:d=>d.latency>500,thr:500},{type:'battery',level:'warning',check:d=>d.battery<10,thr:10}];
-  const now=Date.now(); const alarms=store.getState().alarms.slice(); let changed=false;
+  const now=Date.now(); this.dedup.sweep(now); const alarms=store.getState().alarms.slice(); let changed=false;
   for(const device of devices){ for(const r of rules){ if(!r.check(device)||!this.dedup.canCreate(device.id,r.type,now)) continue; this.dedup.mark(device.id,r.type,now); const alarm={id:uid('ALM'),deviceId:device.id,type:r.type,level:r.level,value:device[r.type==='temperature'?'temperature':r.type],threshold:r.thr,timestamp:now,acknowledged:false}; alarms.unshift(alarm); bus.emit('alarm:new',alarm); changed=true; logger.warn('Alarm',`new ${r.type}`,{deviceId:device.id,value:alarm.value}) } }
-  if(changed){store.setState({alarms:alarms.slice(0,2000)}); renderAlarms()}
+  if(changed){store.setState({alarms:alarms.slice(0,2000)}); scheduleAlarms()}
 }}
 const dedup=new AlarmDeduplicator(); const alarmManager=new AlarmManager(dedup);
 
@@ -509,7 +517,7 @@ const dedup=new AlarmDeduplicator(); const alarmManager=new AlarmManager(dedup);
 class TaskQueue{
   constructor(concurrency=10){this.concurrency=concurrency;this.queue=[];this.running=0;this.paused=false;this.idSeq=0;this.gen=0}
   add(task){task.id=task.id||uid('task');task.status='pending';task.retryCount=task.retryCount||0;task.priority=task.priority||0;this.queue.push(task);this.queue.sort((a,b)=>b.priority-a.priority);return task.id}
-  start(){if(this.paused) return; const next=()=>{ if(this.paused) return; while(this.running<this.concurrency && this.queue.length){const t=this.queue.shift(); if(t.status==='canceled') continue; this.running++; t.status='running'; bus.emit('task:progress',t); this.exec(t).finally(()=>{this.running--; next(); if(this.running===0 && this.queue.length===0) bus.emit('task:completed')}) }};
+  start(){if(this.paused) return; const next=()=>{ if(this.paused) return; while(this.running<this.concurrency && this.queue.length){const t=this.queue.shift(); if(t.status==='canceled') continue; this.running++; t.status='running'; bus.emit('task:progress',t); this.exec(t).finally(()=>{this.running=Math.max(0,this.running-1); next(); if(this.running===0 && this.queue.length===0) bus.emit('task:completed')}) }};
     next();
   }
   async exec(t){ try{ await t.run(); t.status='success'; }catch(e){ if(t.canceled){ t.status='canceled'; } else if(t.retryCount < (t.maxRetries??2)){ const delay=500*Math.pow(2,t.retryCount)+Math.random()*200; t.retryCount++; t.status='retry'; const gen=this.gen; setTimeout(()=>{ if(gen!==this.gen||t.canceled){ t.status='canceled'; return; } this.queue.unshift(t); this.start(); },delay); } else { t.status='failed'; t.error=e.message||String(e)} } bus.emit('task:progress',t); updateBatchUI(); }
@@ -595,8 +603,8 @@ function flushUpdates(){
 let refreshTimer=null;
 let renderRaf=0;
 function scheduleRefresh(batch){
-  const filters=getActiveFilters();
-  const sorting=getSorting();
+  const filters=lastFilters||getActiveFilters();
+  const sorting=lastSorting||getSorting();
   const hasDynamicFilter = Boolean(filters.cpuOp || filters.tempOp || filters.latOp);
   const dynamicSortKeys = new Set(['temperature','cpu','power','voltage','current','latency','battery']);
   const hasDynamicSort = sorting.some(s => dynamicSortKeys.has(s.key));
@@ -616,11 +624,14 @@ function scheduleRefresh(batch){
   }
 
   clearTimeout(refreshTimer);
-  refreshTimer=setTimeout(()=>{ recompute(); }, 120);
+  // 大数据量下放宽重算节流，避免 5 万行高频 sort 卡顿
+  const wait=(vlist&&vlist.data.length>20000)?400:120;
+  refreshTimer=setTimeout(()=>{ recompute(); }, wait);
 }
 
 /* ========== Filtering + Sorting pipeline ========== */
 let filteredSorted=[];
+let lastFilters=null, lastSorting=[];
 function getActiveFilters(){
   const s=$('#searchInput').value.trim();
   const f={search:s,nameOp:$('#fNameOp').value,nameVal:$('#fNameVal').value,cpuOp:$('#fCpuOp').value,cpuVal:$('#fCpuVal').value,tempOp:$('#fTempOp').value,tempVal:$('#fTempVal').value,latOp:$('#fLatOp').value,latVal:$('#fLatVal').value,status:$('#fStatus').value,region:[...$('#fRegion').selectedOptions].map(o=>o.value),logic:$('#fLogic').value,groupId:store.getState().selectedGroup!=='g_root'?store.getState().selectedGroup:null};
@@ -637,27 +648,32 @@ function recompute(){
   // persist (返回值忽略：筛选/排序持久化失败不影响本次渲染)
   storage.debouncedSet('filters',filters); storage.debouncedSet('sorting',sorting);
   let res=filterEngine.filter(devices,filters);
-  if(filters.search){ // use search engine for large set optimization (already filtered but keep cache)
-    // already handled inside filter, no extra
-  }
   res=stableSort(res,sorting);
   filteredSorted=res;
+  lastFilters=filters; lastSorting=sorting;
   vlist.setData(res);
-  $('#filterInfo').textContent=`筛选: ${res.length} / ${devices.length}`;
-  $('#footerInfo').textContent=`渲染 ${vlist.end - vlist.start} 行 · 过滤 ${res.length} · 总数 ${devices.length} · 耗时 ${fmt(performance.now()-t0,1)}ms`;
-  $('#dFiltered')&&( $('#dFiltered').textContent=res.length);
+  $('#filterInfo').textContent=`筛选: ${fmtInt(res.length)} / ${fmtInt(devices.length)}`;
+  $('#footerInfo').textContent=`渲染 ${fmtInt(vlist.end - vlist.start)} 行 · 过滤 ${fmtInt(res.length)} · 总数 ${fmtInt(devices.length)} · 耗时 ${fmt(performance.now()-t0,1)}ms`;
+  $('#dFiltered')&&( $('#dFiltered').textContent=fmtInt(res.length));
   updateHeader();
 }
 
 /* ========== Rendering helpers ========== */
 function updateHeader(){
+  const nowTs=Date.now();
+  if(nowTs-(updateHeader._t||0)<800) return;
+  updateHeader._t=nowTs;
   const devices=store.getState().devices; if(!devices.length) return;
-  const online=devices.filter(d=>d.status==='online').length; const alarms=store.getState().alarms.filter(a=>!a.acknowledged).length;
-  const avgCpu=devices.reduce((s,d)=>s+d.cpu,0)/devices.length; const avgT=devices.reduce((s,d)=>s+d.temperature,0)/devices.length;
-  $('#sOnline').textContent=online; $('#sAlarm').textContent=alarms; $('#sCpu').textContent=fmt(avgCpu)+'%'; $('#sTemp').textContent=fmt(avgT)+'°C'; $('#sTime').textContent=nowStr();
+  let online=0, cpuSum=0, tempSum=0, unack=0;
+  for(const d of devices){ if(d.status==='online') online++; cpuSum+=d.cpu; tempSum+=d.temperature; }
+  for(const a of store.getState().alarms){ if(!a.acknowledged) unack++; }
+  const avgCpu=cpuSum/devices.length; const avgT=tempSum/devices.length;
+  $('#sOnline').textContent=fmtInt(online); $('#sAlarm').textContent=fmtInt(unack); $('#sCpu').textContent=fmt(avgCpu)+'%'; $('#sTemp').textContent=fmt(avgT)+'°C'; $('#sTime').textContent=nowStr();
   const conn=store.getState().ui.connection; const el=$('#sConn'); el.innerHTML=(conn==='connected'?'<span class="dot" style="background:var(--success)"></span> 已连接':'<span class="dot" style="background:var(--danger)"></span> 已断开');
 }
-function updateSelectInfo(){ $('#selectInfo').textContent=`已选: ${store.getState().selection.size}`; $('#chkHead').checked=store.getState().selection.size && store.getState().selection.size===filteredSorted.length; }
+function updateSelectInfo(){ const size=store.getState().selection.size; $('#selectInfo').textContent=`已选: ${fmtInt(size)}`; const head=$('#chkHead'); head.checked=size>0 && size===filteredSorted.length; head.indeterminate=size>0 && size<filteredSorted.length; }
+let alarmTimer=0;
+function scheduleAlarms(){ if(alarmTimer) return; alarmTimer=setTimeout(()=>{ alarmTimer=0; renderAlarms(); },200); }
 function renderAlarms(){
   const list=$('#alarmList'); const lvl=$('#alarmLevel').value; const alarms=store.getState().alarms.filter(a=> !lvl || a.level===lvl).slice(0,200);
   list.innerHTML=alarms.map(a=>`<div class="alarm"><div><b>${escapeHTML(a.type)} · ${escapeHTML(a.level)}</b> <small><span class="alarm-link" data-dev="${escapeHTML(a.deviceId)}">${escapeHTML(a.deviceId)}</span> 值 ${fmt(a.value)} 阈值 ${a.threshold}</small><br><small>${new Date(a.timestamp).toLocaleString()}</small></div><span style="display:flex;gap:6px"><button class="btn small" data-ack="${escapeHTML(a.id)}">${a.acknowledged?'已确认':'确认'}</button><button class="btn small" data-del="${escapeHTML(a.id)}">删除</button></span></div>`).join('')||'<small style="color:var(--muted)">暂无告警</small>';
@@ -666,13 +682,16 @@ function renderGroups(){
   const groups=store.getState().groups; const sel=store.getState().selectedGroup; const map=new Map(groups.map(g=>[g.id,g])); const roots=groups.filter(g=>!g.parent);
   const collapsed = store.getState().collapsedGroups || new Set();
   const shown=new Set();
+  // 单次遍历统计各分组设备数（原为每分组一次 filter，17×5万）
+  const counts=new Map();
+  for(const d of store.getState().devices){ for(const gid of d.groupIds){ counts.set(gid,(counts.get(gid)||0)+1); } }
   function renderNode(g,depth=0){ if(shown.has(g.id)) return ''; shown.add(g.id);
     const kids=(g.children||[]).map(id=>map.get(id)).filter(Boolean);
     const active=sel===g.id?' active':'';
     const hasKids=kids.length>0;
     const isCol=collapsed.has(g.id);
     const toggleSymbol=hasKids?(isCol?'▸':'▾'):'·';
-    let html=`<div class="node${active}" draggable="true" data-gid="${escapeHTML(g.id)}" style="margin-left:${depth*8}px"><span class="tree-toggle" data-toggle="${escapeHTML(g.id)}">${toggleSymbol}</span> <b>${escapeHTML(g.name)}</b> <small style="color:var(--muted)">(${store.getState().devices.filter(d=>d.groupIds.includes(g.id)).length})</small></div>`;
+    let html=`<div class="node${active}" draggable="true" data-gid="${escapeHTML(g.id)}" style="margin-left:${depth*8}px"><span class="tree-toggle" data-toggle="${escapeHTML(g.id)}">${toggleSymbol}</span> <b>${escapeHTML(g.name)}</b> <small style="color:var(--muted)">(${fmtInt(counts.get(g.id)||0)})</small></div>`;
     if(hasKids && !isCol) html+=`<div class="children">${kids.map(k=>renderNode(k,depth+1)).join('')}</div>`;
     return html;
   }
@@ -728,8 +747,10 @@ function updateDrawerMetrics(d){
 function updateDrawerCharts(d){
   drawChart('cCpu', d.history.map(h=>h.cpu), '#2563eb');
   drawChart('cTemp', d.history.map(h=>h.temp), '#ef4444');
-  drawChart('cPower', d.history.map(h=>h.power), '#f59e0b');
-  drawChart('cLat', d.history.map(h=>h.lat), '#10b981');
+  drawChart('cPower', d.history.map(h=>h.power), '#10b981');
+  drawChart('cLat', d.history.map(h=>h.lat), '#f59e0b');
+  const meta={cCpu:d.cpu+'%',cTemp:fmt(d.temperature)+'°C',cPower:fmt(d.power)+'W',cLat:d.latency+'ms'};
+  for(const id of Object.keys(meta)){ const cv=document.getElementById(id); if(cv) cv.setAttribute('aria-label',`当前 ${meta[id]}，共 ${d.history.length} 个采样点`); }
 }
 function initCanvasTooltips(){
   const charts=[{c:'cCpu',t:'tipCpu',u:'%'},{c:'cTemp',t:'tipTemp',u:'°C'},{c:'cPower',t:'tipPower',u:'W'},{c:'cLat',t:'tipLat',u:'ms'}];
@@ -747,6 +768,8 @@ function initCanvasTooltips(){
       tip.textContent=`${fmt(v)}${u}`;
     };
     cv.onmouseleave=()=>{ tip.style.display='none'; };
+    cv.ontouchstart=(e)=>{ const touch=e.touches[0]; if(touch){ cv.onmousemove({clientX:touch.clientX}); } };
+    cv.ontouchend=()=>{ tip.style.display='none'; };
   });
 }
 let currentDrawerId=null;
@@ -806,8 +829,11 @@ function deleteDevice(id){
 let batchTasks=[];
 function updateBatchUI(){
   const total=batchTasks.length; const success=batchTasks.filter(t=>t.status==='success').length; const failed=batchTasks.filter(t=>t.status==='failed').length; const running=batchTasks.filter(t=>t.status==='running').length;
-  $('#batchStat').textContent=`总数 ${total} 成功 ${success} 失败 ${failed} 进行中 ${running}`;
+  $('#batchStat').textContent=`总数 ${fmtInt(total)} 成功 ${fmtInt(success)} 失败 ${fmtInt(failed)} 进行中 ${fmtInt(running)}`;
   const pct= total? Math.round((success+failed)/total*100):0; $('#batchProgress').style.width=pct+'%';
+  const bar=$('#batchBar .progress'); if(bar) bar.setAttribute('aria-valuenow',String(pct));
+  $('#btnCancelTask').disabled=!running && !taskQueue.queue.length;
+  $('#btnRetryTask').disabled=!failed;
   $('#dTask').textContent=taskQueue.running;
 }
 function runBatch(type){
@@ -867,10 +893,10 @@ function init(){
   const savedSorting=loadStored('sorting',null,v=>Array.isArray(v)&&v.every(x=>x&&typeof x==='object')); if(savedSorting && savedSorting.length){ if(savedSorting[0]){$('#sort1').value=savedSorting[0].key; $('#sort1Dir').value=savedSorting[0].dir} if(savedSorting[1]){$('#sort2').value=savedSorting[1].key; $('#sort2Dir').value=savedSorting[1].dir} if(savedSorting[2]){$('#sort3').value=savedSorting[2].key; $('#sort3Dir').value=savedSorting[2].dir} }
   // vlist
   vlist=new VirtualList($('#viewport'),$('#content'),$('#phantom'),40,12);
-  recompute(); renderGroups(); updateSelectInfo(); renderAlarms(); updateHeader();
+  recompute(); renderGroups(); updateSelectInfo(); renderAlarms(); updateHeader(); updateBatchUI();
   fakeWs.connect();
   // FPS monitor
-  let last=performance.now(), frames=0; function fpsLoop(){ frames++; const now=performance.now(); if(now-last>1000){ $('#dFps').textContent=frames; frames=0; last=now; $('#dDom').textContent=document.getElementsByTagName('*').length; $('#dTotal').textContent=store.getState().devices.length; $('#dWs').textContent=fakeWs.msgCount; $('#dUps').textContent=upsCounter; upsCounter=0; $('#dStore').textContent=store.updateCount; $('#dBus').textContent=bus.count; } requestAnimationFrame(fpsLoop)} requestAnimationFrame(fpsLoop);
+  let last=performance.now(), frames=0; function fpsLoop(){ frames++; const now=performance.now(); if(now-last>1000){ $('#dFps').textContent=frames; frames=0; last=now; $('#dDom').textContent=document.getElementsByTagName('*').length; $('#dTotal').textContent=fmtInt(store.getState().devices.length); $('#dWs').textContent=fakeWs.msgCount; $('#dUps').textContent=upsCounter; upsCounter=0; $('#dStore').textContent=store.updateCount; $('#dBus').textContent=bus.count; } requestAnimationFrame(fpsLoop)} requestAnimationFrame(fpsLoop);
   setInterval(()=>{ updateHeader(); },1000);
   // debounced search
   $('#searchInput').addEventListener('input', debounce(()=>recompute(),250));
@@ -1029,7 +1055,7 @@ $('#importFile').onchange=async (e)=>{
     const errors=[]; const seen=new Set(); const normalized=[]; const skipped={count:0}; const str=(v,fallback)=>typeof v==='string'&&v.trim()?v:fallback;
     const num=(v,fallback=0)=>{const n=Number(v); return Number.isFinite(n)?n:fallback};
     const optNum=(v,fallback)=>{ if(v==null||v==='') return fallback; const n=Number(v); return Number.isFinite(n)?n:fallback };
-    const STATUS_OK=new Set(['online','offline','maintenance','alarm']);
+    const STATUS_OK=new Set(['online','offline','maintenance','warning']);
     json.forEach((d,i)=>{
       if(!d||typeof d!=='object'){ errors.push(`行 ${i}: 非对象记录`); skipped.count++; return; }
       if(!d.id || typeof d.id!=='string' || !/^DEV-\d{6}$/.test(d.id)){ errors.push(`行 ${i}: 非法 id ${d.id}`); skipped.count++; return; }
@@ -1082,9 +1108,7 @@ $('#btnRedo').onclick=()=>{history.redo(); toast('已重做')};
 $('#btnScrollTop').onclick=()=>vlist.scrollToIndex(0);
 $('#btnScrollMid').onclick=()=>vlist.scrollToIndex(Math.floor(filteredSorted.length/2));
 $('#btnMobileGroup').onclick=()=>$('#sidebar').classList.toggle('open');
-$('#viewport').setAttribute('tabindex','0');
-$('#list-card')?.addEventListener?.('click',()=>{});
-$('#content').addEventListener('click',(e)=>{const r=e.target.closest('.row'); if(!r) return;});
+  $('#viewport').setAttribute('tabindex','0');
 
 // footer sort click
 $$('.list-head [data-sort]').forEach(el=>el.onclick=()=>{

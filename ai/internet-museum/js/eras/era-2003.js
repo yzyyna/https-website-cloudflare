@@ -103,11 +103,18 @@ export function initEra2003() {
     });
   }
 
-  // 4. 留言板渲染与提交
+  // 4. 留言板渲染与提交（含空状态：首访用户看到引导而非空白列表）
   function renderGuestbook() {
     if (!guestbookListEl) return;
     const messages = museumStore.getState().guestbookMessages || [];
     guestbookListEl.innerHTML = '';
+    if (!messages.length) {
+      const empty = document.createElement('div');
+      empty.className = 'guestbook-empty-hint';
+      empty.textContent = '留言簿空空如也，快留下第一条脚印 Preheat 吧～';
+      guestbookListEl.appendChild(empty);
+      return;
+    }
     messages.forEach((msg) => {
       if (!msg || typeof msg !== 'object') return; // 跳过损坏的历史存档条目
       const item = document.createElement('div');
@@ -128,11 +135,11 @@ export function initEra2003() {
 
   if (guestSubmitBtn) {
     guestSubmitBtn.addEventListener('click', () => {
-      const name = guestNameInput?.value.trim() || '神秘网友';
-      const text = guestTextInput?.value.trim();
+      const name = (guestNameInput?.value.trim() || '神秘网友').slice(0, 12);
+      const text = guestTextInput?.value.trim().slice(0, 500);
 
       if (!text) {
-        eggsManager.showToast('请输入留言内容哦~');
+        eggsManager.showToast('请输入留言内容哦～');
         return;
       }
 

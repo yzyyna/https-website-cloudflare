@@ -33,6 +33,8 @@ html, body {
 }
 #crosshair::before { left: 50%; top: 0; width: 2px; height: 100%; transform: translateX(-50%); }
 #crosshair::after  { top: 50%; left: 0; height: 2px; width: 100%; transform: translateY(-50%); }
+#crosshair.on-target::before, #crosshair.on-target::after { background: rgba(180,255,140,0.95); }
+#crosshair.on-target { filter: drop-shadow(0 0 3px rgba(126,200,80,0.9)); }
 
 #breakbar {
   position: absolute; left: 50%; top: calc(50% + 26px);
@@ -753,7 +755,9 @@ body.touch-mode #touch-controls:not(.hidden) {
   #touch-action-btns {
     right: max(10px, env(safe-area-inset-right));
     bottom: max(10px, env(safe-area-inset-bottom));
-    grid-template-columns: repeat(2, 54px);
+    /* 6 个按钮（飞行/挖掘/放置/疾跑/下降/跳跃）保持 3 列 x 2 行，
+       宽度 3*54+2*8=178px，360px 宽手机也能放下，避免隐式第 3 列溢出 */
+    grid-template-columns: repeat(3, 54px);
     grid-template-rows: repeat(2, 54px);
     gap: 8px;
   }

@@ -84,9 +84,14 @@
         }
       }
       if (saved.settings) {
-        if (saved.settings.renderDist) settings.renderDist = Math.max(2, Math.min(12, saved.settings.renderDist | 0));
+        /* 下拉只有 2~6 档，读档钳位必须与之对齐，否则 select 会落空无选中 */
+        if (saved.settings.renderDist) settings.renderDist = Math.max(2, Math.min(6, saved.settings.renderDist | 0));
         settings.muted = !!saved.settings.muted;
-        if (saved.settings.controlMode) settings.controlMode = saved.settings.controlMode;
+        if (saved.settings.controlMode === 'auto' ||
+            saved.settings.controlMode === 'touch' ||
+            saved.settings.controlMode === 'desktop') {
+          settings.controlMode = saved.settings.controlMode;
+        }
       }
       if (saved.stats) {
         stats.mined = saved.stats.mined | 0;
@@ -145,6 +150,7 @@
     };
     document.getElementById('sel-dist').value = String(settings.renderDist);
     updateSoundLabel();
+    syncFlyUI(player.flying);
     hud.showState('title');
     document.getElementById('title-seed').textContent =
       '种子 ' + world.seed + (savedExists ? ' · 已从存档恢复（自动保存中）' : ' · 进度将自动保存');
@@ -188,6 +194,16 @@
     MC.saveAPI.clear();
   }
 
+  /* 同步触控飞行 UI：徽标显隐 + 飞行/下降按钮态（读档恢复飞行态时也要调用） */
+  function syncFlyUI(on) {
+    var badge = document.getElementById('fly-badge');
+    if (badge) badge.classList.toggle('hidden', !on);
+    var flyBtn = document.getElementById('btn-touch-fly');
+    if (flyBtn) flyBtn.classList.toggle('active', on);
+    var downBtn = document.getElementById('btn-touch-down');
+    if (downBtn) downBtn.classList.toggle('hidden', !on);
+  }
+
   /* ---------------- 输入接线 ---------------- */
   function wireInput() {
     input.onLook = function (dx, dy) {
@@ -223,13 +239,7 @@
       if (state !== 'playing') return;
       var on = player.toggleFly();
       hud.toast(on ? '飞行模式：开' : '飞行模式：关');
-      /* 同步触控 UI：飞行徽标与下降按钮的显隐（之前是死元素） */
-      var badge = document.getElementById('fly-badge');
-      if (badge) badge.classList.toggle('hidden', !on);
-      var flyBtn = document.getElementById('btn-touch-fly');
-      if (flyBtn) flyBtn.classList.toggle('active', on);
-      var downBtn = document.getElementById('btn-touch-down');
-      if (downBtn) downBtn.classList.toggle('hidden', !on);
+      syncFlyUI(on);
     };
     input.onToggleMute = function () {
       var muted = MC.Sound.toggleMute();
@@ -338,10 +348,14 @@
       selControl.addEventListener('change', function (e) {
         settings.controlMode = e.target.value;
         input.setControlMode(settings.controlMode);
+        doSave();
       });
     }
     document.getElementById('sel-dist').addEventListener('change', function (e) {
-      settings.renderDist = +e.target.value || 4;
+      settings.renderDist = Math.max(2, Math.min(6, +e.target.value || 4));
+      e.target.value = String(settings.renderDist);
+      cachedVisible = null; /* 距离变化后立即重算可见集，避免远处区块残留/近处缺块 */
+      doSave();
     });
   }
 
@@ -511,9 +525,8 @@
     particles.spawnBurst(renderer.atlas, id, t.x, t.y, t.z);
     MC.Sound.breakBlock(id);
     haptic(id === BLOCK.TNT ? 25 : 15);
-    if (id !== BLOCK.TNT) {
-      spawnDrop(dropId, t.x, t.y, t.z);
-    }
+    /* 左键挖掉 TNT 也掉落自身（与点火引爆互不冲突），避免静默吞方块 */
+    spawnDrop(dropId, t.x, t.y, t.z);
     stats.mined++;
     breakProgress = 0;
     breakTarget = null;

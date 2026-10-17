@@ -201,7 +201,7 @@ button.btn:active,.seg button:active{transform:scale(.96)}
   <div id="hudBR" class="hud panel">
     <div class="cell"><div class="b" id="bFps">--</div><div class="s">FPS</div></div>
     <div class="cell"><div class="b" id="bLat">--</div><div class="s">LATENCY ms</div></div>
-    <div class="cell"><div class="b" id="bRes">--</div><div class="s">GRID</div></div>
+    <div class="cell"><div class="b" id="bRes">--</div><div class="s">RES</div></div>
   </div>
 
   <div id="alertBanner" hidden>⚠ GRID OVERLOAD — REROUTING ENERGY FLOW</div>
@@ -229,15 +229,15 @@ button.btn:active,.seg button:active{transform:scale(.96)}
     </div>
     <div class="pane" id="paneCtrl" style="display:none">
       <label class="ctl"><span>PARTICLE DENSITY <b id="vDensity">3000</b></span>
-        <input id="sDensity" type="range" min="0" max="4" step="1" value="2"></label>
+        <input id="sDensity" type="range" aria-label="Particle density" min="0" max="4" step="1" value="2"></label>
       <label class="ctl"><span>CORE ENERGY <b id="vEnergy">100%</b></span>
-        <input id="sEnergy" type="range" min="0" max="200" step="1" value="100"></label>
+        <input id="sEnergy" type="range" aria-label="Core energy" min="0" max="200" step="1" value="100"></label>
       <label class="ctl"><span>GRAVITY <b id="vGrav">1.00</b></span>
-        <input id="sGrav" type="range" min="0" max="2" step="0.05" value="1"></label>
+        <input id="sGrav" type="range" aria-label="Gravity" min="0" max="2" step="0.05" value="1"></label>
       <label class="ctl"><span>ORBIT SPEED <b id="vOrbit">1.0</b></span>
-        <input id="sOrbit" type="range" min="0" max="5" step="0.1" value="1"></label>
+        <input id="sOrbit" type="range" aria-label="Orbit speed" min="0" max="5" step="0.1" value="1"></label>
       <label class="ctl"><span>GLOW <b id="vGlow">1.00</b></span>
-        <input id="sGlow" type="range" min="0" max="2" step="0.05" value="1"></label>
+        <input id="sGlow" type="range" aria-label="Glow intensity" min="0" max="2" step="0.05" value="1"></label>
       <div class="ctl"><span style="font-size:9px;letter-spacing:.16em;color:var(--dim)">QUALITY</span>
         <div class="seg" id="segQ">
           <button data-q="LOW">LOW</button><button data-q="MEDIUM">MEDIUM</button><button data-q="HIGH" class="active">HIGH</button>

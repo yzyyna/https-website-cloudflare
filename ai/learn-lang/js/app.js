@@ -246,7 +246,9 @@ function logoutUser() {
 
 // EXP & Progress Management
 function addExp(amount) {
-  STATE.progress.exp += amount;
+  // 数值清洗：防止脏数据（NaN/负数/字符串）污染 EXP 曲线
+  const delta = toSafeInt(amount, 0, 0);
+  STATE.progress.exp = toSafeInt(STATE.progress.exp, 0, 0) + delta;
   const newLevel = Math.floor(STATE.progress.exp / 100) + 1;
   STATE.progress.level = newLevel;
   saveState();
@@ -254,6 +256,8 @@ function addExp(amount) {
 }
 
 function completeModule(moduleId) {
+  // 白名单校验：未知模块 ID 不写入存档
+  if (!KNOWN_MODULE_IDS.includes(moduleId)) return;
   if (!STATE.progress.completedModules.includes(moduleId)) {
     STATE.progress.completedModules.push(moduleId);
     saveState();
@@ -407,7 +411,7 @@ function renderCourse() {
 
 function handleModuleClick(id, type, isLocked) {
   if (isLocked) {
-    showToast('请先完成前置模块后再解锁此内容！');
+    showToast('先完成前置模块，再解锁此内容');
     return;
   }
   navigate('learn');
@@ -522,6 +526,11 @@ function renderCommunity() {
   const feedEl = document.getElementById('community-feed');
   if (!feedEl) return;
 
+  // 空状态：损坏存档被清洗为空后显示引导而非空白页
+  if (!STATE.posts.length) {
+    feedEl.innerHTML = '<div class="post-card" style="text-align:center;color:var(--text-muted)">社区空空如也，快发布第一条学习动态吧</div>';
+    return;
+  }
   feedEl.innerHTML = STATE.posts.map(post => {
     const safeAuthor = escapeHTML(post.author);
     const safeContent = escapeHTML(post.content);
@@ -636,6 +645,8 @@ function sharePost(id) {
 // 站内非阻塞提示（替代 alert）：单例节点，重复调用会覆盖文案并重置计时
 let toastTimer = null;
 function showToast(message) {
+  // 长度截断：过长文案自动缩到 120 字，小屏不溢出
+  const msg = String(message ?? '').slice(0, 120);
   let box = document.getElementById('toast');
   if (!box) {
     box = document.createElement('div');
@@ -645,7 +656,7 @@ function showToast(message) {
     box.setAttribute('aria-live', 'polite');
     document.body.appendChild(box);
   }
-  box.textContent = message;
+  box.textContent = msg;
   box.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => box.classList.remove('show'), 2600);

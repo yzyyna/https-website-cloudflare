@@ -909,6 +909,10 @@ class NavigationManager {
 
     museumStore.update({ currentEra: targetEra.year });
     audioManager.playEraTransition();
+    // 展厅间过渡提示：切换年代时给出轻量面包屑，避免用户在横向长廊中迷失方位
+    if (typeof eggsManager !== 'undefined' && eggsManager.showToast) {
+      eggsManager.showToast(`已穿越至 ${targetEra.year} · ${targetEra.name}`);
+    }
 
     this.galleryEl.scrollTo({
       left: targetScroll,
@@ -1011,6 +1015,9 @@ class EggsManager {
   constructor() {
     this.modalEl = null;
     this.bookDrawerEl = null;
+    // 单例 toast：重复调用覆盖文案并重置计时，避免多条堆叠遮挡展厅
+    this.toastEl = null;
+    this.toastTimer = 0;
   }
 
   init() {
@@ -1018,6 +1025,7 @@ class EggsManager {
     this.bookDrawerEl = document.getElementById('archaeology-book-drawer');
 
     this.bindEvents();
+    this.bindModalEsc();
   }
 
   bindEvents() {
@@ -1122,6 +1130,17 @@ class EggsManager {
     }, 200);
   }
 
+  // 彩蛋弹窗支持 Esc 关闭（无障碍：键盘用户可退出遮罩层）
+  bindModalEsc() {
+    if (this._escBound) return;
+    this._escBound = true;
+    window.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (this.modalEl && this.modalEl.classList.contains('visible')) this.closeUnlockModal();
+      if (this.bookDrawerEl && this.bookDrawerEl.classList.contains('visible')) this.closeBook();
+    });
+  }
+
   openBook() {
     this.renderBookGrid();
     if (this.bookDrawerEl) {
@@ -1140,16 +1159,24 @@ class EggsManager {
   }
 
   showToast(text) {
-    const toast = document.createElement('div');
-    toast.className = 'museum-toast';
-    toast.textContent = text;
+    // 单例 toast + 最大长度截断（展厅各处直接调用不再担心长文案撑爆小屏）
+    const msg = String(text ?? '').slice(0, 120);
+    let toast = this.toastEl;
+    if (!toast || !toast.isConnected) {
+      toast = document.createElement('div');
+      toast.className = 'museum-toast';
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      this.toastEl = toast;
+    }
+    toast.textContent = msg;
     document.body.appendChild(toast);
+    clearTimeout(this.toastTimer);
     setTimeout(() => {
       toast.classList.add('show');
     }, 10);
-    setTimeout(() => {
+    this.toastTimer = setTimeout(() => {
       toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 300);
     }, 2500);
   }
 
@@ -1372,6 +1399,9 @@ function initEra1998() {
       // 开始拨号
       btnConnect.disabled = true;
       btnConnect.textContent = '拨号连线中...';
+      // 无障碍：禁用期间明确告知读屏用户
+      btnConnect.setAttribute('aria-disabled', 'true');
+      btnConnect.setAttribute('aria-live', 'polite');
       if (statusLed) statusLed.classList.add('lit');
 
       let progressVal = 10;
@@ -1388,9 +1418,10 @@ function initEra1998() {
         () => {
           clearInterval(progressTimer);
           btnConnect.disabled = false;
+          btnConnect.removeAttribute('aria-disabled');
           museumStore.update({ connected1998: true });
           applyConnectedUI();
-          eggsManager.showToast('🎉 成功连接到 1998 年互联网世界！');
+          eggsManager.showToast('已成功连接到 1998 年互联网世界！');
         }
       );
     });
@@ -1580,11 +1611,18 @@ function initEra2003() {
     });
   }
 
-  // 4. 留言板渲染与提交
+  // 4. 留言板渲染与提交（含空状态：首访用户看到引导而非空白列表）
   function renderGuestbook() {
     if (!guestbookListEl) return;
     const messages = museumStore.getState().guestbookMessages || [];
     guestbookListEl.innerHTML = '';
+    if (!messages.length) {
+      const empty = document.createElement('div');
+      empty.className = 'guestbook-empty-hint';
+      empty.textContent = '留言簿空空如也，快留下第一条脚印 Preheat 吧～';
+      guestbookListEl.appendChild(empty);
+      return;
+    }
     messages.forEach((msg) => {
       if (!msg || typeof msg !== 'object') return; // 跳过损坏的历史存档条目
       const item = document.createElement('div');
@@ -1605,11 +1643,11 @@ function initEra2003() {
 
   if (guestSubmitBtn) {
     guestSubmitBtn.addEventListener('click', () => {
-      const name = guestNameInput?.value.trim() || '神秘网友';
-      const text = guestTextInput?.value.trim();
+      const name = (guestNameInput?.value.trim() || '神秘网友').slice(0, 12);
+      const text = guestTextInput?.value.trim().slice(0, 500);
 
       if (!text) {
-        eggsManager.showToast('请输入留言内容哦~');
+        eggsManager.showToast('请输入留言内容哦～');
         return;
       }
 
@@ -1840,8 +1878,10 @@ function initEra2008() {
     });
   }
 
-  // 3. 顶帖功能与 HOT 标识
-  let upvotes = museumStore.getState().forumUpvotes || 3;
+  // 3. 顶帖功能与 HOT 标识（存档损坏时回退到 3，避免 NaN 污染计数器）
+  let upvotes = Number.isFinite(Number(museumStore.getState().forumUpvotes))
+    ? Math.max(0, Math.floor(Number(museumStore.getState().forumUpvotes)))
+    : 3;
   if (upvoteCountEl) upvoteCountEl.textContent = String(upvotes);
   if (upvotes >= 5 && hotBadge) hotBadge.classList.remove('hidden');
 
@@ -1862,12 +1902,12 @@ function initEra2008() {
     });
   }
 
-  // 4. 回帖交互
+  // 4. 回帖交互（失败自动解锁按钮，避免“发送中”卡死；成功才保存存档）
   if (btnSubmitReply) {
     btnSubmitReply.addEventListener('click', () => {
-      const text = replyInput?.value.trim();
+      const text = replyInput?.value.trim().slice(0, 2000);
       if (!text || text.length < 15) {
-        eggsManager.showToast('请输入回帖内容（字数不少于15字）');
+        eggsManager.showToast('回帖不少于 15 字，再多分享一点吧');
         return;
       }
 
@@ -1922,7 +1962,7 @@ function initEra2008() {
             forumReplies: [...updatedReplies, botPost]
           });
 
-          eggsManager.showToast('💬 回帖成功！收到论坛网友秒回！');
+          eggsManager.showToast('回帖成功！收到论坛网友秒回！');
         }, 700);
 
         if (replyInput) replyInput.value = '';
@@ -1995,7 +2035,9 @@ function initEra2012() {
   }
 
   function updateDecorScore(score) {
-    const clamped = Math.min(100, score);
+    // 下限钳制：损坏存档（如负数/NaN）不再直接拼成 "-20分" 或 "NaN分"
+    const num = Number(score);
+    const clamped = Math.min(100, Math.max(0, Number.isFinite(num) ? Math.floor(num) : 45));
     if (decorScoreValue) decorScoreValue.textContent = `${clamped} 分`;
     if (decorProgressFill) decorProgressFill.style.width = `${clamped}%`;
 
@@ -2066,9 +2108,9 @@ function initEra2012() {
 
   if (btnPublishPost) {
     btnPublishPost.addEventListener('click', () => {
-      const text = postInput?.value.trim();
+      const text = postInput?.value.trim().slice(0, 500);
       if (!text) {
-        eggsManager.showToast('说说内容不能为空哦~');
+        eggsManager.showToast('说说内容不能为空哦～');
         return;
       }
 
@@ -2087,7 +2129,7 @@ function initEra2012() {
 
       if (postInput) postInput.value = '';
       renderPosts();
-      eggsManager.showToast('📝 动态说说已同步发表到空间！');
+      eggsManager.showToast('动态说说已同步发表到空间！');
     });
   }
 
@@ -2217,8 +2259,14 @@ function initEra2024() {
   const alertBanner = document.getElementById('algorithm-alert-banner');
   const portal2099Btn = document.getElementById('btn-jump-to-2099');
 
-  // 1. 初始化偏好
-  let preference = { ...museumStore.getState().algorithmPreference };
+  // 1. 初始化偏好（损坏存档回退到 0，避免 NaN 污染理解度公式）
+  const savedPref = museumStore.getState().algorithmPreference || {};
+  const numOrZero = (v) => (Number.isFinite(Number(v)) ? Math.max(0, Number(v)) : 0);
+  let preference = {
+    cat: numOrZero(savedPref.cat),
+    productivity: numOrZero(savedPref.productivity),
+    emotion: numOrZero(savedPref.emotion)
+  };
 
   function calculateInsightPercent() {
     const totalPoints = preference.cat + preference.productivity + preference.emotion;
@@ -2245,8 +2293,17 @@ function initEra2024() {
     // 达到 80% 触发系统警报和 2099 虫洞
     if (percent >= 80) {
       if (alertBanner) alertBanner.classList.remove('hidden');
-      if (portal2099Btn) portal2099Btn.classList.remove('hidden');
+      if (portal2099Btn) {
+        portal2099Btn.classList.remove('hidden');
+        // 无障碍：虫洞入口出现后明确告知可操作
+        portal2099Btn.setAttribute('aria-live', 'polite');
+      }
       container.classList.add('algorithm-high-control');
+    } else {
+      // 理解度回落后收回警报与入口，保持 UI 与状态一致
+      if (alertBanner) alertBanner.classList.add('hidden');
+      if (portal2099Btn) portal2099Btn.classList.add('hidden');
+      container.classList.remove('algorithm-high-control');
     }
   }
 
@@ -2485,6 +2542,14 @@ function initEra2099() {
 
   let restoredIds = [...(museumStore.getState().restoredFragments || [])];
   let selectedFragId = null;
+  // 点击投放超时自动解除选中：展厅教学提示用户“点选后点插槽”，5 分钟未投放则自动取消
+  let selectTimer = 0;
+  function clearSelectTimer() {
+    if (selectTimer) {
+      clearTimeout(selectTimer);
+      selectTimer = 0;
+    }
+  }
 
   function updateProgressUI(isInit = false) {
     const total = FRAGMENTS_CONFIG.length;
@@ -2589,6 +2654,7 @@ function initEra2099() {
         // 点击切换选中状态
         fragEl.addEventListener('click', () => {
           audioManager.playClick();
+          clearSelectTimer();
           if (selectedFragId === cfg.id) {
             selectedFragId = null;
             fragEl.classList.remove('selected');
@@ -2597,7 +2663,13 @@ function initEra2099() {
             selectedFragId = cfg.id;
             fragmentsPool.querySelectorAll('.draggable-fragment').forEach(f => f.classList.remove('selected'));
             fragEl.classList.add('selected');
-            eggsManager.showToast(`✨ 已选定【${cfg.name}】，请点击左侧对应的 ${cfg.era} 年代插槽`);
+            eggsManager.showToast(`已选定${cfg.name}，请点击左侧对应的 ${cfg.era} 年代插槽`);
+            // 5 分钟无投放自动取消，避免“选中态”永久残留误导用户
+            selectTimer = setTimeout(() => {
+              selectedFragId = null;
+              fragmentsPool?.querySelectorAll('.draggable-fragment').forEach(f => f.classList.remove('selected'));
+              selectTimer = 0;
+            }, 300000);
           }
         });
 
@@ -2645,6 +2717,7 @@ function initEra2099() {
     if (fragId === targetId) {
       // 对位成功！
       selectedFragId = null;
+      clearSelectTimer();
       doSnapFragment(fragId);
     } else {
       // 对位失败！严格拒绝吸附并触发弹回与音效
@@ -2666,7 +2739,7 @@ function initEra2099() {
         setTimeout(() => fragEl.classList.remove('frag-bounce-back'), 500);
       }
 
-      eggsManager.showToast(`⚠️ 时代错位：该碎片属于 ${fragCfg.era} 年代，无法嵌入 ${targetCfg.era} 插槽！请重新匹配。`);
+      eggsManager.showToast(`时代错位：该碎片属于 ${fragCfg.era} 年代，无法嵌入 ${targetCfg.era} 插槽`);
     }
   }
 
@@ -2680,7 +2753,7 @@ function initEra2099() {
     restoredIds.push(fragId);
     museumStore.update({ restoredFragments: [...restoredIds] });
 
-    eggsManager.showToast(`✨ 成功吸附修复 ${cfg.era} 年代遗迹：${cfg.name}`);
+    eggsManager.showToast(`成功吸附修复 ${cfg.era} 年代遗迹：${cfg.name}`);
 
     renderSlotsAndFragments();
     updateProgressUI();
@@ -2688,7 +2761,7 @@ function initEra2099() {
     if (restoredIds.length === FRAGMENTS_CONFIG.length) {
       audioManager.playRestorationSuccess();
       if (eggsManager.haptic) eggsManager.haptic([40, 60, 40, 60, 90]);
-      eggsManager.showToast('🎉 全网 6 大遗址修复完成！终极历史档案已解密！');
+      eggsManager.showToast('6 大遗址修复完成！终极历史档案已解密');
     }
   }
 

@@ -83,6 +83,13 @@
   filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.5));
 }
 
+/* 桌面图标默认即满足 44px 触摸目标：小屏横排时保持可点尺寸 */
+.win98-icon-item {
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+}
+
 .icon-label-sim {
   font-size: 11px;
   color: #ffffff;
@@ -431,6 +438,17 @@
   font-size: 13px;
 }
 
+/* 空状态引导：首访或清空存档后留言区不留白 */
+.guestbook-empty-hint {
+  padding: 18px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: #f9a8d4;
+  border: 1px dashed rgba(255, 105, 180, 0.5);
+  border-radius: 6px;
+  background: rgba(255, 105, 180, 0.06);
+}
+
 .msg-header {
   display: flex;
   justify-content: space-between;
@@ -577,6 +595,12 @@
   color: #60a5fa;
   font-size: 11px;
   cursor: pointer;
+  /* 与相邻元信息保持 44px 可点高度（视觉仍为文字链） */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  margin: -4px -8px -4px 4px;
 }
 
 .floor-content {

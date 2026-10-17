@@ -65,12 +65,10 @@ window.PotatoDialogue = (function () {
   };
 
   let typeTimer = null;
-  let currentTargetEl = null;
 
   // 逐字打字机渲染
   function typewrite(element, text, speed = 30, callback) {
     if (!element) return;
-    currentTargetEl = element;
     if (typeTimer) clearInterval(typeTimer);
 
     element.innerHTML = '';

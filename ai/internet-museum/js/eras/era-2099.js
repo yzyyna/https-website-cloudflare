@@ -65,6 +65,14 @@ export function initEra2099() {
 
   let restoredIds = [...(museumStore.getState().restoredFragments || [])];
   let selectedFragId = null;
+  // 点击投放超时自动解除选中：展厅教学提示用户“点选后点插槽”，5 分钟未投放则自动取消
+  let selectTimer = 0;
+  function clearSelectTimer() {
+    if (selectTimer) {
+      clearTimeout(selectTimer);
+      selectTimer = 0;
+    }
+  }
 
   function updateProgressUI(isInit = false) {
     const total = FRAGMENTS_CONFIG.length;
@@ -169,6 +177,7 @@ export function initEra2099() {
         // 点击切换选中状态
         fragEl.addEventListener('click', () => {
           audioManager.playClick();
+          clearSelectTimer();
           if (selectedFragId === cfg.id) {
             selectedFragId = null;
             fragEl.classList.remove('selected');
@@ -177,7 +186,13 @@ export function initEra2099() {
             selectedFragId = cfg.id;
             fragmentsPool.querySelectorAll('.draggable-fragment').forEach(f => f.classList.remove('selected'));
             fragEl.classList.add('selected');
-            eggsManager.showToast(`✨ 已选定【${cfg.name}】，请点击左侧对应的 ${cfg.era} 年代插槽`);
+            eggsManager.showToast(`已选定${cfg.name}，请点击左侧对应的 ${cfg.era} 年代插槽`);
+            // 5 分钟无投放自动取消，避免“选中态”永久残留误导用户
+            selectTimer = setTimeout(() => {
+              selectedFragId = null;
+              fragmentsPool?.querySelectorAll('.draggable-fragment').forEach(f => f.classList.remove('selected'));
+              selectTimer = 0;
+            }, 300000);
           }
         });
 
@@ -225,6 +240,7 @@ export function initEra2099() {
     if (fragId === targetId) {
       // 对位成功！
       selectedFragId = null;
+      clearSelectTimer();
       doSnapFragment(fragId);
     } else {
       // 对位失败！严格拒绝吸附并触发弹回与音效
@@ -246,7 +262,7 @@ export function initEra2099() {
         setTimeout(() => fragEl.classList.remove('frag-bounce-back'), 500);
       }
 
-      eggsManager.showToast(`⚠️ 时代错位：该碎片属于 ${fragCfg.era} 年代，无法嵌入 ${targetCfg.era} 插槽！请重新匹配。`);
+      eggsManager.showToast(`时代错位：该碎片属于 ${fragCfg.era} 年代，无法嵌入 ${targetCfg.era} 插槽`);
     }
   }
 
@@ -260,7 +276,7 @@ export function initEra2099() {
     restoredIds.push(fragId);
     museumStore.update({ restoredFragments: [...restoredIds] });
 
-    eggsManager.showToast(`✨ 成功吸附修复 ${cfg.era} 年代遗迹：${cfg.name}`);
+    eggsManager.showToast(`成功吸附修复 ${cfg.era} 年代遗迹：${cfg.name}`);
 
     renderSlotsAndFragments();
     updateProgressUI();
@@ -268,7 +284,7 @@ export function initEra2099() {
     if (restoredIds.length === FRAGMENTS_CONFIG.length) {
       audioManager.playRestorationSuccess();
       if (eggsManager.haptic) eggsManager.haptic([40, 60, 40, 60, 90]);
-      eggsManager.showToast('🎉 全网 6 大遗址修复完成！终极历史档案已解密！');
+      eggsManager.showToast('6 大遗址修复完成！终极历史档案已解密');
     }
   }
 

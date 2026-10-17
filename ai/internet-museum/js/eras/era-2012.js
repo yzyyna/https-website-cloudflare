@@ -39,7 +39,9 @@ export function initEra2012() {
   }
 
   function updateDecorScore(score) {
-    const clamped = Math.min(100, score);
+    // 下限钳制：损坏存档（如负数/NaN）不再直接拼成 "-20分" 或 "NaN分"
+    const num = Number(score);
+    const clamped = Math.min(100, Math.max(0, Number.isFinite(num) ? Math.floor(num) : 45));
     if (decorScoreValue) decorScoreValue.textContent = `${clamped} 分`;
     if (decorProgressFill) decorProgressFill.style.width = `${clamped}%`;
 
@@ -110,9 +112,9 @@ export function initEra2012() {
 
   if (btnPublishPost) {
     btnPublishPost.addEventListener('click', () => {
-      const text = postInput?.value.trim();
+      const text = postInput?.value.trim().slice(0, 500);
       if (!text) {
-        eggsManager.showToast('说说内容不能为空哦~');
+        eggsManager.showToast('说说内容不能为空哦～');
         return;
       }
 
@@ -131,7 +133,7 @@ export function initEra2012() {
 
       if (postInput) postInput.value = '';
       renderPosts();
-      eggsManager.showToast('📝 动态说说已同步发表到空间！');
+      eggsManager.showToast('动态说说已同步发表到空间！');
     });
   }
 

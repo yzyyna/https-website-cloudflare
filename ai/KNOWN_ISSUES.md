@@ -26,9 +26,10 @@
 
 `#btn-touch-fly`（开关飞行）、`#btn-touch-down`（按住下降，Shift 语义）、`#fly-badge`（飞行徽标）之前是死元素，现已在 `js/input.js`（`touchDescend` 状态＋触控/`click` 双绑定）与 `js/main.js`（`onToggleFly` 同步徽标/按钮显隐）中补齐绑定。`#joystick-hint` 为纯静态提示文字（`pointer-events: none`），无需绑定。
 
-## 4. 未在真机验证的项目
+## 4. 待用户确认与验证的事项（截至 2026-10-17 核查仍有效）
 
 - tank-battle：仅通过自动化 mock 验证，关卡数值与手感未经实际游玩调优。
 - learn-lang：视口相关改动尚未经用户确认。
-- cyber-potato：提示文案改动尚未经用户确认。
-- stellar-fusion：三个版本的 DOM 与控制台已验证，但重构后的视觉效果未做截图对比。
+- cyber-potato：重置存档已由阻塞式 `confirm` 改为两步确认按钮（5 秒内再次点击），提示文案与新交互尚未经用户确认。
+- stellar-fusion：三个版本的 DOM 与控制台已验证，但重构后的视觉效果未做截图对比；HUD 左下 `NETWORK/NODES` 由静态占位改为实时遥测（告警时显示 DEGRADED，NODES 显示城市+空间站+卫星总数），视觉效果待确认。
+- 门户与文档：stellar-fusion 实际为三版本（Gemini / MuseSpark / HELIOS-7 基准），根 `README` 与门户卡片已同步为“三版本对比”；`stellar-fusion/README` 与子版本 `README` 的“双模型/双重实现”历史表述待后续统一润色。
