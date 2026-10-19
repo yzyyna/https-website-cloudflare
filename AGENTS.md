@@ -2,21 +2,18 @@
 
 ## 1. 项目定位与核心架构
 
-- **项目定位**：本项目（`fortrust-static-center`）是基于 Cloudflare Pages 与 Advanced Mode Worker（`_worker.js`）构建的高性能静态资源中心与多模块聚合平台。
-- **核心功能模块**：
-  1. **`fortrust/` 静态资源中心**：
-     - 包含产品原型（App2.0/三一/沃达/维保/Test等）、规范说明书与静态资料。
-     - 自动索引：通过 `npm run build`（`node scripts/generate-fortrust.js`）扫描生成 `directory.json`。
-     - 访问控制：受 `fortrust` 服务端密码门保护（默认密码：`fortrust` / `fortrust2026` / `fortrust888`，或环境变量 `AUTH_PASSWORD`）。
+- **项目定位**：本项目（`fortrust-static-center`）是基于 Cloudflare Pages 的**纯静态托管站点**，当前仅承载两部分公开内容：根目录 Landing Page 与 `ai/` 纯前端项目集。
+- **核心构成**：
+  1. **根目录 Landing Page (`index.html`)**：
+     - Cloudflare Pages 产品风格的品牌展示页，无内部资源入口、无自动跳转。
   2. **`ai/` AI 纯前端免构建项目集**：
-     - 包含 6 个纯原生免构建前端应用（`block-game`、`cyber-potato`、`internet-museum`、`iot-hub`、`learn-lang`、`stellar-fusion`）及 `ai/index.html` 聚合门户。
-     - 访问控制：受独立密码门保护（默认密码：`lpeng666` / `Lpeng666`，或环境变量 `AI_AUTH_PASSWORD`）。
-  3. **根目录 Landing Page (`index.html`)**：
-     - 公开首页，提供 Cloudflare 品牌展示及直达 `/ai/` 与 `/fortrust/` 的快捷入口。
-  4. **`_worker.js` (Cloudflare Edge Worker)**：
-     - 负责 `/fortrust/*` 与 `/ai/*` 的独立密码校验与 7 天 HMAC-SHA256 签名 Cookie 签发（`ft_auth` / `ai_auth`）。
-     - 负责 `/_view` 新标签页文档渲染（支持 Markdown / Word docx / Excel xlsx 在线解析预览与 XSS 消毒拦截）。
-     - 其余静态资源通过 `env.ASSETS` 边缘直出。
+     - 纯原生免构建前端应用（`block-game`、`cyber-potato`、`internet-museum`、`iot-hub`、`learn-lang`、`stellar-fusion`、`tank-battle`）及 `ai/index.html` 聚合门户。
+     - 当前为公开静态托管（无服务端密码门，历史上由 `_worker.js` 提供的鉴权已随其移除）。
+  3. **构建方式**：纯静态免构建。`npm run build` 仅为兼容 Cloudflare Pages 构建命令的恒成功 no-op，不做任何实质构建。
+- **已迁移模块（重要，勿在本仓库重建）**：
+  - 原 `fortrust/` 静态资源中心（产品原型、需求文档、测试样例）已于 2026-10 迁移至内网文件服务器 **filer-server**（本地仓库：`/Users/fortrust/Documents/filer-server`）。
+  - 新访问入口：`http://192.168.130.88:8888/fortrust`，受独立密码门保护（密码与环境变量见 filer-server 的 `README.md`：`FORTREST_PASSWORD` / `BIG_FILE_PASSWORD` / `AUTH_PASSWORD`）。
+  - 迁移时已同步删除本仓库的 `_worker.js`（原 /fortrust 密码门与 /_view 查看器）与 `scripts/generate-fortrust.js`（目录扫描脚本），两者在 filer-server 中均有对应实现。
 
 ---
 
@@ -63,11 +60,13 @@
 
 ## 3. 访问密码与鉴权配置
 
-| 作用区域 | 默认访问密码 | 维护 Cookie | 环境变量覆盖 |
-|---|---|---|---|
-| `/fortrust/*` | `fortrust` / `fortrust2026` / `fortrust888` | `ft_auth` (7 天) | `AUTH_PASSWORD` |
-| `/ai/*` | `lpeng666` / `Lpeng666` | `ai_auth` (7 天) | `AI_AUTH_PASSWORD` |
-| 全局 Cookie 签名密钥 | 默认内置回退哈希串 | - | `AUTH_SECRET` |
+- **本仓库（Cloudflare Pages）当前无服务端鉴权**：`_worker.js` 已删除，所有静态资源（含 `/ai/*`）公开可访问。历史密码（`/fortrust` 与 `/ai` 密码门）仅存于 Git 历史中，不再有效。
+- **现存密码体系**（均在内网 filer-server，详见其 `README.md`）：
+  | 作用区域 | 环境变量 | 默认值见 README |
+  |---|---|---|
+  | 文件服务器管理界面 | `AUTH_PASSWORD` / `AUTH_ENABLED` | 是 |
+  | `/fortrust` 资源中心密码门 | `FORTREST_PASSWORD` / `FORTREST_SECRET` | 是 |
+  | 大文件上传（>100MB） | `BIG_FILE_PASSWORD` / `BIG_FILE_MB` | 是 |
 
 ---
 
@@ -76,11 +75,12 @@
 ```bash
 cd /Users/fortrust/Documents/Projects/gitee/https-website-cloudflare
 
-# 重新生成 fortrust 目录索引
+# 兼容 Cloudflare Pages 构建命令的 no-op（恒成功，无实质构建）
 npm run build
 
-# 语法检查 Worker 脚本
-node -c _worker.js
+# 本地预览（任选其一）
+npx wrangler pages dev .
+python3 -m http.server 8000
 ```
 
 ---
