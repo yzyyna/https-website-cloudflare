@@ -2,6 +2,6 @@
   "name": "fortrust-static-center",
   "private": true,
   "scripts": {
-    "build": "node scripts/generate-fortrust.js"
+    "build": "echo '[build] 纯静态站点，无需构建步骤'"
   }
 }
