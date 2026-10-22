@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#02070d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="细胞防线">
+  <title>Cell Defense · 细胞防线：微观免疫战</title>
+  <meta name="description" content="纯原生 Canvas + Web Audio 实现的微观免疫吞噬塔防游戏。阿米巴软体物理、抗原识别、基因剪接突变与血液微流控，零依赖离线秒开。">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 游戏主画布 -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- 显微镜暗角与荧光滤镜 -->
+  <div class="microscope-overlay"></div>
+
+  <!-- HUD 顶部状态栏 -->
+  <header class="hud-header">
+    <div class="hud-group">
+      <div class="hud-card" title="三磷酸腺苷（生物建造能量）">
+        <span class="icon">⚡</span>
+        <div>
+          <div class="label">ATP 储备</div>
+          <div class="val val-atp" id="hud-atp">150</div>
+        </div>
+      </div>
+      <div class="hud-card" title="基因片段（用于变异升级）">
+        <span class="icon">🧬</span>
+        <div>
+          <div class="label">RNA 密码子</div>
+          <div class="val val-dna" id="hud-dna">0</div>
+        </div>
+      </div>
+      <div class="hud-card" title="宿主组织健全度">
+        <span class="icon">❤️</span>
+        <div>
+          <div class="label">组织活性</div>
+          <div class="val val-health" id="hud-health">100%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-group">
+      <div class="hud-card">
+        <div class="heartbeat-badge" title="血液流体每 6 秒脉冲推进一次">
+          <div class="pulse-dot"></div>
+          <span>心跳微流: <strong id="hud-pulse">0.0s</strong></span>
+        </div>
+      </div>
+      <div class="hud-card">
+        <span class="icon">🌊</span>
+        <div>
+          <div class="label">感染波次</div>
+          <div class="val val-wave" id="hud-wave">W1 / 10</div>
+        </div>
+      </div>
+      <button class="btn-control" id="btn-speed" title="调节战局速率">⚡ 1x</button>
+      <button class="btn-control" id="btn-sound" title="开关声效">🔊</button>
+      <button class="btn-control" id="btn-pause" title="暂停/继续">⏸️</button>
+    </div>
+  </header>
+
+  <!-- 底部防线操作台 -->
+  <footer class="hud-footer">
+    <!-- 细胞防御单位选择器 -->
+    <div class="cell-selector" id="cell-selector">
+      <!-- 动态注入或预置 -->
+      <div class="cell-card" data-type="macrophage" title="巨噬细胞：阿米巴软体近战吞噬消化，产出大量 ATP">
+        <div class="cell-avatar" id="avatar-macrophage"></div>
+        <div class="cell-name">巨噬细胞</div>
+        <div class="cell-cost">⚡ 60</div>
+      </div>
+      <div class="cell-card" data-type="neutrophil" title="中性粒细胞：高频喷吐溶菌酶酸液，阵亡时化为阻碍网">
+        <div class="cell-avatar" id="avatar-neutrophil"></div>
+        <div class="cell-name">中性粒</div>
+        <div class="cell-cost">⚡ 80</div>
+      </div>
+      <div class="cell-card" data-type="dendritic" title="树突细胞：侦察破隐，大幅增幅周围细胞对目标的伤害">
+        <div class="cell-avatar" id="avatar-dendritic"></div>
+        <div class="cell-name">树突细胞</div>
+        <div class="cell-cost">⚡ 100</div>
+      </div>
+      <div class="cell-card" data-type="bcell" title="B淋巴细胞：产生随血流漂移的 Y 型抗体水雷，远程压制">
+        <div class="cell-avatar" id="avatar-bcell"></div>
+        <div class="cell-name">B淋巴</div>
+        <div class="cell-cost">⚡ 120</div>
+      </div>
+      <div class="cell-card" data-type="nkcell" title="NK自然杀伤细胞：注入穿孔素，引发病原体剧烈内部爆裂">
+        <div class="cell-avatar" id="avatar-nkcell"></div>
+        <div class="cell-name">NK杀手</div>
+        <div class="cell-cost">⚡ 150</div>
+      </div>
+    </div>
+
+    <!-- 神谕主动技能 -->
+    <div class="hud-skills">
+      <div class="skill-btn" id="skill-adrenaline" title="肾上腺素：5秒内全场细胞代谢与吞噬速度翻倍">
+        <div class="skill-icon">⚡</div>
+        <div class="skill-name">肾上腺素</div>
+        <div class="skill-cd" id="cd-adrenaline"></div>
+      </div>
+      <div class="skill-btn" id="skill-fever" title="局部发热：引发 40℃ 局部高温，减速 75% 并持续脱落病毒外壳">
+        <div class="skill-icon">🔥</div>
+        <div class="skill-name">局部发热</div>
+        <div class="skill-cd" id="cd-fever"></div>
+      </div>
+      <div class="skill-btn" id="skill-interferon" title="干扰素屏障：涂抹保护胶质，切断病菌对周围组织的侵蚀">
+        <div class="skill-icon">🛡️</div>
+        <div class="skill-name">干扰素</div>
+        <div class="skill-cd" id="cd-interferon"></div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 悬停信息气泡 -->
+  <div class="tooltip-box" id="tooltip-box">
+    <div class="tooltip-title" id="tooltip-title">巨噬细胞 (Macrophage)</div>
+    <div id="tooltip-desc">阿米巴软体伪足吞噬，可在体内将病菌溶酶消化为能量。</div>
+  </div>
+
+  <!-- 初始说明与难度选择模态框 -->
+  <div class="modal-mask open" id="modal-start">
+    <div class="modal-content">
+      <div class="modal-title">🧬 细胞防线：微观免疫战</div>
+      <div class="modal-subtitle">
+        宿主身体正遭受未知病原体的急性感染！<br>
+        指挥您的免疫系统，培育巨噬细胞与淋巴先锋，吞噬病毒、提取基因变异，并在心跳脉动中守卫生命中枢。
+      </div>
+      <div style="background: rgba(16, 185, 129, 0.08); border: 1px dashed rgba(52, 211, 153, 0.3); border-radius: 12px; padding: 12px; font-size: 12px; text-align: left; line-height: 1.6; color: #cbd5e1;">
+        <p><strong>🦠 核心玩法亮点：</strong></p>
+        <p>• <strong>真实吞噬</strong>：巨噬细胞伸出伪足将病菌卷入消化泡，饱腹后点击可加速消化！</p>
+        <p>• <strong>变异融合</strong>：将两只相同的细胞<strong>拖拽重叠</strong>，即可融合突变为高阶特种体。</p>
+        <p>• <strong>心跳与微流</strong>：每 6 秒一次心跳血液涌流，抗体会随血流自然漂移封锁走廊。</p>
+      </div>
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:8px;">
+        <button class="btn-large" id="btn-start-game">🔬 启动免疫防线</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 变异进化（Rogue 三选一）模态框 -->
+  <div class="modal-mask" id="modal-mutation">
+    <div class="modal-content">
+      <div class="modal-title">🧬 发现优势突变基因！</div>
+      <div class="modal-subtitle">
+        击溃感染波次激发了造血干细胞的基因剪接，请选择一项永久增强协议：
+      </div>
+      <div class="mutation-cards" id="mutation-cards-container">
+        <!-- 动态生成 3 个突变卡片 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 游戏结算模态框 (胜利/失败) -->
+  <div class="modal-mask" id="modal-gameover">
+    <div class="modal-content">
+      <div class="modal-title" id="go-title">💀 免疫屏障崩溃</div>
+      <div class="modal-subtitle" id="go-desc">病原体侵入了宿主核心血管，组织坏死...</div>
+      <div style="font-family: var(--font-mono); font-size: 14px; color: #34d399; margin: 10px 0;" id="go-stats">
+        坚持波次: 6 / 10 | 吞噬病菌: 184 | 收集密码子: 36
+      </div>
+      <div style="display:flex; justify-content:center; gap:12px;">
+        <button class="btn-large" id="btn-restart">🔄 重组免疫系统</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 普通顺序加载免构建脚本模块（遵循全局无构建标准） -->
+  <script src="js/audio.js"></script>
+  <script src="js/bloodflow.js"></script>
+  <script src="js/enemies.js"></script>
+  <script src="js/cells.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

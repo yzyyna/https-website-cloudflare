@@ -54,6 +54,7 @@ AItestProjects/
 ├── internet-museum/
 ├── iot-hub/
 ├── learn-lang/
+├── loop-heist/
 ├── stellar-fusion/
 └── tank-battle/
 ```
@@ -80,6 +81,8 @@ AItestProjects/
 | `learn-lang` | 多语种学习平台 | 3D 翻转记忆闪卡 + 本地纯 SVG 动态头像 + 学习活跃度图表 | `index.html` + `js/app.js` + `css/style.css`，hash 路由六视图 SPA |
 | `stellar-fusion` | 3D 星际能源监控中心 | WebGL2 + 多模型（Gemini/GLM/MuseSpark）归并对照 | 共享内核 `src/core.js` + 页面壳 `src/shells/`，由 `build.js` 生成三份单文件版本（生成物，勿手改）；聚合页 iframe 切换预览 |
 | `tank-battle` | 3D 经典坦克大战进化版 | 纯原生 WebGL 1.0 + 多视角切换 + 5 大关卡/泰坦 BOSS 战 + Web Audio 合成音效 | 单文件 `index.html`（约 3.7k 行，内分 10 个编号逻辑区） |
+| `cell-defense` | 细胞防线：微观免疫战 | 纯 Canvas 2D + 阿米巴软体物理 + 吞噬消化循环 + 基因融合变异 + 血液微流控 + 纯 Web Audio 合成 | 5 个普通 `<script>` 模块按依赖顺序加载（全局解耦）；双击即玩免构建 |
+| `loop-heist` | 时光回放小偷 | 回合制潜行解谜 + 循环录像幽灵（每次尝试录成幽灵重放）+ Canvas 2D + 纯 Web Audio 合成 | `js/levels.js`（关卡数据）→ `js/sim.js`（纯逻辑内核）→ `js/audio.js` → `js/render.js` → `js/main.js` 普通脚本；`node loop-heist/test.js` 做内核单元测试 |
 
 ---
 

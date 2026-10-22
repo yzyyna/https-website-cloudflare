@@ -1,0 +1,541 @@
+:root {
+  --bg-deep: #02070d;
+  --bg-vessel: #071520;
+  --text-main: #f0fdf4;
+  --text-muted: #86efac;
+  --text-dim: #4ade80;
+  --text-gray: #94a3b8;
+  
+  --primary-bio: #10b981;
+  --primary-glow: rgba(16, 185, 129, 0.45);
+  --cyan-bio: #06b6d4;
+  --cyan-glow: rgba(6, 182, 212, 0.4);
+  --amber-bio: #f59e0b;
+  --purple-bio: #a855f7;
+  --red-virus: #ef4444;
+  --red-glow: rgba(239, 68, 68, 0.45);
+  
+  --panel-bg: rgba(6, 17, 27, 0.82);
+  --panel-border: rgba(52, 211, 153, 0.22);
+  --panel-shadow: 0 12px 36px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-deep);
+  font-family: var(--font-sans);
+  color: var(--text-main);
+  position: relative;
+}
+
+/* 游戏画布层 */
+#game-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+  touch-action: none;
+}
+
+/* 显微镜光学滤镜遮罩 (暗角 + 微暗荧光质感) */
+.microscope-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: inset 0 0 100px rgba(0, 5, 12, 0.88), inset 0 0 200px rgba(2, 6, 23, 0.7);
+  background: radial-gradient(circle at center, transparent 60%, rgba(2, 7, 13, 0.6) 100%);
+}
+
+/* HUD 顶部栏 */
+.hud-header {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.hud-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.hud-card {
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 6px 14px;
+  box-shadow: var(--panel-shadow);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+.hud-card .icon {
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hud-card .label {
+  color: var(--text-gray);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.hud-card .val {
+  font-weight: 700;
+  font-size: 15px;
+  color: #fff;
+}
+
+.val-atp { color: #34d399 !important; text-shadow: 0 0 10px rgba(52, 211, 153, 0.5); }
+.val-dna { color: #38bdf8 !important; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+.val-health { color: #f87171 !important; text-shadow: 0 0 10px rgba(248, 113, 113, 0.5); }
+.val-wave { color: #fbbf24 !important; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+
+/* 按钮基础 */
+.btn-control {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.btn-control:hover {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--primary-bio);
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+
+.btn-control:active {
+  transform: scale(0.96);
+}
+
+/* 心跳与微流指示器 */
+.heartbeat-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: #fda4af;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f43f5e;
+  box-shadow: 0 0 8px #f43f5e;
+  animation: pulse-anim 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse-anim {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.35); opacity: 1; box-shadow: 0 0 14px #f43f5e; }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+
+/* 底部防线操作台 */
+.hud-footer {
+  position: absolute;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+  pointer-events: auto;
+  max-width: 95vw;
+  overflow-x: auto;
+  padding: 4px;
+}
+
+/* 细胞卡片 */
+.cell-selector {
+  display: flex;
+  gap: 10px;
+  background: rgba(5, 14, 23, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: var(--panel-shadow);
+}
+
+.cell-card {
+  width: 72px;
+  height: 84px;
+  background: rgba(15, 28, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  touch-action: none;
+}
+
+.cell-card:hover {
+  background: rgba(20, 38, 56, 0.9);
+  border-color: rgba(52, 211, 153, 0.4);
+  transform: translateY(-2px);
+}
+
+.cell-card.active {
+  border-color: var(--primary-bio);
+  background: rgba(16, 185, 129, 0.18);
+  box-shadow: 0 0 16px var(--primary-glow);
+}
+
+.cell-card.disabled {
+  opacity: 0.45;
+  filter: grayscale(0.8);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.cell-avatar {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.cell-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cell-cost {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #34d399;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* 神谕主动技能组 */
+.hud-skills {
+  display: flex;
+  gap: 8px;
+  background: rgba(5, 14, 23, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: var(--panel-shadow);
+}
+
+.skill-btn {
+  width: 58px;
+  height: 84px;
+  background: rgba(25, 20, 36, 0.7);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.skill-btn:hover {
+  border-color: var(--purple-bio);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+}
+
+.skill-btn.active {
+  border-color: #f43f5e;
+  box-shadow: 0 0 16px rgba(244, 63, 94, 0.6);
+  background: rgba(244, 63, 94, 0.2);
+}
+
+.skill-btn .skill-icon {
+  font-size: 20px;
+}
+
+.skill-btn .skill-name {
+  font-size: 10px;
+  color: #e2e8f0;
+}
+
+.skill-btn .skill-cd {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(3, 7, 18, 0.78);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: bold;
+  color: #e2e8f0;
+  display: none;
+}
+
+/* 浮动选单与悬停提示 */
+.tooltip-box {
+  position: absolute;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(5, 15, 24, 0.94);
+  border: 1px solid var(--primary-bio);
+  border-radius: 10px;
+  padding: 10px 14px;
+  max-width: 320px;
+  font-size: 12px;
+  color: #e2e8f0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px var(--primary-glow);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 20;
+}
+
+.tooltip-box.show {
+  opacity: 1;
+}
+
+.tooltip-title {
+  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* 模态框体系（开始、游戏结束、Rogue三选一、图鉴） */
+.modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(1, 6, 12, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-mask.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: rgba(8, 20, 32, 0.95);
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
+  padding: 24px;
+  max-width: 520px;
+  width: 90%;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(16, 185, 129, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  text-align: center;
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.modal-subtitle {
+  font-size: 13px;
+  color: var(--text-gray);
+  line-height: 1.6;
+}
+
+/* Rogue 三选一卡片 */
+.mutation-cards {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.mutation-card {
+  flex: 1;
+  background: rgba(13, 27, 42, 0.8);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  border-radius: 12px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.mutation-card:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--primary-bio);
+  transform: translateY(-4px);
+  box-shadow: 0 0 16px var(--primary-glow);
+}
+
+.mutation-icon {
+  font-size: 26px;
+}
+
+.mutation-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #34d399;
+}
+
+.mutation-desc {
+  font-size: 11px;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+/* 按钮组 */
+.btn-large {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-large:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(16, 185, 129, 0.6);
+}
+
+.btn-large:active {
+  transform: scale(0.97);
+}
+
+/* 移动端与小屏适配 */
+@media (max-width: 680px) {
+  .hud-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .hud-group {
+    flex-wrap: wrap;
+  }
+  
+  .hud-card {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  .hud-footer {
+    bottom: max(8px, env(safe-area-inset-bottom));
+    gap: 6px;
+  }
+  
+  .cell-card {
+    width: 58px;
+    height: 72px;
+  }
+  
+  .cell-avatar {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .cell-name {
+    font-size: 10px;
+  }
+  
+  .skill-btn {
+    width: 50px;
+    height: 72px;
+  }
+  
+  .mutation-cards {
+    flex-direction: column;
+  }
+}

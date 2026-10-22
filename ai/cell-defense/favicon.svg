@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="cytoplasm" cx="45%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.95"/>
+      <stop offset="60%" stop-color="#059669" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0.95"/>
+    </radialGradient>
+    <radialGradient id="nucleus" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#a7f3d0"/>
+      <stop offset="50%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </radialGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#040c14" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.4"/>
+  <!-- Amoeboid membrane -->
+  <path d="M 32 8 C 45 6, 56 16, 55 29 C 54 42, 48 54, 34 56 C 20 58, 8 49, 9 34 C 10 19, 19 10, 32 8 Z" 
+        fill="url(#cytoplasm)" filter="url(#glow)"/>
+  <!-- Organelles / Lysosomes -->
+  <circle cx="24" cy="22" r="3.5" fill="#6ee7b7" opacity="0.85"/>
+  <circle cx="43" cy="25" r="2.8" fill="#a7f3d0" opacity="0.75"/>
+  <circle cx="26" cy="42" r="3.2" fill="#34d399" opacity="0.8"/>
+  <circle cx="40" cy="41" r="2.2" fill="#6ee7b7" opacity="0.7"/>
+  <!-- Main Nucleus -->
+  <circle cx="33" cy="32" r="9" fill="url(#nucleus)"/>
+  <circle cx="30" cy="29" r="3" fill="#ffffff" opacity="0.5"/>
+  <!-- Small receptor tentacles -->
+  <path d="M 12 25 Q 6 22 8 16" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <path d="M 52 20 Q 59 18 58 12" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <path d="M 46 50 Q 52 56 48 60" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <path d="M 18 51 Q 12 57 8 53" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+</svg>

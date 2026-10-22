@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#080c16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="时光小偷">
+  <title>时光回放小偷 · Loop Heist</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23121a2e'/%3E%3Crect x='7' y='7' width='8' height='8' fill='%23ffe66d'/%3E%3Crect x='17' y='17' width='8' height='8' fill='%237dd3fc' fill-opacity='.5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- 关卡选择 -->
+  <section id="menu" class="screen">
+    <header class="menu-head">
+      <h1>时光回放小偷</h1>
+      <p>每次行动都会被录下来。过去的自己，会替你守住压力板。</p>
+    </header>
+    <div id="levelList" class="level-list"></div>
+    <p class="menu-foot">方向键 / WASD 或屏幕按钮移动 · 空格 等待 · R 轮回 · X 重来 · M 静音 · Esc 返回</p>
+  </section>
+
+  <!-- 游戏画面 -->
+  <section id="game" class="screen" hidden>
+    <div class="hud">
+      <div class="hud-title">
+        <span id="lvlName" class="hud-level"></span>
+        <button id="btnMenu" class="hud-btn" type="button">选关</button>
+      </div>
+      <div class="hud-stats">
+        <span id="loopInfo"></span>
+        <span id="lootInfo"></span>
+        <span id="plateInfo"></span>
+        <span id="tickInfo"></span>
+      </div>
+      <p id="hint" class="hud-hint"></p>
+    </div>
+
+    <div id="stage" class="stage">
+      <canvas id="gameCanvas"></canvas>
+      <div id="msg" class="toast" aria-live="polite"></div>
+    </div>
+
+    <div class="controls">
+      <div id="dpad" class="dpad">
+        <span></span>
+        <button type="button" class="pad-btn" data-act="U" aria-label="上">▲</button>
+        <span></span>
+        <button type="button" class="pad-btn" data-act="L" aria-label="左">◀</button>
+        <button type="button" class="pad-btn" data-act="W" aria-label="等待">●</button>
+        <button type="button" class="pad-btn" data-act="R" aria-label="右">▶</button>
+        <span></span>
+        <button type="button" class="pad-btn" data-act="D" aria-label="下">▼</button>
+        <span></span>
+      </div>
+      <div class="action-col">
+        <button id="btnLoop" class="action-btn primary" type="button">轮回 R</button>
+        <button id="btnReset" class="action-btn" type="button">重来 X</button>
+        <button id="btnMute" class="action-btn" type="button">声音</button>
+      </div>
+    </div>
+
+    <div id="overlay" class="overlay" hidden>
+      <div class="overlay-card">
+        <h2 id="overTitle"></h2>
+        <p id="overText"></p>
+        <div class="overlay-actions">
+          <button id="btnNext" class="action-btn primary" type="button">下一关</button>
+          <button id="btnRetry" class="action-btn" type="button">重来本关</button>
+          <button id="btnOverMenu" class="action-btn" type="button">选关</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/levels.js"></script>
+  <script src="js/sim.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -21,6 +21,8 @@
 | [`iot-hub`](./iot-hub/) | **物联网设备监控面板**（万级数据虚拟滚动） | `bOpencodeXAlpha` | 单文件纯 HTML + CSS + JS |
 | [`stellar-fusion`](./stellar-fusion/) | **3D 星际能源控制台**（三版本横向对标：Gemini / MuseSpark / HELIOS-7） | `cGoogleGemini` & `dMuseSpark` | 纯 WebGL 2.0 + 原生 GLSL |
 | [`tank-battle`](./tank-battle/) | **3D 坦克大战：钢铁风暴**（等轴/追尾多视角 + 5大关卡/泰坦BOSS战 + 道具升级） | 原创 3D 游戏 | 纯 WebGL 1.0 + Web Audio 原生合成 |
+| [`cell-defense`](./cell-defense/) | **细胞防线：微观免疫战**（阿米巴软体物理 + 吞噬消化 + 基因融合变异 + 血液微流控） | 原创微观塔防 | 纯 HTML5 Canvas + Web Audio 原生合成 |
+| [`loop-heist`](./loop-heist/) | **时光回放小偷**（回合制潜行解谜，每次行动录成幽灵重放，幽灵替你踩压力板） | 原创趣味解谜 | 纯 HTML5 + CSS3 + Canvas 2D + Web Audio 原生合成 |
 
 ---
 
@@ -40,3 +42,5 @@
    - [http://localhost:8080/iot-hub/](http://localhost:8080/iot-hub/)
    - [http://localhost:8080/stellar-fusion/](http://localhost:8080/stellar-fusion/)（聚合主页，含 Gemini 版与 MuseSpark 版双向切换）
    - [http://localhost:8080/tank-battle/](http://localhost:8080/tank-battle/)（3D 坦克大战 · 钢铁风暴）
+   - [http://localhost:8080/cell-defense/](http://localhost:8080/cell-defense/)（细胞防线 · 微观免疫战）
+   - [http://localhost:8080/loop-heist/](http://localhost:8080/loop-heist/)（时光回放小偷）
