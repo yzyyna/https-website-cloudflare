@@ -34,7 +34,14 @@
 
   Player.prototype.toggleFly = function () {
     this.flying = !this.flying;
-    this.vel[1] = 0;
+    if (this.flying) {
+      /* 起飞：轻盈向上微弹，保留平滑腾空感 */
+      this.vel[1] = Math.max(this.vel[1] * 0.4, 3.2);
+      this.onGround = false;
+    } else {
+      /* 退出飞行：缓降过渡，垂直初速度受控，保留自然水平滑行 */
+      this.vel[1] = Math.max(-4.0, this.vel[1] * 0.5);
+    }
     return this.flying;
   };
 
@@ -50,9 +57,9 @@
       MC.Sound.splash();
     }
 
-    /* 期望水平速度 */
+    /* 期望水平速度：飞行模式下 ctrl 或双击向前疾跑加速至 15.5，按 shift 专职下降不干扰水平 */
     var speed;
-    if (this.flying) speed = (input.ctrl || input.shift) && input.mf > 0 ? 16 : 9.5;
+    if (this.flying) speed = (input.ctrl) && input.mf > 0 ? 15.5 : 9.0;
     else if (this.inWater) speed = 2.8;
     else speed = input.shift ? 6.0 : 4.4;
 
@@ -64,14 +71,16 @@
     var wl = Math.hypot(wx, wz);
     if (wl > 1e-6) { wx = wx / wl * speed; wz = wz / wl * speed; }
 
-    var accel = this.flying ? 30 : (this.onGround ? 40 : (this.inWater ? 14 : 8));
+    var accel = this.flying ? 24 : (this.onGround ? 40 : (this.inWater ? 14 : 8));
     this.vel[0] = approach(this.vel[0], wx, accel * dt);
     this.vel[2] = approach(this.vel[2], wz, accel * dt);
 
     /* 垂直运动 */
     if (this.flying) {
-      var targetVy = (input.jump ? 1 : 0) * 8 - (input.shift ? 1 : 0) * 8;
-      this.vel[1] = approach(this.vel[1], targetVy, 30 * dt);
+      var targetVy = (input.jump ? 1 : 0) * 8.5 - (input.shift ? 1 : 0) * 8.5;
+      /* 飞行升降平滑动力学：按住时平稳加速，松手后有微小的空气缓动浮力 */
+      var vAccel = (targetVy !== 0) ? 26 : 16;
+      this.vel[1] = approach(this.vel[1], targetVy, vAccel * dt);
     } else if (this.inWater) {
       this.vel[1] -= 14 * dt;
       if (this.vel[1] < -3.2) this.vel[1] = -3.2;
@@ -171,14 +180,35 @@
     var y0 = Math.floor(minY), y1 = Math.ceil(maxY) - 1;
     var z0 = Math.floor(minZ), z1 = Math.ceil(maxZ) - 1;
     var x, y, z;
+    var world = this.world;
     for (y = y0; y <= y1; y++) {
       for (z = z0; z <= z1; z++) {
         for (x = x0; x <= x1; x++) {
-          if (MC.isSolid(this.world.getBlock(x, y, z))) return true;
+          if (MC.isSolid(world.getBlock(x, y, z))) return true;
         }
       }
     }
     return false;
+  };
+
+  /* 快速大包围盒宽相位检测：若位移方向无任何方块，直接快速通过 */
+  Player.prototype._isSweptAir = function (fromX, fromY, fromZ, toX, toY, toZ) {
+    var minX = Math.min(fromX, toX) - HALF_W, maxX = Math.max(fromX, toX) + HALF_W;
+    var minY = Math.min(fromY, toY),          maxY = Math.max(fromY, toY) + HEIGHT;
+    var minZ = Math.min(fromZ, toZ) - HALF_W, maxZ = Math.max(fromZ, toZ) + HALF_W;
+    var x0 = Math.floor(minX), x1 = Math.ceil(maxX) - 1;
+    var y0 = Math.floor(minY), y1 = Math.ceil(maxY) - 1;
+    var z0 = Math.floor(minZ), z1 = Math.ceil(maxZ) - 1;
+    var x, y, z;
+    var world = this.world;
+    for (y = y0; y <= y1; y++) {
+      for (z = z0; z <= z1; z++) {
+        for (x = x0; x <= x1; x++) {
+          if (MC.isSolid(world.getBlock(x, y, z))) return false;
+        }
+      }
+    }
+    return true;
   };
 
   Player.prototype._moveAxis = function (axis, amount, wasOnGround) {
@@ -187,6 +217,13 @@
 
     /* 垂直方向运动 (axis === 1) */
     if (axis === 1) {
+      /* 快速宽相位检测：垂直开阔下落或跳跃高速通过 */
+      var targetY = pos[1] + amount;
+      if (this._isSweptAir(pos[0], pos[1], pos[2], pos[0], targetY, pos[2])) {
+        pos[1] = targetY;
+        return;
+      }
+
       pos[1] += amount;
       var minX = pos[0] - HALF_W, minY = pos[1], minZ = pos[2] - HALF_W;
       var maxX = pos[0] + HALF_W, maxY = pos[1] + HEIGHT, maxZ = pos[2] + HALF_W;
@@ -216,6 +253,13 @@
     var oldX = pos[0], oldY = pos[1], oldZ = pos[2];
     var targetX = oldX + (axis === 0 ? amount : 0);
     var targetZ = oldZ + (axis === 2 ? amount : 0);
+
+    /* 快速宽相位检测：平原高速移动直通 */
+    if (this._isSweptAir(oldX, oldY, oldZ, targetX, oldY, targetZ)) {
+      pos[0] = targetX;
+      pos[2] = targetZ;
+      return;
+    }
 
     /* 1. 直接水平移动测试（地面平坦时直接高速通过） */
     if (!this._isColliding(targetX, oldY, targetZ)) {

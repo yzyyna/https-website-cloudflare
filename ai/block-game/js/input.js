@@ -28,6 +28,7 @@
     this.touchSprint = false;
     this.joySprint = false; /* 摇杆推满（>92%）自动疾跑，与手动疾跑键取或 */
     this.touchDescend = false; /* 飞行下降按钮（按住=Shift语义） */
+    this.spaceReleased = true; /* 记录空格释放状态，供双击判定 */
     this.moveTouchId = null;
     this.lookTouchId = null;
     this.lastLookX = 0;
@@ -74,11 +75,14 @@
         /* 标题/暂停等非 playing 状态不记录双击，避免进入游戏瞬间误触开飞行 */
         if (!self.enabled) return;
         var now = performance.now();
-        if (now - self.lastSpace < 280) {
+        /* 必须经历 keyup 释放后在 60ms ~ 340ms 窗口内二次按下才判定为双击，消除长按或按键粘滞误触 */
+        if (self.spaceReleased && (now - self.lastSpace < 340) && (now - self.lastSpace > 60)) {
           if (self.onToggleFly) self.onToggleFly();
           self.lastSpace = 0;
+          self.spaceReleased = false;
         } else {
           self.lastSpace = now;
+          self.spaceReleased = false;
         }
       }
 
@@ -87,6 +91,9 @@
 
     document.addEventListener('keyup', function (e) {
       self.keys[e.code] = false;
+      if (e.code === 'Space') {
+        self.spaceReleased = true;
+      }
     });
 
     window.addEventListener('blur', function () {

@@ -19,11 +19,12 @@
   var chunkScheduleTimer = 0;
   var lastCheckX = -99999, lastCheckZ = -99999;
   var lastT = performance.now();
-  var fpsEMA = 60, statTimer = 0;
+  var fpsDisplay = 60, frameCount = 0, fpsTimer = 0, statTimer = 0;
   var gameTime = 0.25; /* 0..1 循环，0.25=清晨/正午 */
   var swingAnim = 0;
   var tntList = []; /* 引线激发的 TNT 实体 */
   var dropList = []; /* 物理掉落物实体（自转浮空与磁吸拾取） */
+  var lastFullInvWarn = 0;
   var stats = { mined: 0, placed: 0 };
   var welcomed = false;
   var airOxygen = 10;
@@ -194,10 +195,14 @@
     MC.saveAPI.clear();
   }
 
-  /* 同步触控飞行 UI：徽标显隐 + 飞行/下降按钮态（读档恢复飞行态时也要调用） */
+  /* 同步飞行 UI：常驻徽标显隐 + 触屏专属下降按钮态（读档恢复飞行态时同步） */
   function syncFlyUI(on) {
     var badge = document.getElementById('fly-badge');
-    if (badge) badge.classList.toggle('hidden', !on);
+    if (badge) {
+      badge.classList.toggle('hidden', !on);
+      var isTouch = input && input.isTouchActive();
+      badge.textContent = isTouch ? '🕊️ 飞行中 · 跳/升 ⬆ · 下降 ⬇' : '🕊️ 飞行中 · [空格]升 [Shift]降 [F]退出';
+    }
     var flyBtn = document.getElementById('btn-touch-fly');
     if (flyBtn) flyBtn.classList.toggle('active', on);
     var downBtn = document.getElementById('btn-touch-down');
@@ -238,7 +243,13 @@
     input.onToggleFly = function () {
       if (state !== 'playing') return;
       var on = player.toggleFly();
-      hud.toast(on ? '飞行模式：开' : '飞行模式：关');
+      if (on) {
+        if (MC.Sound && MC.Sound.flyStart) MC.Sound.flyStart();
+        hud.toast('🕊️ 飞行模式：开（双击空格/F退出）');
+      } else {
+        if (MC.Sound && MC.Sound.flyEnd) MC.Sound.flyEnd();
+        hud.toast('飞行模式：关');
+      }
       syncFlyUI(on);
     };
     input.onToggleMute = function () {
@@ -583,7 +594,7 @@
       world.ensureData(needData[i][1], needData[i][2]);
     }
 
-    /* 构建网格（严格把控单帧时间，超过 4.2ms 立即让出主线程，杜绝行走掉帧） */
+    /* 构建网格（严格单帧削峰，每次至多构建 1 个新区块，且超过 3.6ms 立即让出主线程，杜绝行走微卡顿） */
     var needMesh = [];
     world.chunks.forEach(function (ch) {
       dx = ch.cx - pcx; dz = ch.cz - pcz;
@@ -594,15 +605,15 @@
     needMesh.sort(function (a, b) { return a[0] - b[0]; });
     var meshStart = performance.now();
     for (var j = 0; j < needMesh.length && budgetMesh > 0; j++, budgetMesh--) {
-      if (loadedOnce && performance.now() - meshStart > 4.2) break;
+      if (loadedOnce && performance.now() - meshStart > 3.6) break;
       var chm = needMesh[j][1];
       renderer.uploadChunk(chm, MC.buildChunkMesh(world, chm));
     }
 
-    /* 编辑产生的重建 */
+    /* 编辑产生的重建（单帧至多 1 个） */
     var rebuilt = 0;
     world.dirtySet.forEach(function (key) {
-      if (rebuilt >= 2) return;
+      if (rebuilt >= 1) return;
       var c = world.chunks.get(key);
       world.dirtySet.delete(key);
       if (c && c.mesh) {
@@ -632,9 +643,12 @@
 
   function maybeUpdateChunks(px, pz, dt) {
     chunkScheduleTimer += dt;
-    var moved = Math.hypot(px - lastCheckX, pz - lastCheckZ) > 3.5;
+    var curPcx = Math.floor(px / MC.CHUNK);
+    var curPcz = Math.floor(pz / MC.CHUNK);
+    var crossedChunk = (curPcx !== Math.floor(lastCheckX / MC.CHUNK)) || (curPcz !== Math.floor(lastCheckZ / MC.CHUNK));
+    var moved = Math.hypot(px - lastCheckX, pz - lastCheckZ) > 6.0;
     var needsDirty = world.dirtySet.size > 0;
-    if (!loadedOnce || needsDirty || moved || chunkScheduleTimer > 0.12) {
+    if (!loadedOnce || needsDirty || crossedChunk || moved || chunkScheduleTimer > 0.35) {
       chunkScheduleTimer = 0;
       lastCheckX = px;
       lastCheckZ = pz;
@@ -646,7 +660,13 @@
   function tick(now) {
     var dt = Math.min(0.05, (now - lastT) / 1000);
     lastT = now;
-    fpsEMA = fpsEMA * 0.95 + (1 / Math.max(dt, 1e-4)) * 0.05;
+    frameCount++;
+    fpsTimer += dt;
+    if (fpsTimer >= 0.5) {
+      fpsDisplay = Math.round(frameCount / fpsTimer);
+      frameCount = 0;
+      fpsTimer = 0;
+    }
 
     var locked = input.isLocked();
 
@@ -768,27 +788,38 @@
         }
       }
 
-      /* 玩家磁吸检测 (3.2m 内自动加速飞向玩家身体中心) */
+      /* 玩家磁吸与拾取检测 (5.0m 范围内顺畅磁吸，智能脱离地面卡角阻尼) */
       var mdx = player.pos[0] - drop.x;
       var mdy = pBodyY - drop.y;
       var mdz = player.pos[2] - drop.z;
       var mDist = Math.hypot(mdx, mdy, mdz);
 
-      if (mDist < 3.2 && mDist > 0.05) {
-        var pull = (3.2 - mDist) / 3.2 * 18.0;
-        drop.vx += (mdx / mDist) * pull * dt;
-        drop.vy += (mdy / mDist) * pull * dt;
-        drop.vz += (mdz / mDist) * pull * dt;
+      if (mDist < 5.0 && mDist > 0.05) {
+        /* 进入磁吸：定向平滑高速牵引，防止在玩家周围绕圈公转 */
+        var pullSpeed = Math.max(9.0, 18.0 - mDist * 1.5);
+        drop.vx = (mdx / mDist) * pullSpeed;
+        drop.vy = (mdy / mDist) * pullSpeed;
+        drop.vz = (mdz / mDist) * pullSpeed;
       }
 
-      /* 触碰玩家入包拾取 (身体中心 1.35m 范围内) */
-      if (mDist < 1.35) {
+      /* 触碰玩家入包拾取 (判定范围放宽至 2.2m，覆盖上下台阶与斜向) */
+      if (mDist < 2.2) {
         if (inventory.add(drop.id, 1)) {
           MC.Sound.pickup();
           var dropDef = MC.DEFS[drop.id];
-          if (dropDef) hud.toast('+1 ' + dropDef.name);
+          if (dropDef) {
+            hud.toast('+1 ' + dropDef.name);
+            hud.pulseHotbarSlot(inventory.selected);
+          }
           dropList.splice(di, 1);
           continue;
+        } else {
+          /* 背包已满时限流提示，避免高频刷屏 */
+          var nowWarn = performance.now();
+          if (nowWarn - lastFullInvWarn > 2400) {
+            lastFullInvWarn = nowWarn;
+            hud.toast('⚠️ 背包已满，无法拾取');
+          }
         }
       }
 
@@ -857,9 +888,9 @@
     var ccx = Math.floor(eye[0] / MC.CHUNK), ccz = Math.floor(eye[2] / MC.CHUNK);
     visScanTimer += dt;
     var curYaw = (state === 'title' ? 0 : player.yaw);
-    var turnedVis = Math.abs(curYaw - lastVisYaw) > 0.15;
-    var movedVis = Math.hypot(eye[0] - lastVisX, eye[2] - lastVisZ) > 1.8;
-    if (movedVis || turnedVis || visScanTimer > 0.08 || world.dirtySet.size > 0 || !cachedVisible) {
+    var turnedVis = Math.abs(curYaw - lastVisYaw) > 0.22;
+    var movedVis = Math.hypot(eye[0] - lastVisX, eye[2] - lastVisZ) > 2.5;
+    if (movedVis || turnedVis || visScanTimer > 0.16 || world.dirtySet.size > 0 || !cachedVisible) {
       visScanTimer = 0;
       lastVisX = eye[0];
       lastVisZ = eye[2];
@@ -929,7 +960,7 @@
       var dirs = ['北 -Z', '东 +X', '南 +Z', '西 -X'];
       var dirIdx = Math.round(((player.yaw % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) / (Math.PI / 2)) % 4;
       hud.setStats(
-        'FPS ' + Math.round(fpsEMA) +
+        'FPS ' + fpsDisplay +
         '\n坐标 ' + player.pos[0].toFixed(1) + ' / ' + player.pos[1].toFixed(1) + ' / ' + player.pos[2].toFixed(1) +
         '\n朝向 ' + dirs[dirIdx] + ' · ' + timeDesc +
         (player.flying ? '  [飞行]' : '') +

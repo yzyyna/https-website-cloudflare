@@ -23,6 +23,7 @@
       handCanvas: document.getElementById('hand-canvas'),
       titleMenu: document.getElementById('title-menu'),
       pauseMenu: document.getElementById('pause-menu'),
+      flyBadge: document.getElementById('fly-badge'),
       hint: document.getElementById('hint')
     };
     this.iconCache = {};
@@ -142,6 +143,16 @@
       } else {
         div.querySelector('.cnt').textContent = '';
       }
+    }
+  };
+
+  Hud.prototype.pulseHotbarSlot = function (idx) {
+    if (!this.el.hotbar) return;
+    var slot = this.el.hotbar.querySelector('.hb-slot[data-i="' + idx + '"]');
+    if (slot) {
+      slot.classList.remove('pulse-pickup');
+      void slot.offsetWidth; /* 触发 reflow 重置动画 */
+      slot.classList.add('pulse-pickup');
     }
   };
 
@@ -385,6 +396,9 @@
     }
     if (this.el.handViewmodel) {
       this.el.handViewmodel.classList.toggle('hidden', state !== 'playing');
+    }
+    if (state !== 'playing' && this.el.flyBadge) {
+      this.el.flyBadge.classList.add('hidden');
     }
   };
 

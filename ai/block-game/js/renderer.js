@@ -104,6 +104,60 @@
     'void main(){ gl_FragColor = vec4(vCol, 1.0); }'
   ].join('\n');
 
+  /* ---------- 繁星星空专属着色器 ---------- */
+  var STAR_VS = [
+    'attribute vec3 aPos;',
+    'attribute vec3 aCol;',
+    'attribute float aSize;',
+    'attribute float aPhase;',
+    'uniform mat4 uProj, uView;',
+    'uniform vec3 uEye;',
+    'uniform float uTime;',
+    'uniform float uStarAlpha;',
+    'uniform float uDPR;',
+    'varying vec3 vCol;',
+    'varying float vAlpha;',
+    'varying float vFlare;',
+    'void main(){',
+    '  vec4 vp = uView * vec4(aPos + uEye, 1.0);',
+    '  gl_Position = uProj * vp;',
+    '  /* 独立微颤呼吸频率 */',
+    '  float tw = sin(uTime * (1.8 + aPhase * 2.4) + aPhase * 37.0) * 0.22 + 0.78;',
+    '  /* 阶梯淡入：高光亮星在黄昏更早破空绽放，暗星在深夜浮现 */',
+    '  float magFade = clamp((uStarAlpha - (1.0 - aSize / 6.0) * 0.3) / 0.7, 0.0, 1.0);',
+    '  vAlpha = uStarAlpha * tw * magFade;',
+    '  vCol = aCol;',
+    '  vFlare = aSize > 4.0 ? 1.0 : 0.0;',
+    '  /* 屏幕点尺寸：微小精细柔和，限制在 1.5 ~ 7.5 像素之间 */',
+    '  gl_PointSize = clamp(aSize * uDPR * (0.85 + 0.2 * tw), 1.5, 7.5);',
+    '}'
+  ].join('\n');
+
+  var STAR_FS = [
+    'precision mediump float;',
+    'varying vec3 vCol;',
+    'varying float vAlpha;',
+    'varying float vFlare;',
+    'void main(){',
+    '  vec2 p = gl_PointCoord * 2.0 - 1.0;',
+    '  float r = length(p);',
+    '  if (r > 1.0) discard;',
+    '  /* 软圆形平滑发光核心 */',
+    '  float core = clamp(1.0 - r, 0.0, 1.0);',
+    '  float glow = pow(core, 2.2);',
+    '  /* 亮星微十字纤细星芒（微弱且精致） */',
+    '  float flare = 0.0;',
+    '  if (vFlare > 0.5) {',
+    '    float cx = max(1.0 - abs(p.x) * 4.5, 0.0) * max(1.0 - abs(p.y), 0.0);',
+    '    float cy = max(1.0 - abs(p.y) * 4.5, 0.0) * max(1.0 - abs(p.x), 0.0);',
+    '    flare = (cx + cy) * 0.32;',
+    '  }',
+    '  float a = vAlpha * clamp(glow + flare, 0.0, 1.0);',
+    '  if (a < 0.02) discard;',
+    '  gl_FragColor = vec4(vCol, a);',
+    '}'
+  ].join('\n');
+
   /* ---------- 数学 ---------- */
   function perspective(out, fov, aspect, near, far) {
     var f = 1 / Math.tan(fov / 2);
@@ -160,6 +214,7 @@
     this.progChunk = compile(gl, CHUNK_VS, CHUNK_FS);
     this.progFlat = compile(gl, FLAT_VS, FLAT_FS);
     this.progPoint = compile(gl, POINT_VS, POINT_FS);
+    this.progStar = compile(gl, STAR_VS, STAR_FS);
 
     this.locChunk = {
       aPos: gl.getAttribLocation(this.progChunk, 'aPos'),
@@ -190,6 +245,18 @@
       uView: gl.getUniformLocation(this.progPoint, 'uView'),
       uPointScale: gl.getUniformLocation(this.progPoint, 'uPointScale')
     };
+    this.locStar = {
+      aPos: gl.getAttribLocation(this.progStar, 'aPos'),
+      aCol: gl.getAttribLocation(this.progStar, 'aCol'),
+      aSize: gl.getAttribLocation(this.progStar, 'aSize'),
+      aPhase: gl.getAttribLocation(this.progStar, 'aPhase'),
+      uProj: gl.getUniformLocation(this.progStar, 'uProj'),
+      uView: gl.getUniformLocation(this.progStar, 'uView'),
+      uEye: gl.getUniformLocation(this.progStar, 'uEye'),
+      uTime: gl.getUniformLocation(this.progStar, 'uTime'),
+      uStarAlpha: gl.getUniformLocation(this.progStar, 'uStarAlpha'),
+      uDPR: gl.getUniformLocation(this.progStar, 'uDPR')
+    };
 
     /* 贴图图集 */
     var atlas = MC.buildAtlas();
@@ -216,8 +283,7 @@
     this.proj = new Float32Array(16);
     this.view = new Float32Array(16);
     this.fov = 75 * Math.PI / 180;
-    this.dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-
+    this.dpr = Math.min(window.devicePixelRatio || 1, 1.25);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
@@ -225,7 +291,7 @@
   }
 
   Renderer.prototype.resize = function () {
-    this.dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    this.dpr = Math.min(window.devicePixelRatio || 1, 1.25);
     var w = Math.floor(window.innerWidth * this.dpr);
     var h = Math.floor(window.innerHeight * this.dpr);
     if (this.canvas.width !== w || this.canvas.height !== h) {
@@ -335,6 +401,7 @@
     if (this.progChunk) gl.deleteProgram(this.progChunk);
     if (this.progFlat) gl.deleteProgram(this.progFlat);
     if (this.progPoint) gl.deleteProgram(this.progPoint);
+    if (this.progStar) gl.deleteProgram(this.progStar);
     if (this.tex) gl.deleteTexture(this.tex);
     if (this.lineBuf) gl.deleteBuffer(this.lineBuf);
     if (this.pointBuf) gl.deleteBuffer(this.pointBuf);
@@ -542,19 +609,48 @@
 
     var starList = [];
     var rng = MC.mulberry32(133742);
-    for (var i = 0; i < 140; i++) {
-      var th = rng() * Math.PI * 2;
-      var ph = rng() * Math.PI * 0.42;
-      var r = 190;
-      var sx = Math.cos(th) * Math.cos(ph) * r;
-      var sy = Math.sin(ph) * r + 20;
-      var sz = Math.sin(th) * Math.cos(ph) * r;
-      var br = 0.75 + rng() * 0.25;
-      starList.push(sx, sy, sz, br, br, br * 1.15, 2.5 + rng() * 3.5);
+    var STAR_TOTAL = 960; /* 丰富饱满的夜空繁星数量 */
+
+    /* 恒星光谱调色板：钻石暖白 (60%)、天青冰蓝 (22%)、暖金黄巨星 (13%)、瑰丽粉橙 (5%) */
+    var PALETTE = [
+      [0.95, 0.96, 1.00],
+      [0.72, 0.86, 1.00],
+      [1.00, 0.88, 0.68],
+      [1.00, 0.72, 0.58]
+    ];
+
+    for (var i = 0; i < STAR_TOTAL; i++) {
+      /* 阿基米德等面积球面分布，仰角覆盖 -0.05 ~ 1.0，彻底消除天顶空洞 */
+      var th = rng() * Math.PI * 2.0;
+      var y = -0.05 + rng() * 1.05;
+      var rH = Math.sqrt(Math.max(0.0, 1.0 - y * y));
+      var r = 192.0 + rng() * 8.0; /* 轻微景深起伏 */
+      var sx = Math.cos(th) * rH * r;
+      var sy = y * r;
+      var sz = Math.sin(th) * rH * r;
+
+      /* 恒星色调采样 */
+      var cRoll = rng();
+      var baseCol = cRoll < 0.60 ? PALETTE[0] : (cRoll < 0.82 ? PALETTE[1] : (cRoll < 0.95 ? PALETTE[2] : PALETTE[3]));
+      var br = 0.82 + rng() * 0.18;
+
+      /* 星等大小分布（80% 针尖微星，15% 中明星，5% 耀眼巨星） */
+      var sRoll = rng();
+      var size = sRoll < 0.80 ? (1.5 + rng() * 0.9) : (sRoll < 0.95 ? (2.7 + rng() * 1.1) : (4.2 + rng() * 1.6));
+      var phase = rng(); /* 独立闪烁相位因子 */
+
+      /* 内存布局：[x, y, z,  r, g, b,  size, phase] 步长 32 字节 */
+      starList.push(
+        sx, sy, sz,
+        baseCol[0] * br, baseCol[1] * br, baseCol[2] * br,
+        size,
+        phase
+      );
     }
-    this.starRaw = new Float32Array(starList);
-    this.starTrans = new Float32Array(starList.length);
-    this.starCount = starList.length / 7;
+    this.starCount = starList.length / 8;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.starBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(starList), gl.STATIC_DRAW);
+
     this.billboardQuadArr = new Float32Array(18);
     this.cloudArr = new Float32Array(640);
 
@@ -586,31 +682,33 @@
     /* 1. 璀璨夜空繁星（入夜后逐渐绽放） */
     if (sunLight < 0.72) {
       var starAlpha = Math.min(1.0, (0.72 - sunLight) / 0.35);
-      var src = this.starRaw, dst = this.starTrans;
-      for (var s = 0; s < this.starCount; s++) {
-        var sk = s * 7;
-        dst[sk]     = src[sk] + eye[0];
-        dst[sk + 1] = src[sk + 1] + eye[1];
-        dst[sk + 2] = src[sk + 2] + eye[2];
-        dst[sk + 3] = src[sk + 3] * starAlpha;
-        dst[sk + 4] = src[sk + 4] * starAlpha;
-        dst[sk + 5] = src[sk + 5] * starAlpha;
-        dst[sk + 6] = src[sk + 6];
-      }
-      gl.useProgram(this.progPoint);
-      gl.uniformMatrix4fv(this.locPoint.uProj, false, this.proj);
-      gl.uniformMatrix4fv(this.locPoint.uView, false, this.view);
-      gl.uniform1f(this.locPoint.uPointScale, pointScale);
-      var P = this.locPoint;
+
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+      gl.useProgram(this.progStar);
+      gl.uniformMatrix4fv(this.locStar.uProj, false, this.proj);
+      gl.uniformMatrix4fv(this.locStar.uView, false, this.view);
+      gl.uniform3f(this.locStar.uEye, eye[0], eye[1], eye[2]);
+      gl.uniform1f(this.locStar.uTime, opts.time || 0);
+      gl.uniform1f(this.locStar.uStarAlpha, starAlpha);
+      gl.uniform1f(this.locStar.uDPR, this.dpr || 1.0);
+
+      var S = this.locStar;
       gl.bindBuffer(gl.ARRAY_BUFFER, this.starBuf);
-      gl.bufferData(gl.ARRAY_BUFFER, dst, gl.DYNAMIC_DRAW);
-      gl.enableVertexAttribArray(P.aPos);
-      gl.vertexAttribPointer(P.aPos, 3, gl.FLOAT, false, 28, 0);
-      gl.enableVertexAttribArray(P.aCol);
-      gl.vertexAttribPointer(P.aCol, 3, gl.FLOAT, false, 28, 12);
-      gl.enableVertexAttribArray(P.aSize);
-      gl.vertexAttribPointer(P.aSize, 1, gl.FLOAT, false, 28, 24);
+      gl.enableVertexAttribArray(S.aPos);
+      gl.vertexAttribPointer(S.aPos, 3, gl.FLOAT, false, 32, 0);
+      gl.enableVertexAttribArray(S.aCol);
+      gl.vertexAttribPointer(S.aCol, 3, gl.FLOAT, false, 32, 12);
+      gl.enableVertexAttribArray(S.aSize);
+      gl.vertexAttribPointer(S.aSize, 1, gl.FLOAT, false, 32, 24);
+      gl.enableVertexAttribArray(S.aPhase);
+      gl.vertexAttribPointer(S.aPhase, 1, gl.FLOAT, false, 32, 28);
+
       gl.drawArrays(gl.POINTS, 0, this.starCount);
+
+      gl.disableVertexAttribArray(S.aPhase);
+      gl.disable(gl.BLEND);
     }
 
     /* 2. 太阳与月亮方块天体 */
