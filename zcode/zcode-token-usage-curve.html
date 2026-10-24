@@ -2,11 +2,19 @@
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ZCode Token 用量总览</title>
+<meta name="description" content="ZCode Token 用量总览：每日用量与趋势、模型累计分布、模型×日期热力图、月度汇总与模型测速记录。每天 12:01 / 23:58 自动更新。">
+<meta property="og:title" content="ZCode Token 用量总览">
+<meta property="og:description" content="累计 80.70 亿 tokens · 47 天 · 日均 1.72 亿 · 每天 12:01 / 23:58 自动更新">
 <style>
   :root{color-scheme:dark}
-  body{margin:0;padding:32px 28px 40px;background:radial-gradient(1100px 380px at 50% -80px,#141b28 0%,#0c0e12 60%);color:#d7dbe2;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif}
+  html{scroll-behavior:smooth}
+  body{margin:0;padding:28px 28px 40px;background:radial-gradient(1100px 380px at 50% -80px,#141b28 0%,#0c0e12 60%);color:#d7dbe2;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif}
   .wrap{max-width:1160px;margin:0 auto}
-  h1{font-size:19px;font-weight:500;margin:0 0 4px;letter-spacing:.2px}
+  .nav{position:sticky;top:0;z-index:6;display:flex;gap:8px;flex-wrap:wrap;padding:10px 0;margin:0 0 4px;background:rgba(12,14,18,.92);backdrop-filter:blur(6px)}
+  .nav a{font-size:12px;color:#8a919c;text-decoration:none;padding:4px 14px;border:1px solid #252a32;border-radius:999px}
+  .nav a:hover{color:#d7dbe2;border-color:#3a4250}
+  section{scroll-margin-top:56px}
+  h1{font-size:19px;font-weight:500;margin:6px 0 4px;letter-spacing:.2px}
   h1 .rgt{color:#8a919c;font-size:14px;font-weight:400}
   h2{font-size:14.5px;font-weight:500;margin:30px 0 12px;padding-left:10px;border-left:3px solid #ffb02e}
   .sub{font-size:13px;color:#8a919c;margin:0 0 14px}
@@ -15,13 +23,17 @@
   .ln{display:inline-block;width:16px;height:2px;margin-right:6px;vertical-align:3px}
   svg{max-width:100%;height:auto;display:block}
   .stats{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0 6px}
-  .stat{flex:1 1 150px;background:#10141b;border:1px solid #252a32;border-radius:10px;padding:12px 16px}
+  .stat{flex:1 1 150px;background:#10141b;border:1px solid #252a32;border-radius:10px;padding:12px 16px;transition:border-color .15s}
+  .stat:hover{border-color:#3a4250}
   .stat .k{font-size:12px;color:#8a919c;margin-bottom:4px}
   .stat .v{font-size:18px;font-weight:500;color:#d7dbe2;font-variant-numeric:tabular-nums}
   .stat .v.em{color:#ffb02e}
   .panel{background:#10141b;border:1px solid #252a32;border-radius:10px;padding:16px 18px}
   .panel .foot{margin:10px 0 0}
   .foot{font-size:12px;color:#8a919c;margin-top:14px;line-height:1.7}
+  .scale{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .scale .bar{width:120px;height:8px;border-radius:4px;background:linear-gradient(90deg,rgba(63,140,255,.10),rgba(63,140,255,.92))}
+  .scale span{font-size:11px;color:#8a919c}
   .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 8px}
   table.speed{border-collapse:collapse;font-size:12.5px;margin:4px 0 8px;width:100%;min-width:760px}
   table.speed th,table.speed td{border:1px solid #2a3038;padding:7px 10px;text-align:left;vertical-align:top;line-height:1.55}
@@ -30,30 +42,35 @@
   table.speed td:first-child{white-space:nowrap}
   table.speed tr:nth-child(even) td{background:#0f131a}
   table.speed tr:hover td{background:#16202e}
+  rect.hcell.hl{stroke:#ffb02e;stroke-width:1.4}
   .spdmore{margin:0 0 4px}
   .spd-bar{text-align:right;margin:0 0 10px}
   .spd-bar button{background:#12151b;border:1px solid #2a3038;color:#8a919c;font-size:12px;padding:5px 18px;border-radius:6px;cursor:pointer}
   .spd-bar button:hover{color:#d7dbe2;border-color:#3a4250}
+  .spd-bar button:focus-visible{outline:1px solid #ffb02e}
   #tip{position:fixed;display:none;pointer-events:none;background:#1c2027;color:#d7dbe2;border:1px solid #333a45;border-radius:6px;padding:6px 10px;font-size:12px;z-index:9;max-width:360px}
 </style></head><body>
-<div class="wrap">
+<div class="wrap" id="top">
+<nav class="nav" aria-label="页内导航">
+  <a href="#top">总览</a><a href="#models">模型榜</a><a href="#heat">热力图</a><a href="#months">月度汇总</a><a href="#speed">测速</a>
+</nav>
 <h1>ZCode Token 用量总览 <span class="rgt">账本 2026-09-08 → 2026-10-24</span></h1>
 <div class="stats">
-  <div class="stat"><div class="k">累计 tokens</div><div class="v em">80.69 亿</div></div>
+  <div class="stat"><div class="k">累计 tokens</div><div class="v em">80.70 亿</div></div>
   <div class="stat"><div class="k">统计天数</div><div class="v">47 天</div></div>
   <div class="stat"><div class="k">日均</div><div class="v">1.72 亿</div></div>
-  <div class="stat"><div class="k">完成请求</div><div class="v">38,576</div></div>
+  <div class="stat"><div class="k">完成请求</div><div class="v">38,579</div></div>
   <div class="stat"><div class="k">单日峰值</div><div class="v">5.08 亿</div></div>
 </div>
 <div class="stats">
-  <div class="stat"><div class="k">今日已用（截至 22:36）</div><div class="v em">1.17 亿</div></div>
-  <div class="stat"><div class="k">今日请求</div><div class="v">224</div></div>
+  <div class="stat"><div class="k">今日已用（截至 22:39）</div><div class="v em">1.18 亿</div></div>
+  <div class="stat"><div class="k">今日请求</div><div class="v">227</div></div>
   <div class="stat"><div class="k">今日主力</div><div class="v" style="font-size:14px">gemini-3.8-flash-high</div></div>
-  <div class="stat"><div class="k">近 7 天合计</div><div class="v">16.13 亿</div></div>
+  <div class="stat"><div class="k">近 7 天合计</div><div class="v">16.14 亿</div></div>
 </div>
 <div class="legend"><span><span class="sw" style="background:#3f8cff"></span>每日用量（左轴）</span><span><span class="ln" style="background:#e5e7eb"></span>7日均线</span><span><span class="ln" style="background:#ffb02e;height:3px"></span>累计（右轴）</span></div>
 <div class="panel">
-<svg width="1160" height="540" viewBox="0 0 1160 540" role="img" aria-label="ZCode Token 每日用量堆叠柱状图与累计曲线，2026-09-08 至 2026-10-24，累计 80.69 亿">
+<svg width="1160" height="540" viewBox="0 0 1160 540" role="img" aria-label="ZCode Token 每日用量柱状图与累计曲线，2026-09-08 至 2026-10-24，累计 80.70 亿">
 <rect x="66" y="56" width="1020" height="418" fill="none" stroke="#252a32"/>
 <line x1="66" y1="474.0" x2="1086" y2="474.0" stroke="#252a32" stroke-width="1" opacity="0.55"/>
 <text x="58" y="478.0" text-anchor="end" font-size="12" fill="#8a919c">0</text>
@@ -137,9 +154,9 @@
 <rect class="hit" x="1003.3" y="120.2" width="13.5" height="353.8" rx="2" fill="#3f8cff" opacity="0.92" data-tip="2026-10-21 · 5.08 亿（输入 5.06 / 输出 0.018 / 思考 0.008）· 2053 请求"><title>2026-10-21 · 5.08 亿（输入 5.06 / 输出 0.018 / 思考 0.008）· 2053 请求</title></rect>
 <rect class="hit" x="1025.0" y="258.4" width="13.5" height="215.6" rx="2" fill="#3f8cff" opacity="0.92" data-tip="2026-10-22 · 3.10 亿（输入 3.09 / 输出 0.008 / 思考 0.002）· 1562 请求"><title>2026-10-22 · 3.10 亿（输入 3.09 / 输出 0.008 / 思考 0.002）· 1562 请求</title></rect>
 <rect class="hit" x="1046.7" y="295.7" width="13.5" height="178.3" rx="2" fill="#3f8cff" opacity="0.92" data-tip="2026-10-23 · 2.56 亿（输入 2.55 / 输出 0.007 / 思考 0.004）· 1164 请求"><title>2026-10-23 · 2.56 亿（输入 2.55 / 输出 0.007 / 思考 0.004）· 1164 请求</title></rect>
-<rect class="hit" x="1068.4" y="392.4" width="13.5" height="81.6" rx="2" fill="#3f8cff" opacity="0.92" data-tip="2026-10-24 · 1.17 亿（输入 1.17 / 输出 0.001 / 思考 0.000）· 224 请求"><title>2026-10-24 · 1.17 亿（输入 1.17 / 输出 0.001 / 思考 0.000）· 224 请求</title></rect>
+<rect class="hit" x="1068.4" y="391.5" width="13.5" height="82.5" rx="2" fill="#3f8cff" opacity="0.92" data-tip="2026-10-24 · 1.18 亿（输入 1.18 / 输出 0.002 / 思考 0.000）· 227 请求"><title>2026-10-24 · 1.18 亿（输入 1.18 / 输出 0.002 / 思考 0.000）· 227 请求</title></rect>
 <polyline points="76.9,472.8 98.6,472.1 120.3,456.9 142.0,451.4 163.7,445.3 185.4,438.9 207.1,430.0 228.8,420.6 250.5,410.6 272.2,398.4 293.9,383.1 315.6,382.4 337.3,374.2 359.0,366.4 380.7,364.3 402.4,361.3 424.1,351.5 445.8,351.0 467.5,348.8 489.2,345.4 510.9,332.8 532.6,327.9 554.3,322.3 576.0,319.8 597.7,318.4 619.4,316.4 641.1,303.2 662.8,300.2 684.5,299.6 706.2,290.7 727.9,277.6 749.6,262.9 771.3,253.5 793.0,242.4 814.7,228.4 836.4,218.3 858.1,195.7 879.8,187.8 901.5,175.7 923.2,174.2 944.9,173.2 966.6,167.2 988.3,154.5 1010.0,130.9 1031.7,116.6 1053.4,104.7 1075.1,99.2" fill="none" stroke="#ffb02e" stroke-width="2"/>
-<polyline points="207.1,379.8 228.8,362.2 250.5,342.3 272.2,348.6 293.9,327.7 315.6,339.2 337.3,335.4 359.0,337.7 380.7,353.5 402.4,368.4 424.1,373.5 445.8,405.1 467.5,402.1 489.2,412.3 510.9,402.0 532.6,396.0 554.3,390.3 576.0,406.3 597.7,404.1 619.4,404.4 641.1,383.6 662.8,404.0 684.5,413.3 706.2,406.4 727.9,383.4 749.6,355.0 771.3,339.3 793.0,343.7 814.7,320.2 836.4,300.0 858.1,270.4 879.8,281.7 901.5,287.1 923.2,303.9 944.9,325.7 966.6,342.9 988.3,337.3 1010.0,335.3 1031.7,321.3 1053.4,321.9 1075.1,313.5" fill="none" stroke="#e5e7eb" stroke-width="1.2" opacity="0.65"/>
+<polyline points="207.1,379.8 228.8,362.2 250.5,342.3 272.2,348.6 293.9,327.7 315.6,339.2 337.3,335.4 359.0,337.7 380.7,353.5 402.4,368.4 424.1,373.5 445.8,405.1 467.5,402.1 489.2,412.3 510.9,402.0 532.6,396.0 554.3,390.3 576.0,406.3 597.7,404.1 619.4,404.4 641.1,383.6 662.8,404.0 684.5,413.3 706.2,406.4 727.9,383.4 749.6,355.0 771.3,339.3 793.0,343.7 814.7,320.2 836.4,300.0 858.1,270.4 879.8,281.7 901.5,287.1 923.2,303.9 944.9,325.7 966.6,342.9 988.3,337.3 1010.0,335.3 1031.7,321.3 1053.4,321.9 1075.1,313.3" fill="none" stroke="#e5e7eb" stroke-width="1.2" opacity="0.65"/>
 <circle cx="76.9" cy="472.8" r="2.6" fill="#ffb02e" data-tip="截至 2026-09-08 累计 0.27 亿"><title>截至 2026-09-08 累计 0.27 亿</title></circle>
 <circle cx="98.6" cy="472.1" r="2.6" fill="#ffb02e" data-tip="截至 2026-09-09 累计 0.42 亿"><title>截至 2026-09-09 累计 0.42 亿</title></circle>
 <circle cx="120.3" cy="456.9" r="2.6" fill="#ffb02e" data-tip="截至 2026-09-10 累计 3.68 亿"><title>截至 2026-09-10 累计 3.68 亿</title></circle>
@@ -186,13 +203,14 @@
 <circle cx="1010.0" cy="130.9" r="2.6" fill="#ffb02e" data-tip="截至 2026-10-21 累计 73.86 亿"><title>截至 2026-10-21 累计 73.86 亿</title></circle>
 <circle cx="1031.7" cy="116.6" r="2.6" fill="#ffb02e" data-tip="截至 2026-10-22 累计 76.96 亿"><title>截至 2026-10-22 累计 76.96 亿</title></circle>
 <circle cx="1053.4" cy="104.7" r="2.6" fill="#ffb02e" data-tip="截至 2026-10-23 累计 79.52 亿"><title>截至 2026-10-23 累计 79.52 亿</title></circle>
-<circle cx="1075.1" cy="99.2" r="2.6" fill="#ffb02e" data-tip="截至 2026-10-24 累计 80.69 亿"><title>截至 2026-10-24 累计 80.69 亿</title></circle>
+<circle cx="1075.1" cy="99.2" r="2.6" fill="#ffb02e" data-tip="截至 2026-10-24 累计 80.70 亿"><title>截至 2026-10-24 累计 80.70 亿</title></circle>
 <text x="1010.0" y="112.2" text-anchor="middle" font-size="12" fill="#d7dbe2">5.08</text>
-<text x="1075.1" y="384.4" text-anchor="middle" font-size="12" fill="#d7dbe2">1.17</text>
-<text x="1069.1" y="89.2" text-anchor="end" font-size="13" font-weight="500" fill="#ffb02e">80.69 亿</text>
+<text x="1075.1" y="383.5" text-anchor="middle" font-size="12" fill="#d7dbe2">1.18</text>
+<text x="1069.1" y="89.2" text-anchor="end" font-size="13" font-weight="500" fill="#ffb02e">80.70 亿</text>
 </svg>
-<p class="foot">※ 灰柱（09-08 / 09-09）为 30 天剪切造成的残段下界，真值略高；累计 80.69 亿为保守下界；末柱为当日进行中值。悬停柱子可看当天 输入/输出/思考 构成。账本每天 23:58 与 12:01 各快照一次，只增不减。</p>
+<p class="foot">※ 灰柱（09-08 / 09-09）为 30 天剪切造成的残段下界，真值略高；累计 80.70 亿为保守下界；末柱为当日进行中值。悬停柱子可看当天 输入/输出/思考 构成。账本每天 23:58 与 12:01 各快照一次，只增不减。</p>
 </div>
+<section id="models">
 <h2>模型累计 Top 10（全周期 2026-09-08 → 2026-10-24）</h2>
 <div class="panel">
 <svg width="1160" height="376" viewBox="0 0 1160 376" role="img" aria-label="模型累计 Top 10，2026-09-08 至 2026-10-24 全周期">
@@ -203,8 +221,8 @@
 <rect x="220" y="56" width="153.4" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="step-5-preview · 17.67 亿 · 8,571 次 · 占全周期 21.9%"><title>step-5-preview · 17.67 亿 · 8,571 次 · 占全周期 21.9%</title></rect>
 <text x="383.4" y="71" font-size="12" fill="#d7dbe2">17.67 亿 <tspan fill="#8a919c">· 8,571 次 · 21.9%</tspan></text>
 <text x="210" y="105" text-anchor="end" font-size="12" fill="#d7dbe2">GLM-5.3-Flash</text>
-<rect x="220" y="90" width="108.6" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="GLM-5.3-Flash · 12.52 亿 · 6,185 次 · 占全周期 15.5% · 含早期估算"><title>GLM-5.3-Flash · 12.52 亿 · 6,185 次 · 占全周期 15.5% · 含早期估算</title></rect>
-<text x="338.6" y="105" font-size="12" fill="#d7dbe2">12.52 亿 <tspan fill="#8a919c">· 6,185 次 · 15.5% · 含早期估算</tspan></text>
+<rect x="220" y="90" width="108.7" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="GLM-5.3-Flash · 12.53 亿 · 6,188 次 · 占全周期 15.5% · 含早期估算"><title>GLM-5.3-Flash · 12.53 亿 · 6,188 次 · 占全周期 15.5% · 含早期估算</title></rect>
+<text x="338.7" y="105" font-size="12" fill="#d7dbe2">12.53 亿 <tspan fill="#8a919c">· 6,188 次 · 15.5% · 含早期估算</tspan></text>
 <text x="210" y="139" text-anchor="end" font-size="12" fill="#d7dbe2">deepseek-v4.1-flash</text>
 <rect x="220" y="124" width="66.4" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="deepseek-v4.1-flash · 7.65 亿 · 2,782 次 · 占全周期 9.5%"><title>deepseek-v4.1-flash · 7.65 亿 · 2,782 次 · 占全周期 9.5%</title></rect>
 <text x="296.4" y="139" font-size="12" fill="#d7dbe2">7.65 亿 <tspan fill="#8a919c">· 2,782 次 · 9.5%</tspan></text>
@@ -229,186 +247,188 @@
 </svg>
 <p class="foot">全周期口径：09-14 起来自每日模型明细账（精确；09-13 为建账首日、仅含 14:47 后部分）；09-08→09-12 共 5 天（6.18 亿，占 7.7%）按当日主力模型整天记账估算。</p>
 </div>
+</section>
+<section id="heat">
 <h2>模型 × 日期 热力图</h2>
 <div class="panel">
 <svg width="1160" height="236" viewBox="0 0 1160 236" role="img" aria-label="模型乘日期用量热力图，2026-09-08 至 2026-10-24">
 <text x="207" y="20" text-anchor="end" font-size="11" fill="#d7dbe2">gemini-3.8-flash-high</text>
-<rect x="314.4" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.51" data-tip="gemini-3.8-flash-high · 2026-09-13 · 1.233 亿"><title>gemini-3.8-flash-high · 2026-09-13 · 1.233 亿</title></rect>
-<rect x="334.1" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.68" data-tip="gemini-3.8-flash-high · 2026-09-14 · 1.739 亿"><title>gemini-3.8-flash-high · 2026-09-14 · 1.739 亿</title></rect>
-<rect x="353.8" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.41" data-tip="gemini-3.8-flash-high · 2026-09-15 · 0.945 亿"><title>gemini-3.8-flash-high · 2026-09-15 · 0.945 亿</title></rect>
-<rect x="373.4" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.59" data-tip="gemini-3.8-flash-high · 2026-09-16 · 1.475 亿"><title>gemini-3.8-flash-high · 2026-09-16 · 1.475 亿</title></rect>
-<rect x="393.1" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="gemini-3.8-flash-high · 2026-09-17 · 2.363 亿"><title>gemini-3.8-flash-high · 2026-09-17 · 2.363 亿</title></rect>
-<rect x="412.8" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.52" data-tip="gemini-3.8-flash-high · 2026-09-18 · 1.270 亿"><title>gemini-3.8-flash-high · 2026-09-18 · 1.270 亿</title></rect>
-<rect x="471.9" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.8-flash-high · 2026-09-21 · 0.240 亿"><title>gemini-3.8-flash-high · 2026-09-21 · 0.240 亿</title></rect>
-<rect x="629.3" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="gemini-3.8-flash-high · 2026-09-29 · 0.078 亿"><title>gemini-3.8-flash-high · 2026-09-29 · 0.078 亿</title></rect>
-<rect x="668.7" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.17" data-tip="gemini-3.8-flash-high · 2026-10-01 · 0.253 亿"><title>gemini-3.8-flash-high · 2026-10-01 · 0.253 亿</title></rect>
-<rect x="727.7" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.71" data-tip="gemini-3.8-flash-high · 2026-10-04 · 1.823 亿"><title>gemini-3.8-flash-high · 2026-10-04 · 1.823 亿</title></rect>
-<rect x="747.4" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.25" data-tip="gemini-3.8-flash-high · 2026-10-05 · 0.480 亿"><title>gemini-3.8-flash-high · 2026-10-05 · 0.480 亿</title></rect>
-<rect x="806.4" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.68" data-tip="gemini-3.8-flash-high · 2026-10-08 · 1.718 亿"><title>gemini-3.8-flash-high · 2026-10-08 · 1.718 亿</title></rect>
-<rect x="845.8" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="gemini-3.8-flash-high · 2026-10-10 · 0.693 亿"><title>gemini-3.8-flash-high · 2026-10-10 · 0.693 亿</title></rect>
-<rect x="885.1" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-12 · 0.008 亿"><title>gemini-3.8-flash-high · 2026-10-12 · 0.008 亿</title></rect>
-<rect x="904.8" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="gemini-3.8-flash-high · 2026-10-13 · 0.215 亿"><title>gemini-3.8-flash-high · 2026-10-13 · 0.215 亿</title></rect>
-<rect x="924.5" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="gemini-3.8-flash-high · 2026-10-14 · 0.380 亿"><title>gemini-3.8-flash-high · 2026-10-14 · 0.380 亿</title></rect>
-<rect x="944.2" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="gemini-3.8-flash-high · 2026-10-15 · 0.171 亿"><title>gemini-3.8-flash-high · 2026-10-15 · 0.171 亿</title></rect>
-<rect x="963.9" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.8-flash-high · 2026-10-16 · 0.236 亿"><title>gemini-3.8-flash-high · 2026-10-16 · 0.236 亿</title></rect>
-<rect x="983.6" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-17 · 0.002 亿"><title>gemini-3.8-flash-high · 2026-10-17 · 0.002 亿</title></rect>
-<rect x="1022.9" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="gemini-3.8-flash-high · 2026-10-19 · 0.370 亿"><title>gemini-3.8-flash-high · 2026-10-19 · 0.370 亿</title></rect>
-<rect x="1042.6" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-20 · 0.002 亿"><title>gemini-3.8-flash-high · 2026-10-20 · 0.002 亿</title></rect>
-<rect x="1062.3" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.81" data-tip="gemini-3.8-flash-high · 2026-10-21 · 2.090 亿"><title>gemini-3.8-flash-high · 2026-10-21 · 2.090 亿</title></rect>
-<rect x="1082.0" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="gemini-3.8-flash-high · 2026-10-22 · 1.561 亿"><title>gemini-3.8-flash-high · 2026-10-22 · 1.561 亿</title></rect>
-<rect x="1101.6" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.76" data-tip="gemini-3.8-flash-high · 2026-10-23 · 1.953 亿"><title>gemini-3.8-flash-high · 2026-10-23 · 1.953 亿</title></rect>
-<rect x="1121.3" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.45" data-tip="gemini-3.8-flash-high · 2026-10-24 · 1.063 亿"><title>gemini-3.8-flash-high · 2026-10-24 · 1.063 亿</title></rect>
+<rect class="hcell" data-col="5" x="314.4" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.51" data-tip="gemini-3.8-flash-high · 2026-09-13 · 1.233 亿"><title>gemini-3.8-flash-high · 2026-09-13 · 1.233 亿</title></rect>
+<rect class="hcell" data-col="6" x="334.1" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.68" data-tip="gemini-3.8-flash-high · 2026-09-14 · 1.739 亿"><title>gemini-3.8-flash-high · 2026-09-14 · 1.739 亿</title></rect>
+<rect class="hcell" data-col="7" x="353.8" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.41" data-tip="gemini-3.8-flash-high · 2026-09-15 · 0.945 亿"><title>gemini-3.8-flash-high · 2026-09-15 · 0.945 亿</title></rect>
+<rect class="hcell" data-col="8" x="373.4" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.59" data-tip="gemini-3.8-flash-high · 2026-09-16 · 1.475 亿"><title>gemini-3.8-flash-high · 2026-09-16 · 1.475 亿</title></rect>
+<rect class="hcell" data-col="9" x="393.1" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="gemini-3.8-flash-high · 2026-09-17 · 2.363 亿"><title>gemini-3.8-flash-high · 2026-09-17 · 2.363 亿</title></rect>
+<rect class="hcell" data-col="10" x="412.8" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.52" data-tip="gemini-3.8-flash-high · 2026-09-18 · 1.270 亿"><title>gemini-3.8-flash-high · 2026-09-18 · 1.270 亿</title></rect>
+<rect class="hcell" data-col="13" x="471.9" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.8-flash-high · 2026-09-21 · 0.240 亿"><title>gemini-3.8-flash-high · 2026-09-21 · 0.240 亿</title></rect>
+<rect class="hcell" data-col="21" x="629.3" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="gemini-3.8-flash-high · 2026-09-29 · 0.078 亿"><title>gemini-3.8-flash-high · 2026-09-29 · 0.078 亿</title></rect>
+<rect class="hcell" data-col="23" x="668.7" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.17" data-tip="gemini-3.8-flash-high · 2026-10-01 · 0.253 亿"><title>gemini-3.8-flash-high · 2026-10-01 · 0.253 亿</title></rect>
+<rect class="hcell" data-col="26" x="727.7" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.71" data-tip="gemini-3.8-flash-high · 2026-10-04 · 1.823 亿"><title>gemini-3.8-flash-high · 2026-10-04 · 1.823 亿</title></rect>
+<rect class="hcell" data-col="27" x="747.4" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.25" data-tip="gemini-3.8-flash-high · 2026-10-05 · 0.480 亿"><title>gemini-3.8-flash-high · 2026-10-05 · 0.480 亿</title></rect>
+<rect class="hcell" data-col="30" x="806.4" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.68" data-tip="gemini-3.8-flash-high · 2026-10-08 · 1.718 亿"><title>gemini-3.8-flash-high · 2026-10-08 · 1.718 亿</title></rect>
+<rect class="hcell" data-col="32" x="845.8" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="gemini-3.8-flash-high · 2026-10-10 · 0.693 亿"><title>gemini-3.8-flash-high · 2026-10-10 · 0.693 亿</title></rect>
+<rect class="hcell" data-col="34" x="885.1" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-12 · 0.008 亿"><title>gemini-3.8-flash-high · 2026-10-12 · 0.008 亿</title></rect>
+<rect class="hcell" data-col="35" x="904.8" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="gemini-3.8-flash-high · 2026-10-13 · 0.215 亿"><title>gemini-3.8-flash-high · 2026-10-13 · 0.215 亿</title></rect>
+<rect class="hcell" data-col="36" x="924.5" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="gemini-3.8-flash-high · 2026-10-14 · 0.380 亿"><title>gemini-3.8-flash-high · 2026-10-14 · 0.380 亿</title></rect>
+<rect class="hcell" data-col="37" x="944.2" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="gemini-3.8-flash-high · 2026-10-15 · 0.171 亿"><title>gemini-3.8-flash-high · 2026-10-15 · 0.171 亿</title></rect>
+<rect class="hcell" data-col="38" x="963.9" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.8-flash-high · 2026-10-16 · 0.236 亿"><title>gemini-3.8-flash-high · 2026-10-16 · 0.236 亿</title></rect>
+<rect class="hcell" data-col="39" x="983.6" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-17 · 0.002 亿"><title>gemini-3.8-flash-high · 2026-10-17 · 0.002 亿</title></rect>
+<rect class="hcell" data-col="41" x="1022.9" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="gemini-3.8-flash-high · 2026-10-19 · 0.370 亿"><title>gemini-3.8-flash-high · 2026-10-19 · 0.370 亿</title></rect>
+<rect class="hcell" data-col="42" x="1042.6" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-20 · 0.002 亿"><title>gemini-3.8-flash-high · 2026-10-20 · 0.002 亿</title></rect>
+<rect class="hcell" data-col="43" x="1062.3" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.81" data-tip="gemini-3.8-flash-high · 2026-10-21 · 2.090 亿"><title>gemini-3.8-flash-high · 2026-10-21 · 2.090 亿</title></rect>
+<rect class="hcell" data-col="44" x="1082.0" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="gemini-3.8-flash-high · 2026-10-22 · 1.561 亿"><title>gemini-3.8-flash-high · 2026-10-22 · 1.561 亿</title></rect>
+<rect class="hcell" data-col="45" x="1101.6" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.76" data-tip="gemini-3.8-flash-high · 2026-10-23 · 1.953 亿"><title>gemini-3.8-flash-high · 2026-10-23 · 1.953 亿</title></rect>
+<rect class="hcell" data-col="46" x="1121.3" y="7" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.45" data-tip="gemini-3.8-flash-high · 2026-10-24 · 1.063 亿"><title>gemini-3.8-flash-high · 2026-10-24 · 1.063 亿</title></rect>
 <text x="207" y="40" text-anchor="end" font-size="11" fill="#d7dbe2">step-5-preview</text>
-<rect x="452.2" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="step-5-preview · 2026-09-20 · 0.353 亿"><title>step-5-preview · 2026-09-20 · 0.353 亿</title></rect>
-<rect x="471.9" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="step-5-preview · 2026-09-21 · 0.131 亿"><title>step-5-preview · 2026-09-21 · 0.131 亿</title></rect>
-<rect x="491.5" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-22 · 0.109 亿"><title>step-5-preview · 2026-09-22 · 0.109 亿</title></rect>
-<rect x="511.2" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="step-5-preview · 2026-09-23 · 0.458 亿"><title>step-5-preview · 2026-09-23 · 0.458 亿</title></rect>
-<rect x="530.9" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.61" data-tip="step-5-preview · 2026-09-24 · 1.743 亿"><title>step-5-preview · 2026-09-24 · 1.743 亿</title></rect>
-<rect x="570.3" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-26 · 0.096 亿"><title>step-5-preview · 2026-09-26 · 0.096 亿</title></rect>
-<rect x="589.9" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="step-5-preview · 2026-09-27 · 0.078 亿"><title>step-5-preview · 2026-09-27 · 0.078 亿</title></rect>
-<rect x="609.6" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.61" data-tip="step-5-preview · 2026-09-28 · 1.751 亿"><title>step-5-preview · 2026-09-28 · 1.751 亿</title></rect>
-<rect x="629.3" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-29 · 0.088 亿"><title>step-5-preview · 2026-09-29 · 0.088 亿</title></rect>
-<rect x="649.0" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="step-5-preview · 2026-09-30 · 0.268 亿"><title>step-5-preview · 2026-09-30 · 0.268 亿</title></rect>
-<rect x="668.7" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="step-5-preview · 2026-10-01 · 0.068 亿"><title>step-5-preview · 2026-10-01 · 0.068 亿</title></rect>
-<rect x="727.7" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="step-5-preview · 2026-10-04 · 0.706 亿"><title>step-5-preview · 2026-10-04 · 0.706 亿</title></rect>
-<rect x="767.1" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="step-5-preview · 2026-10-06 · 0.037 亿"><title>step-5-preview · 2026-10-06 · 0.037 亿</title></rect>
-<rect x="786.7" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="step-5-preview · 2026-10-07 · 0.207 亿"><title>step-5-preview · 2026-10-07 · 0.207 亿</title></rect>
-<rect x="806.4" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="step-5-preview · 2026-10-08 · 0.358 亿"><title>step-5-preview · 2026-10-08 · 0.358 亿</title></rect>
-<rect x="826.1" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.24" data-tip="step-5-preview · 2026-10-09 · 0.526 亿"><title>step-5-preview · 2026-10-09 · 0.526 亿</title></rect>
-<rect x="845.8" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="step-5-preview · 2026-10-10 · 0.035 亿"><title>step-5-preview · 2026-10-10 · 0.035 亿</title></rect>
-<rect x="865.5" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="step-5-preview · 2026-10-11 · 0.511 亿"><title>step-5-preview · 2026-10-11 · 0.511 亿</title></rect>
-<rect x="885.1" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="step-5-preview · 2026-10-12 · 2.714 亿"><title>step-5-preview · 2026-10-12 · 2.714 亿</title></rect>
-<rect x="904.8" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.46" data-tip="step-5-preview · 2026-10-13 · 1.250 亿"><title>step-5-preview · 2026-10-13 · 1.250 亿</title></rect>
-<rect x="924.5" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.72" data-tip="step-5-preview · 2026-10-14 · 2.122 亿"><title>step-5-preview · 2026-10-14 · 2.122 亿</title></rect>
-<rect x="944.2" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.40" data-tip="step-5-preview · 2026-10-15 · 1.065 亿"><title>step-5-preview · 2026-10-15 · 1.065 亿</title></rect>
-<rect x="963.9" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="step-5-preview · 2026-10-16 · 0.806 亿"><title>step-5-preview · 2026-10-16 · 0.806 亿</title></rect>
-<rect x="1042.6" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="step-5-preview · 2026-10-20 · 0.150 亿"><title>step-5-preview · 2026-10-20 · 0.150 亿</title></rect>
-<rect x="1062.3" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="step-5-preview · 2026-10-21 · 0.790 亿"><title>step-5-preview · 2026-10-21 · 0.790 亿</title></rect>
-<rect x="1082.0" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.40" data-tip="step-5-preview · 2026-10-22 · 1.074 亿"><title>step-5-preview · 2026-10-22 · 1.074 亿</title></rect>
-<rect x="1101.6" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="step-5-preview · 2026-10-23 · 0.181 亿"><title>step-5-preview · 2026-10-23 · 0.181 亿</title></rect>
+<rect class="hcell" data-col="12" x="452.2" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="step-5-preview · 2026-09-20 · 0.353 亿"><title>step-5-preview · 2026-09-20 · 0.353 亿</title></rect>
+<rect class="hcell" data-col="13" x="471.9" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="step-5-preview · 2026-09-21 · 0.131 亿"><title>step-5-preview · 2026-09-21 · 0.131 亿</title></rect>
+<rect class="hcell" data-col="14" x="491.5" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-22 · 0.109 亿"><title>step-5-preview · 2026-09-22 · 0.109 亿</title></rect>
+<rect class="hcell" data-col="15" x="511.2" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="step-5-preview · 2026-09-23 · 0.458 亿"><title>step-5-preview · 2026-09-23 · 0.458 亿</title></rect>
+<rect class="hcell" data-col="16" x="530.9" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.61" data-tip="step-5-preview · 2026-09-24 · 1.743 亿"><title>step-5-preview · 2026-09-24 · 1.743 亿</title></rect>
+<rect class="hcell" data-col="18" x="570.3" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-26 · 0.096 亿"><title>step-5-preview · 2026-09-26 · 0.096 亿</title></rect>
+<rect class="hcell" data-col="19" x="589.9" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="step-5-preview · 2026-09-27 · 0.078 亿"><title>step-5-preview · 2026-09-27 · 0.078 亿</title></rect>
+<rect class="hcell" data-col="20" x="609.6" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.61" data-tip="step-5-preview · 2026-09-28 · 1.751 亿"><title>step-5-preview · 2026-09-28 · 1.751 亿</title></rect>
+<rect class="hcell" data-col="21" x="629.3" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-29 · 0.088 亿"><title>step-5-preview · 2026-09-29 · 0.088 亿</title></rect>
+<rect class="hcell" data-col="22" x="649.0" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="step-5-preview · 2026-09-30 · 0.268 亿"><title>step-5-preview · 2026-09-30 · 0.268 亿</title></rect>
+<rect class="hcell" data-col="23" x="668.7" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="step-5-preview · 2026-10-01 · 0.068 亿"><title>step-5-preview · 2026-10-01 · 0.068 亿</title></rect>
+<rect class="hcell" data-col="26" x="727.7" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="step-5-preview · 2026-10-04 · 0.706 亿"><title>step-5-preview · 2026-10-04 · 0.706 亿</title></rect>
+<rect class="hcell" data-col="28" x="767.1" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="step-5-preview · 2026-10-06 · 0.037 亿"><title>step-5-preview · 2026-10-06 · 0.037 亿</title></rect>
+<rect class="hcell" data-col="29" x="786.7" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="step-5-preview · 2026-10-07 · 0.207 亿"><title>step-5-preview · 2026-10-07 · 0.207 亿</title></rect>
+<rect class="hcell" data-col="30" x="806.4" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="step-5-preview · 2026-10-08 · 0.358 亿"><title>step-5-preview · 2026-10-08 · 0.358 亿</title></rect>
+<rect class="hcell" data-col="31" x="826.1" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.24" data-tip="step-5-preview · 2026-10-09 · 0.526 亿"><title>step-5-preview · 2026-10-09 · 0.526 亿</title></rect>
+<rect class="hcell" data-col="32" x="845.8" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="step-5-preview · 2026-10-10 · 0.035 亿"><title>step-5-preview · 2026-10-10 · 0.035 亿</title></rect>
+<rect class="hcell" data-col="33" x="865.5" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="step-5-preview · 2026-10-11 · 0.511 亿"><title>step-5-preview · 2026-10-11 · 0.511 亿</title></rect>
+<rect class="hcell" data-col="34" x="885.1" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="step-5-preview · 2026-10-12 · 2.714 亿"><title>step-5-preview · 2026-10-12 · 2.714 亿</title></rect>
+<rect class="hcell" data-col="35" x="904.8" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.46" data-tip="step-5-preview · 2026-10-13 · 1.250 亿"><title>step-5-preview · 2026-10-13 · 1.250 亿</title></rect>
+<rect class="hcell" data-col="36" x="924.5" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.72" data-tip="step-5-preview · 2026-10-14 · 2.122 亿"><title>step-5-preview · 2026-10-14 · 2.122 亿</title></rect>
+<rect class="hcell" data-col="37" x="944.2" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.40" data-tip="step-5-preview · 2026-10-15 · 1.065 亿"><title>step-5-preview · 2026-10-15 · 1.065 亿</title></rect>
+<rect class="hcell" data-col="38" x="963.9" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="step-5-preview · 2026-10-16 · 0.806 亿"><title>step-5-preview · 2026-10-16 · 0.806 亿</title></rect>
+<rect class="hcell" data-col="42" x="1042.6" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="step-5-preview · 2026-10-20 · 0.150 亿"><title>step-5-preview · 2026-10-20 · 0.150 亿</title></rect>
+<rect class="hcell" data-col="43" x="1062.3" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="step-5-preview · 2026-10-21 · 0.790 亿"><title>step-5-preview · 2026-10-21 · 0.790 亿</title></rect>
+<rect class="hcell" data-col="44" x="1082.0" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.40" data-tip="step-5-preview · 2026-10-22 · 1.074 亿"><title>step-5-preview · 2026-10-22 · 1.074 亿</title></rect>
+<rect class="hcell" data-col="45" x="1101.6" y="27" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="step-5-preview · 2026-10-23 · 0.181 亿"><title>step-5-preview · 2026-10-23 · 0.181 亿</title></rect>
 <text x="207" y="60" text-anchor="end" font-size="11" fill="#d7dbe2">GLM-5.3-Flash</text>
-<rect x="314.4" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3-Flash · 2026-09-13 · 0.115 亿"><title>GLM-5.3-Flash · 2026-09-13 · 0.115 亿</title></rect>
-<rect x="334.1" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3-Flash · 2026-09-14 · 0.023 亿"><title>GLM-5.3-Flash · 2026-09-14 · 0.023 亿</title></rect>
-<rect x="353.8" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-15 · 0.023 亿"><title>GLM-5.3-Flash · 2026-09-15 · 0.023 亿</title></rect>
-<rect x="373.4" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.46" data-tip="GLM-5.3-Flash · 2026-09-16 · 0.581 亿"><title>GLM-5.3-Flash · 2026-09-16 · 0.581 亿</title></rect>
-<rect x="393.1" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="GLM-5.3-Flash · 2026-09-17 · 0.234 亿"><title>GLM-5.3-Flash · 2026-09-17 · 0.234 亿</title></rect>
-<rect x="412.8" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.89" data-tip="GLM-5.3-Flash · 2026-09-18 · 1.235 亿"><title>GLM-5.3-Flash · 2026-09-18 · 1.235 亿</title></rect>
-<rect x="432.5" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3-Flash · 2026-09-19 · 0.089 亿"><title>GLM-5.3-Flash · 2026-09-19 · 0.089 亿</title></rect>
-<rect x="452.2" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="GLM-5.3-Flash · 2026-09-20 · 0.831 亿"><title>GLM-5.3-Flash · 2026-09-20 · 0.831 亿</title></rect>
-<rect x="471.9" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-21 · 0.010 亿"><title>GLM-5.3-Flash · 2026-09-21 · 0.010 亿</title></rect>
-<rect x="491.5" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-22 · 0.013 亿"><title>GLM-5.3-Flash · 2026-09-22 · 0.013 亿</title></rect>
-<rect x="511.2" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-23 · 0.012 亿"><title>GLM-5.3-Flash · 2026-09-23 · 0.012 亿</title></rect>
-<rect x="530.9" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.18" data-tip="GLM-5.3-Flash · 2026-09-24 · 0.152 亿"><title>GLM-5.3-Flash · 2026-09-24 · 0.152 亿</title></rect>
-<rect x="570.3" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="GLM-5.3-Flash · 2026-09-26 · 0.322 亿"><title>GLM-5.3-Flash · 2026-09-26 · 0.322 亿</title></rect>
-<rect x="589.9" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.52" data-tip="GLM-5.3-Flash · 2026-09-27 · 0.667 亿"><title>GLM-5.3-Flash · 2026-09-27 · 0.667 亿</title></rect>
-<rect x="609.6" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.48" data-tip="GLM-5.3-Flash · 2026-09-28 · 0.608 亿"><title>GLM-5.3-Flash · 2026-09-28 · 0.608 亿</title></rect>
-<rect x="629.3" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.38" data-tip="GLM-5.3-Flash · 2026-09-29 · 0.460 亿"><title>GLM-5.3-Flash · 2026-09-29 · 0.460 亿</title></rect>
-<rect x="649.0" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3-Flash · 2026-09-30 · 0.045 亿"><title>GLM-5.3-Flash · 2026-09-30 · 0.045 亿</title></rect>
-<rect x="668.7" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="GLM-5.3-Flash · 2026-10-01 · 0.106 亿"><title>GLM-5.3-Flash · 2026-10-01 · 0.106 亿</title></rect>
-<rect x="688.3" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.24" data-tip="GLM-5.3-Flash · 2026-10-02 · 0.241 亿"><title>GLM-5.3-Flash · 2026-10-02 · 0.241 亿</title></rect>
-<rect x="708.0" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="GLM-5.3-Flash · 2026-10-03 · 0.369 亿"><title>GLM-5.3-Flash · 2026-10-03 · 0.369 亿</title></rect>
-<rect x="727.7" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3-Flash · 2026-10-04 · 0.003 亿"><title>GLM-5.3-Flash · 2026-10-04 · 0.003 亿</title></rect>
-<rect x="747.4" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="GLM-5.3-Flash · 2026-10-05 · 0.161 亿"><title>GLM-5.3-Flash · 2026-10-05 · 0.161 亿</title></rect>
-<rect x="786.7" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3-Flash · 2026-10-07 · 0.097 亿"><title>GLM-5.3-Flash · 2026-10-07 · 0.097 亿</title></rect>
-<rect x="806.4" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="GLM-5.3-Flash · 2026-10-08 · 0.322 亿"><title>GLM-5.3-Flash · 2026-10-08 · 0.322 亿</title></rect>
-<rect x="826.1" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3-Flash · 2026-10-09 · 0.193 亿"><title>GLM-5.3-Flash · 2026-10-09 · 0.193 亿</title></rect>
-<rect x="845.8" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.41" data-tip="GLM-5.3-Flash · 2026-10-10 · 0.509 亿"><title>GLM-5.3-Flash · 2026-10-10 · 0.509 亿</title></rect>
-<rect x="865.5" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3-Flash · 2026-10-11 · 0.008 亿"><title>GLM-5.3-Flash · 2026-10-11 · 0.008 亿</title></rect>
-<rect x="885.1" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3-Flash · 2026-10-12 · 0.126 亿"><title>GLM-5.3-Flash · 2026-10-12 · 0.126 亿</title></rect>
-<rect x="904.8" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="GLM-5.3-Flash · 2026-10-13 · 0.308 亿"><title>GLM-5.3-Flash · 2026-10-13 · 0.308 亿</title></rect>
-<rect x="924.5" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.26" data-tip="GLM-5.3-Flash · 2026-10-14 · 0.276 亿"><title>GLM-5.3-Flash · 2026-10-14 · 0.276 亿</title></rect>
-<rect x="944.2" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="GLM-5.3-Flash · 2026-10-15 · 0.367 亿"><title>GLM-5.3-Flash · 2026-10-15 · 0.367 亿</title></rect>
-<rect x="963.9" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="GLM-5.3-Flash · 2026-10-16 · 1.254 亿"><title>GLM-5.3-Flash · 2026-10-16 · 1.254 亿</title></rect>
-<rect x="983.6" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3-Flash · 2026-10-17 · 0.031 亿"><title>GLM-5.3-Flash · 2026-10-17 · 0.031 亿</title></rect>
-<rect x="1003.2" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3-Flash · 2026-10-18 · 0.202 亿"><title>GLM-5.3-Flash · 2026-10-18 · 0.202 亿</title></rect>
-<rect x="1022.9" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.33" data-tip="GLM-5.3-Flash · 2026-10-19 · 0.388 亿"><title>GLM-5.3-Flash · 2026-10-19 · 0.388 亿</title></rect>
-<rect x="1042.6" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.53" data-tip="GLM-5.3-Flash · 2026-10-20 · 0.687 亿"><title>GLM-5.3-Flash · 2026-10-20 · 0.687 亿</title></rect>
-<rect x="1062.3" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.49" data-tip="GLM-5.3-Flash · 2026-10-21 · 0.628 亿"><title>GLM-5.3-Flash · 2026-10-21 · 0.628 亿</title></rect>
-<rect x="1082.0" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="GLM-5.3-Flash · 2026-10-22 · 0.300 亿"><title>GLM-5.3-Flash · 2026-10-22 · 0.300 亿</title></rect>
-<rect x="1101.6" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.18" data-tip="GLM-5.3-Flash · 2026-10-23 · 0.150 亿"><title>GLM-5.3-Flash · 2026-10-23 · 0.150 亿</title></rect>
-<rect x="1121.3" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="GLM-5.3-Flash · 2026-10-24 · 0.107 亿"><title>GLM-5.3-Flash · 2026-10-24 · 0.107 亿</title></rect>
+<rect class="hcell" data-col="5" x="314.4" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3-Flash · 2026-09-13 · 0.115 亿"><title>GLM-5.3-Flash · 2026-09-13 · 0.115 亿</title></rect>
+<rect class="hcell" data-col="6" x="334.1" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3-Flash · 2026-09-14 · 0.023 亿"><title>GLM-5.3-Flash · 2026-09-14 · 0.023 亿</title></rect>
+<rect class="hcell" data-col="7" x="353.8" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-15 · 0.023 亿"><title>GLM-5.3-Flash · 2026-09-15 · 0.023 亿</title></rect>
+<rect class="hcell" data-col="8" x="373.4" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.46" data-tip="GLM-5.3-Flash · 2026-09-16 · 0.581 亿"><title>GLM-5.3-Flash · 2026-09-16 · 0.581 亿</title></rect>
+<rect class="hcell" data-col="9" x="393.1" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="GLM-5.3-Flash · 2026-09-17 · 0.234 亿"><title>GLM-5.3-Flash · 2026-09-17 · 0.234 亿</title></rect>
+<rect class="hcell" data-col="10" x="412.8" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.89" data-tip="GLM-5.3-Flash · 2026-09-18 · 1.235 亿"><title>GLM-5.3-Flash · 2026-09-18 · 1.235 亿</title></rect>
+<rect class="hcell" data-col="11" x="432.5" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3-Flash · 2026-09-19 · 0.089 亿"><title>GLM-5.3-Flash · 2026-09-19 · 0.089 亿</title></rect>
+<rect class="hcell" data-col="12" x="452.2" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="GLM-5.3-Flash · 2026-09-20 · 0.831 亿"><title>GLM-5.3-Flash · 2026-09-20 · 0.831 亿</title></rect>
+<rect class="hcell" data-col="13" x="471.9" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-21 · 0.010 亿"><title>GLM-5.3-Flash · 2026-09-21 · 0.010 亿</title></rect>
+<rect class="hcell" data-col="14" x="491.5" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-22 · 0.013 亿"><title>GLM-5.3-Flash · 2026-09-22 · 0.013 亿</title></rect>
+<rect class="hcell" data-col="15" x="511.2" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-23 · 0.012 亿"><title>GLM-5.3-Flash · 2026-09-23 · 0.012 亿</title></rect>
+<rect class="hcell" data-col="16" x="530.9" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.18" data-tip="GLM-5.3-Flash · 2026-09-24 · 0.152 亿"><title>GLM-5.3-Flash · 2026-09-24 · 0.152 亿</title></rect>
+<rect class="hcell" data-col="18" x="570.3" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="GLM-5.3-Flash · 2026-09-26 · 0.322 亿"><title>GLM-5.3-Flash · 2026-09-26 · 0.322 亿</title></rect>
+<rect class="hcell" data-col="19" x="589.9" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.52" data-tip="GLM-5.3-Flash · 2026-09-27 · 0.667 亿"><title>GLM-5.3-Flash · 2026-09-27 · 0.667 亿</title></rect>
+<rect class="hcell" data-col="20" x="609.6" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.48" data-tip="GLM-5.3-Flash · 2026-09-28 · 0.608 亿"><title>GLM-5.3-Flash · 2026-09-28 · 0.608 亿</title></rect>
+<rect class="hcell" data-col="21" x="629.3" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.38" data-tip="GLM-5.3-Flash · 2026-09-29 · 0.460 亿"><title>GLM-5.3-Flash · 2026-09-29 · 0.460 亿</title></rect>
+<rect class="hcell" data-col="22" x="649.0" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3-Flash · 2026-09-30 · 0.045 亿"><title>GLM-5.3-Flash · 2026-09-30 · 0.045 亿</title></rect>
+<rect class="hcell" data-col="23" x="668.7" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="GLM-5.3-Flash · 2026-10-01 · 0.106 亿"><title>GLM-5.3-Flash · 2026-10-01 · 0.106 亿</title></rect>
+<rect class="hcell" data-col="24" x="688.3" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.24" data-tip="GLM-5.3-Flash · 2026-10-02 · 0.241 亿"><title>GLM-5.3-Flash · 2026-10-02 · 0.241 亿</title></rect>
+<rect class="hcell" data-col="25" x="708.0" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="GLM-5.3-Flash · 2026-10-03 · 0.369 亿"><title>GLM-5.3-Flash · 2026-10-03 · 0.369 亿</title></rect>
+<rect class="hcell" data-col="26" x="727.7" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3-Flash · 2026-10-04 · 0.003 亿"><title>GLM-5.3-Flash · 2026-10-04 · 0.003 亿</title></rect>
+<rect class="hcell" data-col="27" x="747.4" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="GLM-5.3-Flash · 2026-10-05 · 0.161 亿"><title>GLM-5.3-Flash · 2026-10-05 · 0.161 亿</title></rect>
+<rect class="hcell" data-col="29" x="786.7" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3-Flash · 2026-10-07 · 0.097 亿"><title>GLM-5.3-Flash · 2026-10-07 · 0.097 亿</title></rect>
+<rect class="hcell" data-col="30" x="806.4" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="GLM-5.3-Flash · 2026-10-08 · 0.322 亿"><title>GLM-5.3-Flash · 2026-10-08 · 0.322 亿</title></rect>
+<rect class="hcell" data-col="31" x="826.1" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3-Flash · 2026-10-09 · 0.193 亿"><title>GLM-5.3-Flash · 2026-10-09 · 0.193 亿</title></rect>
+<rect class="hcell" data-col="32" x="845.8" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.41" data-tip="GLM-5.3-Flash · 2026-10-10 · 0.509 亿"><title>GLM-5.3-Flash · 2026-10-10 · 0.509 亿</title></rect>
+<rect class="hcell" data-col="33" x="865.5" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3-Flash · 2026-10-11 · 0.008 亿"><title>GLM-5.3-Flash · 2026-10-11 · 0.008 亿</title></rect>
+<rect class="hcell" data-col="34" x="885.1" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3-Flash · 2026-10-12 · 0.126 亿"><title>GLM-5.3-Flash · 2026-10-12 · 0.126 亿</title></rect>
+<rect class="hcell" data-col="35" x="904.8" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="GLM-5.3-Flash · 2026-10-13 · 0.308 亿"><title>GLM-5.3-Flash · 2026-10-13 · 0.308 亿</title></rect>
+<rect class="hcell" data-col="36" x="924.5" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.26" data-tip="GLM-5.3-Flash · 2026-10-14 · 0.276 亿"><title>GLM-5.3-Flash · 2026-10-14 · 0.276 亿</title></rect>
+<rect class="hcell" data-col="37" x="944.2" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="GLM-5.3-Flash · 2026-10-15 · 0.367 亿"><title>GLM-5.3-Flash · 2026-10-15 · 0.367 亿</title></rect>
+<rect class="hcell" data-col="38" x="963.9" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="GLM-5.3-Flash · 2026-10-16 · 1.254 亿"><title>GLM-5.3-Flash · 2026-10-16 · 1.254 亿</title></rect>
+<rect class="hcell" data-col="39" x="983.6" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3-Flash · 2026-10-17 · 0.031 亿"><title>GLM-5.3-Flash · 2026-10-17 · 0.031 亿</title></rect>
+<rect class="hcell" data-col="40" x="1003.2" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3-Flash · 2026-10-18 · 0.202 亿"><title>GLM-5.3-Flash · 2026-10-18 · 0.202 亿</title></rect>
+<rect class="hcell" data-col="41" x="1022.9" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.33" data-tip="GLM-5.3-Flash · 2026-10-19 · 0.388 亿"><title>GLM-5.3-Flash · 2026-10-19 · 0.388 亿</title></rect>
+<rect class="hcell" data-col="42" x="1042.6" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.53" data-tip="GLM-5.3-Flash · 2026-10-20 · 0.687 亿"><title>GLM-5.3-Flash · 2026-10-20 · 0.687 亿</title></rect>
+<rect class="hcell" data-col="43" x="1062.3" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.49" data-tip="GLM-5.3-Flash · 2026-10-21 · 0.628 亿"><title>GLM-5.3-Flash · 2026-10-21 · 0.628 亿</title></rect>
+<rect class="hcell" data-col="44" x="1082.0" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="GLM-5.3-Flash · 2026-10-22 · 0.300 亿"><title>GLM-5.3-Flash · 2026-10-22 · 0.300 亿</title></rect>
+<rect class="hcell" data-col="45" x="1101.6" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.18" data-tip="GLM-5.3-Flash · 2026-10-23 · 0.150 亿"><title>GLM-5.3-Flash · 2026-10-23 · 0.150 亿</title></rect>
+<rect class="hcell" data-col="46" x="1121.3" y="47" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3-Flash · 2026-10-24 · 0.120 亿"><title>GLM-5.3-Flash · 2026-10-24 · 0.120 亿</title></rect>
 <text x="207" y="80" text-anchor="end" font-size="11" fill="#d7dbe2">deepseek-v4.1-flash</text>
-<rect x="530.9" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-09-24 · 0.000 亿"><title>deepseek-v4.1-flash · 2026-09-24 · 0.000 亿</title></rect>
-<rect x="727.7" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-04 · 0.009 亿"><title>deepseek-v4.1-flash · 2026-10-04 · 0.009 亿</title></rect>
-<rect x="826.1" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.47" data-tip="deepseek-v4.1-flash · 2026-10-09 · 0.906 亿"><title>deepseek-v4.1-flash · 2026-10-09 · 0.906 亿</title></rect>
-<rect x="845.8" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="deepseek-v4.1-flash · 2026-10-10 · 0.334 亿"><title>deepseek-v4.1-flash · 2026-10-10 · 0.334 亿</title></rect>
-<rect x="865.5" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="deepseek-v4.1-flash · 2026-10-11 · 1.242 亿"><title>deepseek-v4.1-flash · 2026-10-11 · 1.242 亿</title></rect>
-<rect x="885.1" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="deepseek-v4.1-flash · 2026-10-12 · 0.072 亿"><title>deepseek-v4.1-flash · 2026-10-12 · 0.072 亿</title></rect>
-<rect x="904.8" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="deepseek-v4.1-flash · 2026-10-13 · 0.012 亿"><title>deepseek-v4.1-flash · 2026-10-13 · 0.012 亿</title></rect>
-<rect x="924.5" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="deepseek-v4.1-flash · 2026-10-14 · 0.313 亿"><title>deepseek-v4.1-flash · 2026-10-14 · 0.313 亿</title></rect>
-<rect x="944.2" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="deepseek-v4.1-flash · 2026-10-15 · 0.086 亿"><title>deepseek-v4.1-flash · 2026-10-15 · 0.086 亿</title></rect>
-<rect x="963.9" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="deepseek-v4.1-flash · 2026-10-16 · 0.324 亿"><title>deepseek-v4.1-flash · 2026-10-16 · 0.324 亿</title></rect>
-<rect x="983.6" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-17 · 0.007 亿"><title>deepseek-v4.1-flash · 2026-10-17 · 0.007 亿</title></rect>
-<rect x="1022.9" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="deepseek-v4.1-flash · 2026-10-19 · 0.542 亿"><title>deepseek-v4.1-flash · 2026-10-19 · 0.542 亿</title></rect>
-<rect x="1042.6" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="deepseek-v4.1-flash · 2026-10-20 · 1.881 亿"><title>deepseek-v4.1-flash · 2026-10-20 · 1.881 亿</title></rect>
-<rect x="1062.3" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.73" data-tip="deepseek-v4.1-flash · 2026-10-21 · 1.488 亿"><title>deepseek-v4.1-flash · 2026-10-21 · 1.488 亿</title></rect>
-<rect x="1082.0" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="deepseek-v4.1-flash · 2026-10-22 · 0.160 亿"><title>deepseek-v4.1-flash · 2026-10-22 · 0.160 亿</title></rect>
-<rect x="1101.6" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.20" data-tip="deepseek-v4.1-flash · 2026-10-23 · 0.276 亿"><title>deepseek-v4.1-flash · 2026-10-23 · 0.276 亿</title></rect>
-<rect x="1121.3" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-24 · 0.002 亿"><title>deepseek-v4.1-flash · 2026-10-24 · 0.002 亿</title></rect>
+<rect class="hcell" data-col="16" x="530.9" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-09-24 · 0.000 亿"><title>deepseek-v4.1-flash · 2026-09-24 · 0.000 亿</title></rect>
+<rect class="hcell" data-col="26" x="727.7" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-04 · 0.009 亿"><title>deepseek-v4.1-flash · 2026-10-04 · 0.009 亿</title></rect>
+<rect class="hcell" data-col="31" x="826.1" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.47" data-tip="deepseek-v4.1-flash · 2026-10-09 · 0.906 亿"><title>deepseek-v4.1-flash · 2026-10-09 · 0.906 亿</title></rect>
+<rect class="hcell" data-col="32" x="845.8" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="deepseek-v4.1-flash · 2026-10-10 · 0.334 亿"><title>deepseek-v4.1-flash · 2026-10-10 · 0.334 亿</title></rect>
+<rect class="hcell" data-col="33" x="865.5" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="deepseek-v4.1-flash · 2026-10-11 · 1.242 亿"><title>deepseek-v4.1-flash · 2026-10-11 · 1.242 亿</title></rect>
+<rect class="hcell" data-col="34" x="885.1" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="deepseek-v4.1-flash · 2026-10-12 · 0.072 亿"><title>deepseek-v4.1-flash · 2026-10-12 · 0.072 亿</title></rect>
+<rect class="hcell" data-col="35" x="904.8" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="deepseek-v4.1-flash · 2026-10-13 · 0.012 亿"><title>deepseek-v4.1-flash · 2026-10-13 · 0.012 亿</title></rect>
+<rect class="hcell" data-col="36" x="924.5" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="deepseek-v4.1-flash · 2026-10-14 · 0.313 亿"><title>deepseek-v4.1-flash · 2026-10-14 · 0.313 亿</title></rect>
+<rect class="hcell" data-col="37" x="944.2" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="deepseek-v4.1-flash · 2026-10-15 · 0.086 亿"><title>deepseek-v4.1-flash · 2026-10-15 · 0.086 亿</title></rect>
+<rect class="hcell" data-col="38" x="963.9" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="deepseek-v4.1-flash · 2026-10-16 · 0.324 亿"><title>deepseek-v4.1-flash · 2026-10-16 · 0.324 亿</title></rect>
+<rect class="hcell" data-col="39" x="983.6" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-17 · 0.007 亿"><title>deepseek-v4.1-flash · 2026-10-17 · 0.007 亿</title></rect>
+<rect class="hcell" data-col="41" x="1022.9" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="deepseek-v4.1-flash · 2026-10-19 · 0.542 亿"><title>deepseek-v4.1-flash · 2026-10-19 · 0.542 亿</title></rect>
+<rect class="hcell" data-col="42" x="1042.6" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="deepseek-v4.1-flash · 2026-10-20 · 1.881 亿"><title>deepseek-v4.1-flash · 2026-10-20 · 1.881 亿</title></rect>
+<rect class="hcell" data-col="43" x="1062.3" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.73" data-tip="deepseek-v4.1-flash · 2026-10-21 · 1.488 亿"><title>deepseek-v4.1-flash · 2026-10-21 · 1.488 亿</title></rect>
+<rect class="hcell" data-col="44" x="1082.0" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="deepseek-v4.1-flash · 2026-10-22 · 0.160 亿"><title>deepseek-v4.1-flash · 2026-10-22 · 0.160 亿</title></rect>
+<rect class="hcell" data-col="45" x="1101.6" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.20" data-tip="deepseek-v4.1-flash · 2026-10-23 · 0.276 亿"><title>deepseek-v4.1-flash · 2026-10-23 · 0.276 亿</title></rect>
+<rect class="hcell" data-col="46" x="1121.3" y="67" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-24 · 0.002 亿"><title>deepseek-v4.1-flash · 2026-10-24 · 0.002 亿</title></rect>
 <text x="207" y="100" text-anchor="end" font-size="11" fill="#d7dbe2">gemini-3.7-flash-high</text>
-<rect x="334.1" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="gemini-3.7-flash-high · 2026-09-14 · 0.118 亿"><title>gemini-3.7-flash-high · 2026-09-14 · 0.118 亿</title></rect>
-<rect x="353.8" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.59" data-tip="gemini-3.7-flash-high · 2026-09-15 · 0.963 亿"><title>gemini-3.7-flash-high · 2026-09-15 · 0.963 亿</title></rect>
-<rect x="393.1" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="gemini-3.7-flash-high · 2026-09-17 · 0.015 亿"><title>gemini-3.7-flash-high · 2026-09-17 · 0.015 亿</title></rect>
-<rect x="412.8" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.49" data-tip="gemini-3.7-flash-high · 2026-09-18 · 0.762 亿"><title>gemini-3.7-flash-high · 2026-09-18 · 0.762 亿</title></rect>
-<rect x="452.2" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.36" data-tip="gemini-3.7-flash-high · 2026-09-20 · 0.527 亿"><title>gemini-3.7-flash-high · 2026-09-20 · 0.527 亿</title></rect>
-<rect x="471.9" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.76" data-tip="gemini-3.7-flash-high · 2026-09-21 · 1.275 亿"><title>gemini-3.7-flash-high · 2026-09-21 · 1.275 亿</title></rect>
-<rect x="530.9" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="gemini-3.7-flash-high · 2026-09-24 · 0.137 亿"><title>gemini-3.7-flash-high · 2026-09-24 · 0.137 亿</title></rect>
-<rect x="629.3" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.7-flash-high · 2026-09-29 · 0.147 亿"><title>gemini-3.7-flash-high · 2026-09-29 · 0.147 亿</title></rect>
-<rect x="649.0" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.33" data-tip="gemini-3.7-flash-high · 2026-09-30 · 0.464 亿"><title>gemini-3.7-flash-high · 2026-09-30 · 0.464 亿</title></rect>
-<rect x="786.7" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="gemini-3.7-flash-high · 2026-10-07 · 1.535 亿"><title>gemini-3.7-flash-high · 2026-10-07 · 1.535 亿</title></rect>
-<rect x="806.4" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="gemini-3.7-flash-high · 2026-10-08 · 0.066 亿"><title>gemini-3.7-flash-high · 2026-10-08 · 0.066 亿</title></rect>
+<rect class="hcell" data-col="6" x="334.1" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="gemini-3.7-flash-high · 2026-09-14 · 0.118 亿"><title>gemini-3.7-flash-high · 2026-09-14 · 0.118 亿</title></rect>
+<rect class="hcell" data-col="7" x="353.8" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.59" data-tip="gemini-3.7-flash-high · 2026-09-15 · 0.963 亿"><title>gemini-3.7-flash-high · 2026-09-15 · 0.963 亿</title></rect>
+<rect class="hcell" data-col="9" x="393.1" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="gemini-3.7-flash-high · 2026-09-17 · 0.015 亿"><title>gemini-3.7-flash-high · 2026-09-17 · 0.015 亿</title></rect>
+<rect class="hcell" data-col="10" x="412.8" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.49" data-tip="gemini-3.7-flash-high · 2026-09-18 · 0.762 亿"><title>gemini-3.7-flash-high · 2026-09-18 · 0.762 亿</title></rect>
+<rect class="hcell" data-col="12" x="452.2" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.36" data-tip="gemini-3.7-flash-high · 2026-09-20 · 0.527 亿"><title>gemini-3.7-flash-high · 2026-09-20 · 0.527 亿</title></rect>
+<rect class="hcell" data-col="13" x="471.9" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.76" data-tip="gemini-3.7-flash-high · 2026-09-21 · 1.275 亿"><title>gemini-3.7-flash-high · 2026-09-21 · 1.275 亿</title></rect>
+<rect class="hcell" data-col="16" x="530.9" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="gemini-3.7-flash-high · 2026-09-24 · 0.137 亿"><title>gemini-3.7-flash-high · 2026-09-24 · 0.137 亿</title></rect>
+<rect class="hcell" data-col="21" x="629.3" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.7-flash-high · 2026-09-29 · 0.147 亿"><title>gemini-3.7-flash-high · 2026-09-29 · 0.147 亿</title></rect>
+<rect class="hcell" data-col="22" x="649.0" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.33" data-tip="gemini-3.7-flash-high · 2026-09-30 · 0.464 亿"><title>gemini-3.7-flash-high · 2026-09-30 · 0.464 亿</title></rect>
+<rect class="hcell" data-col="29" x="786.7" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="gemini-3.7-flash-high · 2026-10-07 · 1.535 亿"><title>gemini-3.7-flash-high · 2026-10-07 · 1.535 亿</title></rect>
+<rect class="hcell" data-col="30" x="806.4" y="87" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="gemini-3.7-flash-high · 2026-10-08 · 0.066 亿"><title>gemini-3.7-flash-high · 2026-10-08 · 0.066 亿</title></rect>
 <text x="207" y="120" text-anchor="end" font-size="11" fill="#d7dbe2">GLM-5.3</text>
-<rect x="334.1" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-09-14 · 0.022 亿"><title>GLM-5.3 · 2026-09-14 · 0.022 亿</title></rect>
-<rect x="353.8" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-15 · 0.102 亿"><title>GLM-5.3 · 2026-09-15 · 0.102 亿</title></rect>
-<rect x="373.4" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-09-16 · 0.085 亿"><title>GLM-5.3 · 2026-09-16 · 0.085 亿</title></rect>
-<rect x="393.1" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-17 · 0.007 亿"><title>GLM-5.3 · 2026-09-17 · 0.007 亿</title></rect>
-<rect x="412.8" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-18 · 0.005 亿"><title>GLM-5.3 · 2026-09-18 · 0.005 亿</title></rect>
-<rect x="432.5" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-09-19 · 0.076 亿"><title>GLM-5.3 · 2026-09-19 · 0.076 亿</title></rect>
-<rect x="452.2" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3 · 2026-09-20 · 0.037 亿"><title>GLM-5.3 · 2026-09-20 · 0.037 亿</title></rect>
-<rect x="491.5" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3 · 2026-09-22 · 0.164 亿"><title>GLM-5.3 · 2026-09-22 · 0.164 亿</title></rect>
-<rect x="511.2" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-23 · 0.097 亿"><title>GLM-5.3 · 2026-09-23 · 0.097 亿</title></rect>
-<rect x="530.9" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3 · 2026-09-24 · 0.073 亿"><title>GLM-5.3 · 2026-09-24 · 0.073 亿</title></rect>
-<rect x="550.6" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3 · 2026-09-25 · 0.065 亿"><title>GLM-5.3 · 2026-09-25 · 0.065 亿</title></rect>
-<rect x="609.6" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-28 · 0.003 亿"><title>GLM-5.3 · 2026-09-28 · 0.003 亿</title></rect>
-<rect x="629.3" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3 · 2026-09-29 · 0.135 亿"><title>GLM-5.3 · 2026-09-29 · 0.135 亿</title></rect>
-<rect x="649.0" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-30 · 0.105 亿"><title>GLM-5.3 · 2026-09-30 · 0.105 亿</title></rect>
-<rect x="668.7" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-10-01 · 0.092 亿"><title>GLM-5.3 · 2026-10-01 · 0.092 亿</title></rect>
-<rect x="688.3" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-02 · 0.020 亿"><title>GLM-5.3 · 2026-10-02 · 0.020 亿</title></rect>
-<rect x="727.7" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-04 · 0.012 亿"><title>GLM-5.3 · 2026-10-04 · 0.012 亿</title></rect>
-<rect x="747.4" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-05 · 0.008 亿"><title>GLM-5.3 · 2026-10-05 · 0.008 亿</title></rect>
-<rect x="767.1" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-06 · 0.005 亿"><title>GLM-5.3 · 2026-10-06 · 0.005 亿</title></rect>
-<rect x="786.7" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-07 · 0.003 亿"><title>GLM-5.3 · 2026-10-07 · 0.003 亿</title></rect>
-<rect x="806.4" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-08 · 0.024 亿"><title>GLM-5.3 · 2026-10-08 · 0.024 亿</title></rect>
-<rect x="826.1" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3 · 2026-10-09 · 0.040 亿"><title>GLM-5.3 · 2026-10-09 · 0.040 亿</title></rect>
-<rect x="865.5" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="GLM-5.3 · 2026-10-11 · 0.233 亿"><title>GLM-5.3 · 2026-10-11 · 0.233 亿</title></rect>
-<rect x="885.1" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-12 · 0.028 亿"><title>GLM-5.3 · 2026-10-12 · 0.028 亿</title></rect>
-<rect x="904.8" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3 · 2026-10-13 · 0.283 亿"><title>GLM-5.3 · 2026-10-13 · 0.283 亿</title></rect>
-<rect x="924.5" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="GLM-5.3 · 2026-10-14 · 1.763 亿"><title>GLM-5.3 · 2026-10-14 · 1.763 亿</title></rect>
+<rect class="hcell" data-col="6" x="334.1" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-09-14 · 0.022 亿"><title>GLM-5.3 · 2026-09-14 · 0.022 亿</title></rect>
+<rect class="hcell" data-col="7" x="353.8" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-15 · 0.102 亿"><title>GLM-5.3 · 2026-09-15 · 0.102 亿</title></rect>
+<rect class="hcell" data-col="8" x="373.4" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-09-16 · 0.085 亿"><title>GLM-5.3 · 2026-09-16 · 0.085 亿</title></rect>
+<rect class="hcell" data-col="9" x="393.1" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-17 · 0.007 亿"><title>GLM-5.3 · 2026-09-17 · 0.007 亿</title></rect>
+<rect class="hcell" data-col="10" x="412.8" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-18 · 0.005 亿"><title>GLM-5.3 · 2026-09-18 · 0.005 亿</title></rect>
+<rect class="hcell" data-col="11" x="432.5" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-09-19 · 0.076 亿"><title>GLM-5.3 · 2026-09-19 · 0.076 亿</title></rect>
+<rect class="hcell" data-col="12" x="452.2" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3 · 2026-09-20 · 0.037 亿"><title>GLM-5.3 · 2026-09-20 · 0.037 亿</title></rect>
+<rect class="hcell" data-col="14" x="491.5" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3 · 2026-09-22 · 0.164 亿"><title>GLM-5.3 · 2026-09-22 · 0.164 亿</title></rect>
+<rect class="hcell" data-col="15" x="511.2" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-23 · 0.097 亿"><title>GLM-5.3 · 2026-09-23 · 0.097 亿</title></rect>
+<rect class="hcell" data-col="16" x="530.9" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3 · 2026-09-24 · 0.073 亿"><title>GLM-5.3 · 2026-09-24 · 0.073 亿</title></rect>
+<rect class="hcell" data-col="17" x="550.6" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3 · 2026-09-25 · 0.065 亿"><title>GLM-5.3 · 2026-09-25 · 0.065 亿</title></rect>
+<rect class="hcell" data-col="20" x="609.6" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-28 · 0.003 亿"><title>GLM-5.3 · 2026-09-28 · 0.003 亿</title></rect>
+<rect class="hcell" data-col="21" x="629.3" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3 · 2026-09-29 · 0.135 亿"><title>GLM-5.3 · 2026-09-29 · 0.135 亿</title></rect>
+<rect class="hcell" data-col="22" x="649.0" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-30 · 0.105 亿"><title>GLM-5.3 · 2026-09-30 · 0.105 亿</title></rect>
+<rect class="hcell" data-col="23" x="668.7" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-10-01 · 0.092 亿"><title>GLM-5.3 · 2026-10-01 · 0.092 亿</title></rect>
+<rect class="hcell" data-col="24" x="688.3" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-02 · 0.020 亿"><title>GLM-5.3 · 2026-10-02 · 0.020 亿</title></rect>
+<rect class="hcell" data-col="26" x="727.7" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-04 · 0.012 亿"><title>GLM-5.3 · 2026-10-04 · 0.012 亿</title></rect>
+<rect class="hcell" data-col="27" x="747.4" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-05 · 0.008 亿"><title>GLM-5.3 · 2026-10-05 · 0.008 亿</title></rect>
+<rect class="hcell" data-col="28" x="767.1" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-06 · 0.005 亿"><title>GLM-5.3 · 2026-10-06 · 0.005 亿</title></rect>
+<rect class="hcell" data-col="29" x="786.7" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-07 · 0.003 亿"><title>GLM-5.3 · 2026-10-07 · 0.003 亿</title></rect>
+<rect class="hcell" data-col="30" x="806.4" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-08 · 0.024 亿"><title>GLM-5.3 · 2026-10-08 · 0.024 亿</title></rect>
+<rect class="hcell" data-col="31" x="826.1" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3 · 2026-10-09 · 0.040 亿"><title>GLM-5.3 · 2026-10-09 · 0.040 亿</title></rect>
+<rect class="hcell" data-col="33" x="865.5" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="GLM-5.3 · 2026-10-11 · 0.233 亿"><title>GLM-5.3 · 2026-10-11 · 0.233 亿</title></rect>
+<rect class="hcell" data-col="34" x="885.1" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-12 · 0.028 亿"><title>GLM-5.3 · 2026-10-12 · 0.028 亿</title></rect>
+<rect class="hcell" data-col="35" x="904.8" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3 · 2026-10-13 · 0.283 亿"><title>GLM-5.3 · 2026-10-13 · 0.283 亿</title></rect>
+<rect class="hcell" data-col="36" x="924.5" y="107" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="GLM-5.3 · 2026-10-14 · 1.763 亿"><title>GLM-5.3 · 2026-10-14 · 1.763 亿</title></rect>
 <text x="207" y="140" text-anchor="end" font-size="11" fill="#d7dbe2">muse-spark-1.3-contributor</text>
-<rect x="826.1" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="muse-spark-1.3-contributor · 2026-10-09 · 0.733 亿"><title>muse-spark-1.3-contributor · 2026-10-09 · 0.733 亿</title></rect>
-<rect x="845.8" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.34" data-tip="muse-spark-1.3-contributor · 2026-10-10 · 0.234 亿"><title>muse-spark-1.3-contributor · 2026-10-10 · 0.234 亿</title></rect>
-<rect x="865.5" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="muse-spark-1.3-contributor · 2026-10-11 · 0.180 亿"><title>muse-spark-1.3-contributor · 2026-10-11 · 0.180 亿</title></rect>
-<rect x="885.1" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.17" data-tip="muse-spark-1.3-contributor · 2026-10-12 · 0.077 亿"><title>muse-spark-1.3-contributor · 2026-10-12 · 0.077 亿</title></rect>
-<rect x="904.8" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="muse-spark-1.3-contributor · 2026-10-13 · 0.063 亿"><title>muse-spark-1.3-contributor · 2026-10-13 · 0.063 亿</title></rect>
-<rect x="924.5" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="muse-spark-1.3-contributor · 2026-10-14 · 0.026 亿"><title>muse-spark-1.3-contributor · 2026-10-14 · 0.026 亿</title></rect>
-<rect x="983.6" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.39" data-tip="muse-spark-1.3-contributor · 2026-10-17 · 0.278 亿"><title>muse-spark-1.3-contributor · 2026-10-17 · 0.278 亿</title></rect>
+<rect class="hcell" data-col="31" x="826.1" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="muse-spark-1.3-contributor · 2026-10-09 · 0.733 亿"><title>muse-spark-1.3-contributor · 2026-10-09 · 0.733 亿</title></rect>
+<rect class="hcell" data-col="32" x="845.8" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.34" data-tip="muse-spark-1.3-contributor · 2026-10-10 · 0.234 亿"><title>muse-spark-1.3-contributor · 2026-10-10 · 0.234 亿</title></rect>
+<rect class="hcell" data-col="33" x="865.5" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="muse-spark-1.3-contributor · 2026-10-11 · 0.180 亿"><title>muse-spark-1.3-contributor · 2026-10-11 · 0.180 亿</title></rect>
+<rect class="hcell" data-col="34" x="885.1" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.17" data-tip="muse-spark-1.3-contributor · 2026-10-12 · 0.077 亿"><title>muse-spark-1.3-contributor · 2026-10-12 · 0.077 亿</title></rect>
+<rect class="hcell" data-col="35" x="904.8" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="muse-spark-1.3-contributor · 2026-10-13 · 0.063 亿"><title>muse-spark-1.3-contributor · 2026-10-13 · 0.063 亿</title></rect>
+<rect class="hcell" data-col="36" x="924.5" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="muse-spark-1.3-contributor · 2026-10-14 · 0.026 亿"><title>muse-spark-1.3-contributor · 2026-10-14 · 0.026 亿</title></rect>
+<rect class="hcell" data-col="39" x="983.6" y="127" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.39" data-tip="muse-spark-1.3-contributor · 2026-10-17 · 0.278 亿"><title>muse-spark-1.3-contributor · 2026-10-17 · 0.278 亿</title></rect>
 <text x="207" y="160" text-anchor="end" font-size="11" fill="#d7dbe2">grok-4.6</text>
 <text x="207" y="180" text-anchor="end" font-size="11" fill="#d7dbe2">kimi-k2.8-preview</text>
-<rect x="530.9" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="kimi-k2.8-preview · 2026-09-24 · 0.006 亿"><title>kimi-k2.8-preview · 2026-09-24 · 0.006 亿</title></rect>
-<rect x="550.6" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="kimi-k2.8-preview · 2026-09-25 · 0.014 亿"><title>kimi-k2.8-preview · 2026-09-25 · 0.014 亿</title></rect>
-<rect x="570.3" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.20" data-tip="kimi-k2.8-preview · 2026-09-26 · 0.048 亿"><title>kimi-k2.8-preview · 2026-09-26 · 0.048 亿</title></rect>
-<rect x="589.9" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="kimi-k2.8-preview · 2026-09-27 · 0.000 亿"><title>kimi-k2.8-preview · 2026-09-27 · 0.000 亿</title></rect>
-<rect x="609.6" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="kimi-k2.8-preview · 2026-09-28 · 0.342 亿"><title>kimi-k2.8-preview · 2026-09-28 · 0.342 亿</title></rect>
-<rect x="629.3" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.44" data-tip="kimi-k2.8-preview · 2026-09-29 · 0.150 亿"><title>kimi-k2.8-preview · 2026-09-29 · 0.150 亿</title></rect>
-<rect x="649.0" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.80" data-tip="kimi-k2.8-preview · 2026-09-30 · 0.301 亿"><title>kimi-k2.8-preview · 2026-09-30 · 0.301 亿</title></rect>
-<rect x="688.3" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.20" data-tip="kimi-k2.8-preview · 2026-10-02 · 0.048 亿"><title>kimi-k2.8-preview · 2026-10-02 · 0.048 亿</title></rect>
-<rect x="708.0" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="kimi-k2.8-preview · 2026-10-03 · 0.056 亿"><title>kimi-k2.8-preview · 2026-10-03 · 0.056 亿</title></rect>
-<rect x="727.7" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="kimi-k2.8-preview · 2026-10-04 · 0.007 亿"><title>kimi-k2.8-preview · 2026-10-04 · 0.007 亿</title></rect>
-<rect x="747.4" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="kimi-k2.8-preview · 2026-10-05 · 0.003 亿"><title>kimi-k2.8-preview · 2026-10-05 · 0.003 亿</title></rect>
-<rect x="767.1" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="kimi-k2.8-preview · 2026-10-06 · 0.024 亿"><title>kimi-k2.8-preview · 2026-10-06 · 0.024 亿</title></rect>
+<rect class="hcell" data-col="16" x="530.9" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="kimi-k2.8-preview · 2026-09-24 · 0.006 亿"><title>kimi-k2.8-preview · 2026-09-24 · 0.006 亿</title></rect>
+<rect class="hcell" data-col="17" x="550.6" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="kimi-k2.8-preview · 2026-09-25 · 0.014 亿"><title>kimi-k2.8-preview · 2026-09-25 · 0.014 亿</title></rect>
+<rect class="hcell" data-col="18" x="570.3" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.20" data-tip="kimi-k2.8-preview · 2026-09-26 · 0.048 亿"><title>kimi-k2.8-preview · 2026-09-26 · 0.048 亿</title></rect>
+<rect class="hcell" data-col="19" x="589.9" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="kimi-k2.8-preview · 2026-09-27 · 0.000 亿"><title>kimi-k2.8-preview · 2026-09-27 · 0.000 亿</title></rect>
+<rect class="hcell" data-col="20" x="609.6" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="kimi-k2.8-preview · 2026-09-28 · 0.342 亿"><title>kimi-k2.8-preview · 2026-09-28 · 0.342 亿</title></rect>
+<rect class="hcell" data-col="21" x="629.3" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.44" data-tip="kimi-k2.8-preview · 2026-09-29 · 0.150 亿"><title>kimi-k2.8-preview · 2026-09-29 · 0.150 亿</title></rect>
+<rect class="hcell" data-col="22" x="649.0" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.80" data-tip="kimi-k2.8-preview · 2026-09-30 · 0.301 亿"><title>kimi-k2.8-preview · 2026-09-30 · 0.301 亿</title></rect>
+<rect class="hcell" data-col="24" x="688.3" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.20" data-tip="kimi-k2.8-preview · 2026-10-02 · 0.048 亿"><title>kimi-k2.8-preview · 2026-10-02 · 0.048 亿</title></rect>
+<rect class="hcell" data-col="25" x="708.0" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="kimi-k2.8-preview · 2026-10-03 · 0.056 亿"><title>kimi-k2.8-preview · 2026-10-03 · 0.056 亿</title></rect>
+<rect class="hcell" data-col="26" x="727.7" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="kimi-k2.8-preview · 2026-10-04 · 0.007 亿"><title>kimi-k2.8-preview · 2026-10-04 · 0.007 亿</title></rect>
+<rect class="hcell" data-col="27" x="747.4" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="kimi-k2.8-preview · 2026-10-05 · 0.003 亿"><title>kimi-k2.8-preview · 2026-10-05 · 0.003 亿</title></rect>
+<rect class="hcell" data-col="28" x="767.1" y="167" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="kimi-k2.8-preview · 2026-10-06 · 0.024 亿"><title>kimi-k2.8-preview · 2026-10-06 · 0.024 亿</title></rect>
 <text x="207" y="200" text-anchor="end" font-size="11" fill="#d7dbe2">step-5-preview-free</text>
-<rect x="806.4" y="187" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.59" data-tip="step-5-preview-free · 2026-10-08 · 0.331 亿"><title>step-5-preview-free · 2026-10-08 · 0.331 亿</title></rect>
-<rect x="826.1" y="187" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="step-5-preview-free · 2026-10-09 · 0.535 亿"><title>step-5-preview-free · 2026-10-09 · 0.535 亿</title></rect>
+<rect class="hcell" data-col="30" x="806.4" y="187" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.59" data-tip="step-5-preview-free · 2026-10-08 · 0.331 亿"><title>step-5-preview-free · 2026-10-08 · 0.331 亿</title></rect>
+<rect class="hcell" data-col="31" x="826.1" y="187" width="17.7" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="step-5-preview-free · 2026-10-09 · 0.535 亿"><title>step-5-preview-free · 2026-10-09 · 0.535 亿</title></rect>
 <text x="224.8" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-08</text>
 <text x="323.2" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-13</text>
 <text x="421.6" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-18</text>
@@ -420,16 +440,22 @@
 <text x="1012.1" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-18</text>
 <text x="1130.2" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-24</text>
 </svg>
+<div class="scale" aria-hidden="true"><span>低</span><span class="bar"></span><span>高</span><span style="margin-left:14px">悬停某列可横向对比同一天各模型的用量</span></div>
 <p class="foot">色块越亮 = 该模型当日用量越接近它自己的峰值；空白 = 当日无该模型记录（09-13 起才有模型明细，此前为空白）。悬停可看精确值。</p>
 </div>
+</section>
+<section id="months">
 <h2>月度汇总</h2>
 <div class="panel">
-<div class="tw"><table class="speed"><tr><th>月份</th><th>天数</th><th>总量</th><th>日均</th><th>峰值日</th></tr>
-<tr><td>2026-09</td><td>23</td><td>32.67 亿</td><td>1.42 亿</td><td>09-18（3.28 亿）</td></tr>
-<tr><td>2026-10</td><td>24</td><td>48.02 亿</td><td>2.00 亿</td><td>10-21（5.08 亿）</td></tr>
+<div class="tw"><table class="speed"><tr><th>月份</th><th>天数</th><th>总量</th><th>日均</th><th>占全周期</th><th>峰值日</th></tr>
+<tr><td>2026-09</td><td>23</td><td>32.67 亿</td><td>1.42 亿</td><td>4048400868.7%</td><td>09-18（3.28 亿）</td></tr>
+<tr><td>2026-10</td><td>24</td><td>48.03 亿</td><td>2.00 亿</td><td>5951599131.3%</td><td>10-21（5.08 亿）</td></tr>
 </table></div>
 </div>
+</section>
+<section id="speed">
 <h2>🏁 模型速度对比 · 第12轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-23 13:51:28　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>deepseek-v4.1-flash</b></td><td>短 3.87s · 长 11.3~21.5s</td><td>~102-163 tok/s</td><td>16.5~23.8s</td><td>✅ 780~814 字</td><td>连续第八轮 6/6；长文中位 21.3s，以 0.3 秒优势险胜 gemini</td></tr>
@@ -437,8 +463,10 @@
 <tr><td>🥉 3</td><td><b>step-5-preview</b></td><td>短 6.55s · 长 9.1~119.1s</td><td>~59-75 tok/s</td><td>24.5~125.0s</td><td>✅ 880~1517 字</td><td>9/9 稳定；方差之王——最快一轮思考仅 9s、最慢 119s，中位 100.9s 为历史最差</td></tr>
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 2.79s · 长 57.3~69.3s</td><td>~46-49 tok/s（多为思考）</td><td>63.7~69.3s</td><td>⚠️ 2/3 烧满零正文、1/3 完成 862 字</td><td>短回复全场最快；长输出连续第三轮以零正文为主</td></tr>
 </table></div>
+</div>
 <div class="spdmore" id="spdmore" hidden>
 <h2>🏁 模型速度对比 · 第11轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-23 09:41:02　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>deepseek-v4.1-flash</b></td><td>短 2.98s · 长 14.1~22.4s</td><td>~109-176 tok/s</td><td>17.2~25.5s</td><td>✅ 743~918 字</td><td>连续第七轮 6/6 全成功，短长双料第一</td></tr>
@@ -446,7 +474,9 @@
 <tr><td>🥉 3</td><td><b>step-5-preview</b></td><td>短 6.48s · 长 28.3~46.1s</td><td>~55-64 tok/s</td><td>35.5~51.0s</td><td>✅ 780~1115 字</td><td>9/9 稳定；思考回落到轻度（中位 39.5s），但短回复本轮最慢</td></tr>
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 3.95s · 长 57.2~62.1s</td><td>~50-55 tok/s（全为思考）</td><td>57.2~62.1s</td><td>⚠️ 3/3 烧满 3072 上限、零正文</td><td>长文连续第二轮全程无输出；官方不支持关闭思考</td></tr>
 </table></div>
+</div>
 <h2>🏁 模型速度对比 · 第10轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-22 13:59:04　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>deepseek-v4.1-flash</b></td><td>短 3.69s · 长 4.6~22.9s</td><td>~126-180 tok/s</td><td>8.8~22.9s</td><td>✅ 870~971 字</td><td>连续第六轮 6/6；思考回落（首字中位 18.6s → 16.9s），王座回归</td></tr>
@@ -454,7 +484,9 @@
 <tr><td>🥉 3</td><td><b>step-5-preview</b></td><td>短 2.82s · 长 67.6~96.4s</td><td>~61-73 tok/s</td><td>72.9~102.6s</td><td>✅ 810~864 字</td><td>9/9 稳定；连续两轮思考重度（中位 74.3s），短回复全场最快</td></tr>
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 3.17s · 长 54.9~65.2s</td><td>~48-57 tok/s（全为思考）</td><td>54.9~65.2s</td><td>⚠️ 3/3 烧满 3072 上限、零正文</td><td>长文十轮里第六次全程无输出；官方不支持关闭思考</td></tr>
 </table></div>
+</div>
 <h2>🏁 模型速度对比 · 第9轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-22 09:43:12　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>gemini-3.8-flash-high</b></td><td>短 4.88s · 长 12.5~17.4s</td><td>~517-562 tok/s</td><td>17.6~21.2s</td><td>✅ 853~916 字</td><td>首字中位 15.2s、总耗时 18.4s 均创自己最佳，本轮登顶</td></tr>
@@ -462,7 +494,9 @@
 <tr><td>🥉 3</td><td><b>step-5-preview</b></td><td>短 3.25s · 长 52.4~127.6s</td><td>~66-75 tok/s</td><td>57.9~133.4s</td><td>✅ 824~861 字</td><td>9/9 稳定；思考创历史最重（中位 92.9s，单轮最长 127.6s）</td></tr>
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 2.74s · 长 24.2~56.1s</td><td>~49-58 tok/s（多为思考）</td><td>29.5~56.1s</td><td>⚠️ 2/3 烧满零正文、1/3 完成 816 字</td><td>短回复全场最快（2.74s）；长输出依旧赌运气</td></tr>
 </table></div>
+</div>
 <h2>🏁 模型速度对比 · 第8轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-21 23:13:15　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>deepseek-v4.1-flash</b></td><td>短 5.98s · 长 5.4~18.9s</td><td>~135-195 tok/s</td><td>9.8~20.2s</td><td>✅ 801~1012 字</td><td>连续第四轮 6/6 全成功，长文完成依旧最快</td></tr>
@@ -470,7 +504,9 @@
 <tr><td>🥉 3</td><td><b>step-5-preview</b></td><td>短 3.53s · 长 28.1~118.5s</td><td>~67-82 tok/s（自己最好）</td><td>34.4~122.5s</td><td>✅ 813~1113 字</td><td>9/9 稳定；思考又现 118s 极端轮，短回复倒是全场最快</td></tr>
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 3.34s · 长 43.0~55.9s</td><td>~56-65 tok/s（多为思考）</td><td>47.7~55.9s</td><td>⚠️ 2/3 完成（823~836 字）、1/3 烧满零正文</td><td>七轮里长文发挥最好的一次，但烧满风险仍在</td></tr>
 </table></div>
+</div>
 <h2>🏁 模型速度对比 · 第7轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-21 18:28:16　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>deepseek-v4.1-flash</b></td><td>短 3.34s · 长 4.5~12.9s</td><td>~140-200 tok/s</td><td>9.0~14.7s</td><td>✅ 865~1015 字</td><td>连续第三轮 6/6 全成功，短长双料最快</td></tr>
@@ -478,7 +514,9 @@
 <tr><td>🥉 3</td><td><b>step-5-preview</b></td><td>短 6.05s · 长 19.7~71.7s</td><td>~63-74 tok/s</td><td>27.8~82.8s</td><td>✅ 1021~1633 字（输出最长）</td><td>9/9 稳定；思考重回重度（中位 70.1s），正文也写得最长</td></tr>
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 3.13s · 长 58.2~71.6s</td><td>~44-53 tok/s（多为思考）</td><td>58.8~71.6s</td><td>⚠️ 3/3 烧满 3072 上限（2 轮零正文、1 轮截断 442 字）</td><td>思考 58~72s；官方不支持关闭思考</td></tr>
 </table></div>
+</div>
 <h2>🏁 模型速度对比 · 第6轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-21 14:16:24　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>deepseek-v4.1-flash</b></td><td>短 4.54s · 长 8.0~11.6s</td><td>~136-175 tok/s</td><td>11.4~13.5s</td><td>✅ 822~940 字</td><td>连续第二轮 6/6 全成功，长文完成最快且发挥极稳</td></tr>
@@ -486,7 +524,9 @@
 <tr><td>🥉 3</td><td><b>step-5-preview</b></td><td>短 2.91s · 长 17.9~106.0s</td><td>~51-63 tok/s</td><td>24.4~111.9s</td><td>✅ 809~1388 字</td><td>9/9 稳定；首字中位 18.0s 刚创新低，但仍有单轮 106s 的极端思考</td></tr>
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 4.14s · 长 54.6~68.4s</td><td>~46-57 tok/s（多为思考）</td><td>54.6~68.4s</td><td>⚠️ 3/3 烧满 3072 上限（2 轮零正文、1 轮截断 359 字）</td><td>思考 55~68s 挤占输出预算；官方不支持关闭思考</td></tr>
 </table></div>
+</div>
 <h2>🏁 模型速度对比 · 第5轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-21 13:32:42　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>deepseek-v4.1-flash</b></td><td>短 2.45s · 长 5.1~9.6s</td><td>~130-168 tok/s</td><td>9.3~11.8s</td><td>✅ 866~1019 字</td><td>6/6 全成功、短长双料最快，本轮状态最佳</td></tr>
@@ -494,7 +534,9 @@
 <tr><td>🥉 3</td><td><b>step-5-preview</b></td><td>短 4.16s · 长 45.6~76.8s</td><td>~55-64 tok/s</td><td>50.9~81.3s</td><td>✅ 747~1215 字</td><td>9/9 稳定；思考又加重（首字中位 38.5s → 45.8s）</td></tr>
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 2.97s · 长 45.5~55.4s</td><td>~56-69 tok/s（全为思考）</td><td>45.5~55.4s</td><td>⚠️ 3/3 全烧满 3072 上限、零正文</td><td>本轮长文全程思考无输出；官方不支持关闭思考</td></tr>
 </table></div>
+</div>
 <h2>🏁 模型速度对比 · 第4轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-21 12:32:42　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>deepseek-v4.1-flash</b></td><td>短 3.09s · 长 7.7~25.7s</td><td>~50-186 tok/s</td><td>11.2~36.2s</td><td>✅ 814~889 字</td><td>本轮恢复元气：长文 3/3 成功、完成最快（短回复仍挂 1 次 429）</td></tr>
@@ -502,7 +544,9 @@
 <tr><td>🥉 3</td><td><b>step-5-preview</b></td><td>短 4.24s · 长 26.3~75.7s</td><td>~56-66 tok/s</td><td>33.6~82.4s</td><td>✅ 891~1077 字</td><td>9/9 稳定；思考较上轮明显回落（首字中位 95.7s → 38.5s）</td></tr>
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 4.15s · 长 54.3~57.4s</td><td>~52-59 tok/s（多为思考）</td><td>54.3~59.6s</td><td>⚠️ 3/3 全部烧满 3072 上限（1 轮零正文、2 轮截断）</td><td>思考固定消耗约 55s；官方不支持关闭思考</td></tr>
 </table></div>
+</div>
 <h2>🏁 模型速度对比 · 第3轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-21 11:34:15　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>gemini-3.8-flash-high</b></td><td>短 4.02s · 长 18.5~25.1s</td><td>~703-1217 tok/s（最高）</td><td>21.5~27.8s</td><td>✅ 767~957 字</td><td>9/9 稳定、完成最快；思考期不吐字</td></tr>
@@ -510,7 +554,9 @@
 <tr><td>🥉 3</td><td><b>step-5-preview</b></td><td>短 6.04s · 长 49.2~112.6s</td><td>~59-69 tok/s</td><td>56.0~118.7s</td><td>✅ 818~1051 字</td><td>9/9 稳定；思考越来越重，本轮最长单次思考 112.6s</td></tr>
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 4.46s · 长 45.8~77.8s</td><td>~40-50 tok/s（多为思考）</td><td>51.7~77.8s</td><td>⚠️ 1/3 完整、1/3 截断、1/3 零正文</td><td>思考 45~78s 挤占输出预算；官方不支持关闭思考</td></tr>
 </table></div>
+</div>
 <h2>🏁 模型速度对比 · 第2轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-21 10:41:42　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>gemini-3.8-flash-high</b></td><td>短 4.05s · 长 13.4s</td><td>~344-487 tok/s（最高）</td><td>15.6~21.0s</td><td>✅ 755~996 字</td><td>本轮 9/9 稳定、完成最快；思考期不吐字 12~15s</td></tr>
@@ -518,7 +564,9 @@
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 3.39s · 长 42.2~62.8s</td><td>~44-52 tok/s（多为思考）</td><td>47.8~62.8s</td><td>⚠️ 2/3 完成（1 轮思考烧满 3072 无正文）</td><td>官方 thinking.type 仅支持 enabled、无法关闭思考，长输出等待与烧穿属于模型固有行为；另有偶发 API 500</td></tr>
 <tr><td>✖</td><td><b>deepseek-v4.1-flash</b></td><td>短 ~3.1s（唯一成功样本）</td><td>—</td><td>—</td><td>❌ 8 次尝试仅 1 次成功，长文 0/5</td><td>opencode 上游大面积 429（Endpoint is unavailable），当前基本不可用</td></tr>
 </table></div>
+</div>
 <h2>🏁 模型速度对比 · 第1轮</h2>
+<div class="panel">
 <p class="sub">更新时间：2026-10-21 10:06:56　·　裸 API 流式调用，短回复（一句话）与长文生成（800 字中文短文）各 3 轮取中位数</p>
 <div class="tw"><table class="speed"><tr><th>排名</th><th>模型</th><th>首字速度</th><th>吞吐</th><th>长文总耗时</th><th>长文完成</th><th>备注</th></tr>
 <tr><td>🥇 1</td><td><b>deepseek-v4.1-flash</b></td><td>短 2.51s · 长 4.1~10.0s</td><td>~150-177 tok/s</td><td>8.4~11.0s</td><td>✅ 941~1050 字</td><td>综合最快；opencode 网关当天不稳（13 次中 5 次 429）</td></tr>
@@ -527,8 +575,10 @@
 <tr><td>⚠️</td><td><b>GLM-5.3-Flash</b></td><td>短 2.34s · 长 63.0~79.8s</td><td>~39-50 tok/s（全为思考）</td><td>63.0~79.8s</td><td>❌ 思考烧满 3072 token 上限，正文 0 字</td><td>官方 thinking.type 仅支持 enabled、无法关闭思考，长输出等待与烧穿属于模型固有行为；另有偶发 API 500</td></tr>
 </table></div>
 </div>
+</div>
 <div class="spd-bar"><button type="button" id="spdbtn">查看更多</button></div>
-<p class="foot">数据来源：ZCode 本地账本（ledger.csv / ledger_models.csv）+ 本地明细库（会话/今日/缓存）· 由 zcode-token-curve 自动生成、部署并推送 · 生成时间 2026-10-24 22:36</p>
+</section>
+<p class="foot">数据来源：ZCode 本地账本（ledger.csv / ledger_models.csv）+ 本地明细库（今日统计）· 由 zcode-token-curve 自动生成、部署并推送 · 下一次自动更新：<b style="color:#ffb02e">今天 23:58</b> · 生成时间 2026-10-24 22:39</p>
 </div>
 <div id="tip" role="tooltip"></div>
 <script>
@@ -541,6 +591,15 @@ if(spdbtn){
     spdbtn.textContent=m.hidden?'查看更多':'收起';
   });
 }
+document.querySelectorAll('.hcell').forEach(c=>{
+  c.addEventListener('mouseenter',()=>{
+    const k=c.getAttribute('data-col');
+    document.querySelectorAll('.hcell[data-col="'+k+'"]').forEach(x=>x.classList.add('hl'));
+  });
+  c.addEventListener('mouseleave',()=>{
+    document.querySelectorAll('.hcell.hl').forEach(x=>x.classList.remove('hl'));
+  });
+});
 document.querySelectorAll('[data-tip]').forEach(el=>{
   el.addEventListener('mousemove',e=>{tip.style.display='block';tip.textContent=el.getAttribute('data-tip');tip.style.left=Math.min(e.clientX+14,innerWidth-360)+'px';tip.style.top=(e.clientY+16)+'px';});
   el.addEventListener('mouseleave',()=>{tip.style.display='none';});
