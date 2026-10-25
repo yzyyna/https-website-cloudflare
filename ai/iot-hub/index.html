@@ -259,6 +259,7 @@ html{scroll-behavior:smooth}
 <div class="modal" id="cmdModal"><div class="modal-card"><div class="modal-head"><b>命令面板 (Ctrl/Cmd+K)</b><button class="btn small" id="btnCloseCmd">Esc</button></div><div class="modal-body"><input id="cmdInput" class="cmd-input" placeholder="输入命令：搜索设备 / 创建分组 / 导出 / 暂停 / Undo"><div class="cmd-list" id="cmdList"></div></div></div></div>
 <div class="modal" id="importModal"><div class="modal-card"><div class="modal-head"><b>导入预览</b><button class="btn small" id="btnCloseImport">关闭</button></div><div class="modal-body" id="importBody"></div></div></div>
 <div class="modal" id="logModal"><div class="modal-card"><div class="modal-head"><b>日志 (500 条)</b><button class="btn small" id="btnCloseLog">关闭</button></div><div class="modal-body"><div id="logList" style="font-family:ui-monospace,monospace;font-size:12px;display:flex;flex-direction:column;gap:4px;max-height:60vh;overflow:auto"></div></div></div></div>
+<div class="modal" id="promptModal"><div class="modal-card"><div class="modal-head"><b id="promptTitle">请输入</b><button class="btn small" id="btnClosePrompt">关闭</button></div><div class="modal-body"><input id="promptInput" class="cmd-input" style="margin-bottom:12px"><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="btnCancelPrompt">取消</button><button class="btn primary" id="btnConfirmPrompt">确定</button></div></div></div></div>
 
 <div class="debug" id="debugPanel">
   <b>开发者监控面板 (Ctrl+Shift+D)</b>
@@ -721,7 +722,19 @@ function buildDrawer(d){
   <div><b style="font-size:12px">历史告警</b><div id="dwAlarmList" style="font-size:12px;color:var(--muted)">${store.getState().alarms.filter(a=>a.deviceId===d.id).slice(0,5).map(a=>`· ${escapeHTML(a.type)} ${escapeHTML(a.level)} ${new Date(a.timestamp).toLocaleTimeString()}`).join('<br>')||'无'}</div></div>
   `;
   $('#btnMoveToMaint').onclick=()=>optimisticMove(d.id);
-  $('#btnAddTagToDev').onclick=()=>{const t=prompt('标签名'); if(t){ const cmd={execute(){d.tags=[...new Set([...d.tags,t])]; recompute(); renderDrawer(d.id,true)}, undo(){d.tags=d.tags.filter(x=>x!==t); recompute(); renderDrawer(d.id,true)}}; history.push(cmd); /* 死键 devices_patch 已删除：标签变更直接重算渲染，不再写补丁标记 */} };
+  $('#btnAddTagToDev').onclick=()=>{
+    appPrompt({
+      title:'添加标签',
+      placeholder:'请输入标签名称',
+      onConfirm:(t)=>{
+        t=t.trim();
+        if(t){
+          const cmd={execute(){d.tags=[...new Set([...d.tags,t])]; recompute(); renderDrawer(d.id,true)}, undo(){d.tags=d.tags.filter(x=>x!==t); recompute(); renderDrawer(d.id,true)}};
+          history.push(cmd);
+        }
+      }
+    });
+  };
   $('#btnDelDev').onclick=()=>deleteDevice(d.id);
   let reqId=0; let abort=null;
   $('#btnFetchDetail').onclick=()=>{
@@ -838,17 +851,34 @@ function updateBatchUI(){
 }
 function runBatch(type){
   const ids=[...store.getState().selection]; if(!ids.length) return toast('请先选择设备');
-  let batchTag = null;
-  let batchGroup = null;
   if(type === 'tag'){
-    batchTag = prompt('请输入要批量添加的标签名称：', '批量运维');
-    if(batchTag === null) return toast('已取消批量打标签');
-    batchTag = batchTag.trim() || '批量';
+    appPrompt({
+      title:'批量添加标签',
+      placeholder:'请输入标签名称',
+      defaultValue:'批量运维',
+      onConfirm:(val)=>{
+        val=(val||'').trim() || '批量';
+        executeBatch(type, { batchTag: val });
+      }
+    });
   } else if(type === 'move'){
-    batchGroup = prompt('请输入目标分组ID（如 g_sh / g_sz / g_maint）：', 'g_maint');
-    if(batchGroup === null) return toast('已取消批量移动分组');
-    batchGroup = batchGroup.trim() || 'g_maint';
+    appPrompt({
+      title:'批量移动分组',
+      placeholder:'请输入目标分组ID（如 g_sh / g_sz / g_maint）',
+      defaultValue:'g_maint',
+      onConfirm:(val)=>{
+        val=(val||'').trim() || 'g_maint';
+        const groups=store.getState().groups;
+        if(!groups.some(g=>g.id===val)){ toast('目标分组不存在：'+val); return; }
+        executeBatch(type, { batchGroup: val });
+      }
+    });
+  } else {
+    executeBatch(type, {});
   }
+}
+function executeBatch(type, { batchTag = '批量', batchGroup = 'g_maint' } = {}){
+  const ids=[...store.getState().selection]; if(!ids.length) return toast('请先选择设备');
   const count=Math.min(ids.length, 1200); // cap for demo; if 50000 selected would freeze
   if(ids.length>count) toast(`已选择 ${ids.length} 台，仅处理前 ${count} 台`);
   const targets=ids.slice(0,count); batchTasks.forEach(t=>t.canceled=true); batchTasks=[]; taskQueue.cancel();
@@ -958,7 +988,19 @@ $('#btnAddGroup').onclick=()=>{
   const cmd={execute(){ groups.push({id,name,parent:parentId,children:[]}); const p=groups.find(g=>g.id===parentId); if(p) p.children.push(id); store.setState({groups:[...groups]}); renderGroups(); /* 返回值忽略：分组持久化失败不影响本次创建 */ storage.debouncedSet('groups',groups)}, undo(){ const idx=groups.findIndex(g=>g.id===id); if(idx>=0) groups.splice(idx,1); const p=groups.find(g=>g.id===parentId); if(p) p.children=p.children.filter(x=>x!==id); store.setState({groups:[...groups]}); renderGroups();}};
   history.push(cmd); $('#newGroupName').value=''; toast('已创建分组'); logger.info('Group','create',{name})};
 $('#btnRenameGroup').onclick=()=>{
-  const gid=store.getState().selectedGroup; if(!gid || gid==='g_root') return toast('请选择分组'); const g=store.getState().groups.find(x=>x.id===gid); const name=prompt('新名称',g.name); if(!name) return; const prev=g.name; history.push({execute(){g.name=name; renderGroups()},undo(){g.name=prev; renderGroups()}});
+  const gid=store.getState().selectedGroup; if(!gid || gid==='g_root') return toast('请选择分组');
+  const g=store.getState().groups.find(x=>x.id===gid);
+  appPrompt({
+    title:'重命名分组',
+    placeholder:'请输入分组新名称',
+    defaultValue:g.name,
+    onConfirm:(name)=>{
+      name=(name||'').trim();
+      if(!name) return toast('名称不能为空');
+      const prev=g.name;
+      history.push({execute(){g.name=name; renderGroups()},undo(){g.name=prev; renderGroups()}});
+    }
+  });
 };
 $('#btnDeleteGroup').onclick=()=>{
   const gid=store.getState().selectedGroup; if(!gid||gid==='g_root') return toast('不能删除根'); const groups=store.getState().groups; const g=groups.find(x=>x.id===gid); const count=store.getState().devices.filter(d=>d.groupIds.includes(gid)).length; if(count>0) return toast(`该分组下还有 ${count} 台设备，请先移出`);
@@ -1041,6 +1083,37 @@ $('#cmdInput').oninput=(e)=>renderCmd(e.target.value);
 $('#cmdList').onclick=(e)=>{const it=e.target.closest('.cmd-item'); if(!it) return; const c=commands.find(x=>x.id===it.dataset.id); $('#cmdModal').classList.remove('open'); c.run()};
 $('#cmdModal').onclick=(e)=>{if(e.target.id==='cmdModal') e.currentTarget.classList.remove('open')};
 
+function appPrompt({ title = '请输入', placeholder = '', defaultValue = '', confirmText = '确定', onConfirm }){
+  $('#promptTitle').textContent = title;
+  const input = $('#promptInput');
+  input.placeholder = placeholder;
+  input.value = defaultValue;
+  $('#btnConfirmPrompt').textContent = confirmText;
+  $('#promptModal').classList.add('open');
+  setTimeout(() => { input.focus(); input.select(); }, 50);
+
+  const close = () => {
+    $('#promptModal').classList.remove('open');
+    $('#btnConfirmPrompt').onclick = null;
+    $('#btnCancelPrompt').onclick = null;
+    $('#btnClosePrompt').onclick = null;
+    input.onkeydown = null;
+  };
+  const submit = () => {
+    const val = input.value;
+    close();
+    if(onConfirm) onConfirm(val);
+  };
+  $('#btnConfirmPrompt').onclick = submit;
+  $('#btnCancelPrompt').onclick = close;
+  $('#btnClosePrompt').onclick = close;
+  input.onkeydown = (e) => {
+    if(e.key === 'Enter') { e.preventDefault(); submit(); }
+    else if(e.key === 'Escape') { e.preventDefault(); close(); }
+  };
+}
+$('#promptModal').onclick=(e)=>{if(e.target.id==='promptModal') e.currentTarget.classList.remove('open')};
+
 // import/export
 function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 $('#btnExportCsv').onclick=()=>{
@@ -1064,10 +1137,12 @@ $('#importFile').onchange=async (e)=>{
       else { seen.add(d.id); normalized.push({id:d.id,name:str(d.name,d.id),region:str(d.region,'华东'),city:str(d.city,'上海'),status:STATUS_OK.has(d.status)?d.status:'online',cpu:num(d.cpu,0),temperature:num(d.temperature,0),power:num(d.power,0),latency:num(d.latency,0),battery:num(d.battery,0),voltage:optNum(d.voltage,220),current:optNum(d.current,1),groupIds:[],tags:[],version:1,lastUpdate:Date.now(),history:[]})}
     });
     // preview
-    $('#importModal').classList.add('open'); $('#importBody').innerHTML=`<div style="font-size:12px">解析: ${json.length} 条 · 有效 ${normalized.length} 条 · 错误 ${errors.length} 条</div><div style="max-height:240px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:8px;margin-top:8px;font-family:monospace;font-size:12px">${errors.slice(0,20).map(e=>`<div style="color:var(--danger)">${escapeHTML(e)}</div>`).join('')||'<div style="color:var(--success)">无错误</div>'}<hr>${normalized.slice(0,3).map(d=>`<div>${escapeHTML(JSON.stringify(d).slice(0,140))}</div>`).join('')}</div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn primary" id="btnConfirmImport">确认导入</button><button class="btn" id="btnCancelImport">取消</button></div>`;
+    const errNotice = errors.length ? `<span style="color:var(--danger);font-weight:bold">（存在 ${errors.length} 条错误将被跳过）</span>` : '';
+    const btnLabel = errors.length ? `确认仅导入有效数据 (${normalized.length} 条)` : `确认导入 (${normalized.length} 条)`;
+    $('#importModal').classList.add('open');
+    $('#importBody').innerHTML=`<div style="font-size:12px">解析: ${json.length} 条 · 有效 ${normalized.length} 条 · 错误 ${errors.length} 条 ${errNotice}</div><div style="max-height:240px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:8px;margin-top:8px;font-family:monospace;font-size:12px">${errors.slice(0,20).map(e=>`<div style="color:var(--danger)">${escapeHTML(e)}</div>`).join('')||'<div style="color:var(--success)">无错误</div>'}<hr>${normalized.slice(0,3).map(d=>`<div>${escapeHTML(JSON.stringify(d).slice(0,140))}</div>`).join('')}</div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn primary" id="btnConfirmImport">${btnLabel}</button><button class="btn" id="btnCancelImport">取消</button></div>`;
     $('#btnCancelImport').onclick=()=>$('#importModal').classList.remove('open');
     $('#btnConfirmImport').onclick=()=>{
-      if(errors.length && !confirm(`有 ${errors.length} 条错误，仍导入有效数据？`)) return;
       const map=store.getState().deviceMap; const devices=[...store.getState().devices]; let added=0; const addedIds=[]; normalized.forEach(d=>{ if(!map.has(d.id)){ devices.push(d); map.set(d.id,d); added++; addedIds.push(d.id) }}); store.setState({devices});
       recompute(); renderGroups();
       history.push({execute(){/* redo 不支持：导入已直接生效，execute 留空占位 */},undo(){ const s=store.getState(); const rest=s.devices.filter(d=>!addedIds.includes(d.id)); const map2=new Map(rest.map(d=>[d.id,d])); store.setState({devices:rest,deviceMap:map2}); recompute(); renderGroups(); }});
@@ -1081,11 +1156,11 @@ $('#btnCloseImport').onclick=()=>$('#importModal').classList.remove('open');
 document.addEventListener('keydown',(e)=>{
   if(e.key==='/' && !e.ctrlKey && !e.metaKey){
     if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
-    if($('#cmdModal').classList.contains('open') || $('#importModal').classList.contains('open') || $('#logModal').classList.contains('open')) return;
+    if($('#cmdModal').classList.contains('open') || $('#importModal').classList.contains('open') || $('#logModal').classList.contains('open') || $('#promptModal').classList.contains('open')) return;
     e.preventDefault();
     $('#searchInput').focus();
   }
-  if(e.key==='Escape'){ closeDrawer(); $('#cmdModal').classList.remove('open'); $('#importModal').classList.remove('open'); $('#logModal').classList.remove('open'); $('#sidebar').classList.remove('open'); }
+  if(e.key==='Escape'){ closeDrawer(); $('#cmdModal').classList.remove('open'); $('#importModal').classList.remove('open'); $('#logModal').classList.remove('open'); $('#promptModal').classList.remove('open'); $('#sidebar').classList.remove('open'); }
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openCmd(); }
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z' && !e.shiftKey && !e.repeat){ e.preventDefault(); history.undo(); toast('已撤销'); }
   if((e.ctrlKey||e.metaKey) && !e.repeat && ((e.key.toLowerCase()==='z' && e.shiftKey) || e.key.toLowerCase()==='y')){ e.preventDefault(); history.redo(); toast('已重做'); }

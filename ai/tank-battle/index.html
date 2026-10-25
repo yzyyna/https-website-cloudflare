@@ -947,6 +947,10 @@
             <span class="stat-val" id="hud-score" style="color:#38bdf8">0</span>
           </div>
           <div class="stat-item">
+            <span class="stat-label">历史最高</span>
+            <span class="stat-val" id="hud-high-score" style="color:#fbbf24">0</span>
+          </div>
+          <div class="stat-item">
             <a href="../" class="btn-hud" title="返回项目集主页">🏠 首页</a>
             <button class="btn-hud" id="btn-sound-toggle" title="音效开关">🔊</button>
             <button class="btn-hud" id="btn-view-toggle" title="切换视角 (V)">🎥 3D俯视</button>
@@ -2143,6 +2147,7 @@
         this.state = 'START'; // START, PLAYING, PAUSED, CLEARED, VICTORY, GAMEOVER
         this.currentStageIdx = 0;
         this.score = 0;
+        this.highScore = this.loadHighScore();
         this.kills = 0;
         this.stageKills = 0;
         this.shotsFired = 0;
@@ -2217,6 +2222,7 @@
           hudRank: document.getElementById('hud-rank'),
           hudEnemies: document.getElementById('hud-enemies'),
           hudScore: document.getElementById('hud-score'),
+          hudHighScore: document.getElementById('hud-high-score'),
           bossContainer: document.getElementById('boss-bar-container'),
           bossHpFill: document.getElementById('boss-hp-fill'),
           bossHpText: document.getElementById('boss-hp-text'),
@@ -2880,6 +2886,27 @@
         }
       }
 
+      loadHighScore() {
+        try {
+          const val = localStorage.getItem('tank_battle_high_score_v1');
+          const n = Number(val);
+          return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
+        } catch (e) {
+          return 0;
+        }
+      }
+
+      saveHighScore(score) {
+        if (!Number.isFinite(score)) return;
+        const s = Math.floor(score);
+        if (s > this.highScore) {
+          this.highScore = s;
+          try {
+            localStorage.setItem('tank_battle_high_score_v1', String(s));
+          } catch (e) {}
+        }
+      }
+
       triggerStageClear() {
         this.state = 'CLEARED';
         this.dom.btnPauseToggle.textContent = '⏸️';
@@ -2887,9 +2914,10 @@
         sound.playVictory();
 
         const cfg = STAGE_CONFIGS[this.currentStageIdx];
-        const stageScore = this.stageKills * 200 + 1000;
+        const acc = this.shotsFired > 0 ? Math.min(100, Math.round((this.shotsHit / this.shotsFired) * 100)) : 100;
+        const stageScore = (this.stageKills * 250) + (acc * 10);
         this.score += stageScore;
-        const acc = this.shotsFired > 0 ? ((this.shotsHit / this.shotsFired) * 100).toFixed(1) : '100.0';
+        this.saveHighScore(this.score);
 
         this.dom.clearTitle.textContent = `${cfg.title} · 作战大捷！`;
         this.dom.clearSubtitle.textContent = '敌方装甲先锋已被彻底肃清，防线固若金汤！';
@@ -2906,6 +2934,7 @@
         this.dom.btnPauseToggle.textContent = '⏸️';
         this.dom.bossContainer.classList.remove('active');
         sound.playVictory();
+        this.saveHighScore(this.score);
 
         this.dom.vicTotalKills.textContent = `${this.kills} 辆`;
         this.dom.vicFinalScore.textContent = `${this.score}`;
@@ -2916,6 +2945,7 @@
         this.state = 'GAMEOVER';
         this.dom.btnPauseToggle.textContent = '⏸️';
         this.dom.bossContainer.classList.remove('active');
+        this.saveHighScore(this.score);
         this.dom.gameoverReason.textContent = reason;
         this.dom.goStage.textContent = STAGE_CONFIGS[this.currentStageIdx].title;
         this.dom.goScore.textContent = `${this.score}`;
@@ -2927,6 +2957,12 @@
         this.dom.hudStage.textContent = `第 ${cfg.id} 关`;
         this.dom.hudEnemies.textContent = `${this.enemiesRemainingToSpawn + this.enemies.filter(e => !e.dead).length}`;
         this.dom.hudScore.textContent = `${this.score}`;
+        if (this.score > this.highScore) {
+          this.saveHighScore(this.score);
+        }
+        if (this.dom.hudHighScore) {
+          this.dom.hudHighScore.textContent = `${this.highScore}`;
+        }
 
         if (this.player) {
           const hpPct = Math.max(0, (this.player.hp / this.player.maxHp) * 100);

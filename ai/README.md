@@ -40,7 +40,7 @@
    - [http://localhost:8080/internet-museum/](http://localhost:8080/internet-museum/)
    - [http://localhost:8080/learn-lang/](http://localhost:8080/learn-lang/)
    - [http://localhost:8080/iot-hub/](http://localhost:8080/iot-hub/)
-   - [http://localhost:8080/stellar-fusion/](http://localhost:8080/stellar-fusion/)（聚合主页，含 Gemini 版与 MuseSpark 版双向切换）
+   - [http://localhost:8080/stellar-fusion/](http://localhost:8080/stellar-fusion/)（聚合主页，含三版本对标切换预览）
    - [http://localhost:8080/tank-battle/](http://localhost:8080/tank-battle/)（3D 坦克大战 · 钢铁风暴）
    - [http://localhost:8080/cell-defense/](http://localhost:8080/cell-defense/)（细胞防线 · 微观免疫战）
    - [http://localhost:8080/loop-heist/](http://localhost:8080/loop-heist/)（时光回放小偷）

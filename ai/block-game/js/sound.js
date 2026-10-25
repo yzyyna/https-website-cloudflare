@@ -30,6 +30,17 @@
     };
   }
 
+  function safe(fn) {
+    return function () {
+      if (api.muted || !ensureReady()) return;
+      try {
+        fn.apply(this, arguments);
+      } catch (e) {
+        // 音频上下文环境抖动或策略限制静默降级，不阻断主逻辑
+      }
+    };
+  }
+
   var api = {
     muted: false,
     init: function () {
@@ -38,13 +49,14 @@
     toggleMute: function () {
       api.muted = !api.muted;
       if (master && ctx) {
-        master.gain.setValueAtTime(api.muted ? 0 : 0.3, ctx.currentTime);
+        try {
+          master.gain.setValueAtTime(api.muted ? 0 : 0.3, ctx.currentTime);
+        } catch (e) {}
       }
       return api.muted;
     },
     /* 挖掘/破坏声：带通滤波的噪声脉冲 */
-    breakBlock: function (id) {
-      if (api.muted || !ensureReady()) return;
+    breakBlock: safe(function (id) {
       var freq = 500;
       var B = MC.BLOCK;
       if (id === B.STONE || id === B.COBBLE || id === B.BRICK || id === B.COAL || id === B.BEDROCK) freq = 300;
@@ -53,8 +65,8 @@
       else if (id === B.GLASS) freq = 1500;
       else freq = 700;
       var dur = id === B.GLASS ? 0.15 : 0.1;
-      var len = Math.floor(ctx.sampleRate * dur);
-      var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      var len = Math.floor((ctx.sampleRate || 44100) * dur);
+      var buf = ctx.createBuffer(1, len, ctx.sampleRate || 44100);
       var d = buf.getChannelData(0);
       for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
       var src = ctx.createBufferSource();
@@ -66,10 +78,9 @@
       src.connect(f); f.connect(g); g.connect(master);
       src.onended = cleanup([src, f, g]);
       src.start();
-    },
+    }),
     /* 放置声：短促低频方波 */
-    place: function () {
-      if (api.muted || !ensureReady()) return;
+    place: safe(function () {
       var o = ctx.createOscillator();
       o.type = 'square';
       o.frequency.value = 190;
@@ -80,12 +91,11 @@
       o.connect(g); g.connect(master);
       o.onended = cleanup([o, g]);
       o.start(t); o.stop(t + 0.09);
-    },
+    }),
     /* TNT 引线燃烧嘶嘶声 */
-    fuse: function () {
-      if (api.muted || !ensureReady()) return;
-      var len = Math.floor(ctx.sampleRate * 0.18);
-      var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    fuse: safe(function () {
+      var len = Math.floor((ctx.sampleRate || 44100) * 0.18);
+      var buf = ctx.createBuffer(1, len, ctx.sampleRate || 44100);
       var d = buf.getChannelData(0);
       for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * 0.4;
       var src = ctx.createBufferSource();
@@ -98,10 +108,9 @@
       src.connect(f); f.connect(g); g.connect(master);
       src.onended = cleanup([src, f, g]);
       src.start();
-    },
+    }),
     /* 爆炸轰鸣声（低频震荡 + 冲击波扩散） */
-    explode: function () {
-      if (api.muted || !ensureReady()) return;
+    explode: safe(function () {
       var t = ctx.currentTime;
       var o = ctx.createOscillator();
       var g1 = ctx.createGain();
@@ -114,8 +123,8 @@
       o.onended = cleanup([o, g1]);
       o.start(t); o.stop(t + 0.85);
 
-      var len = Math.floor(ctx.sampleRate * 0.7);
-      var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      var len = Math.floor((ctx.sampleRate || 44100) * 0.7);
+      var buf = ctx.createBuffer(1, len, ctx.sampleRate || 44100);
       var d = buf.getChannelData(0);
       for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.28));
       var nSrc = ctx.createBufferSource();
@@ -129,13 +138,12 @@
       nSrc.connect(f); f.connect(g2); g2.connect(master);
       nSrc.onended = cleanup([nSrc, f, g2]);
       nSrc.start(t);
-    },
+    }),
     /* 入水飞溅声 */
-    splash: function () {
-      if (api.muted || !ensureReady()) return;
+    splash: safe(function () {
       var t = ctx.currentTime;
-      var len = Math.floor(ctx.sampleRate * 0.22);
-      var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      var len = Math.floor((ctx.sampleRate || 44100) * 0.22);
+      var buf = ctx.createBuffer(1, len, ctx.sampleRate || 44100);
       var d = buf.getChannelData(0);
       for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
       var src = ctx.createBufferSource();
@@ -149,10 +157,9 @@
       src.connect(f); f.connect(g); g.connect(master);
       src.onended = cleanup([src, f, g]);
       src.start(t);
-    },
+    }),
     /* 掉落物磁吸拾取音效（清脆跳跃音阶连击升调） */
-    pickup: function () {
-      if (api.muted || !ensureReady()) return;
+    pickup: safe(function () {
       var t = ctx.currentTime;
       var nowMs = performance.now();
       if (!this._lastPickupT || nowMs - this._lastPickupT > 1200) {
@@ -176,10 +183,9 @@
       o.connect(g); g.connect(master);
       o.onended = cleanup([o, g]);
       o.start(t); o.stop(t + 0.1);
-    },
+    }),
     /* 快捷制作/合成成功音效：清脆双音和弦 */
-    craft: function () {
-      if (api.muted || !ensureReady()) return;
+    craft: safe(function () {
       var t = ctx.currentTime;
       [523.25, 659.25, 783.99].forEach(function (freq, i) {
         var o = ctx.createOscillator();
@@ -192,10 +198,9 @@
         o.onended = cleanup([o, g]);
         o.start(t + i * 0.05); o.stop(t + i * 0.05 + 0.16);
       });
-    },
+    }),
     /* 地面移动脚步声（根据方块材质产生不同轻触音） */
-    step: function (blockId) {
-      if (api.muted || !ensureReady()) return;
+    step: safe(function (blockId) {
       var t = ctx.currentTime;
       var B = MC.BLOCK;
       var freq = 120;
@@ -214,10 +219,9 @@
       o.connect(g); g.connect(master);
       o.onended = cleanup([o, g]);
       o.start(t); o.stop(t + 0.08);
-    },
+    }),
     /* 落地闷响（高处坠落着地时触发，音高随冲击力微变） */
-    land: function (hard) {
-      if (api.muted || !ensureReady()) return;
+    land: safe(function (hard) {
       var t = ctx.currentTime;
       var o = ctx.createOscillator();
       var g = ctx.createGain();
@@ -229,9 +233,8 @@
       o.connect(g); g.connect(master);
       o.onended = cleanup([o, g]);
       o.start(t); o.stop(t + 0.14);
-    },
-    ui: function () {
-      if (api.muted || !ensureReady()) return;
+    }),
+    ui: safe(function () {
       var o = ctx.createOscillator();
       o.type = 'sine';
       o.frequency.value = 660;
@@ -242,10 +245,9 @@
       o.connect(g); g.connect(master);
       o.onended = cleanup([o, g]);
       o.start(t); o.stop(t + 0.07);
-    },
+    }),
     /* 飞行开启：柔和双音上升脉冲 */
-    flyStart: function () {
-      if (api.muted || !ensureReady()) return;
+    flyStart: safe(function () {
       var t = ctx.currentTime;
       [440, 660].forEach(function (freq, i) {
         var o = ctx.createOscillator();
@@ -259,10 +261,9 @@
         o.onended = cleanup([o, g]);
         o.start(t + i * 0.06); o.stop(t + i * 0.06 + 0.15);
       });
-    },
+    }),
     /* 飞行降落退出：柔和下行音 */
-    flyEnd: function () {
-      if (api.muted || !ensureReady()) return;
+    flyEnd: safe(function () {
       var t = ctx.currentTime;
       var o = ctx.createOscillator();
       var g = ctx.createGain();
@@ -274,7 +275,7 @@
       o.connect(g); g.connect(master);
       o.onended = cleanup([o, g]);
       o.start(t); o.stop(t + 0.19);
-    }
+    })
   };
 
   MC.Sound = api;

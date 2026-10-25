@@ -267,18 +267,29 @@
     return enabled;
   }
 
+  function safe(fn) {
+    return function() {
+      if (!enabled || !ctx) return;
+      try {
+        fn.apply(this, arguments);
+      } catch (e) {
+        // 音频上下文抖动或策略限制静默降级，不阻断主逻辑
+      }
+    };
+  }
+
   window.CellAudio = {
     init: init,
-    playSwallow: playSwallow,
-    playDigest: playDigest,
-    playAcid: playAcid,
-    playAntibody: playAntibody,
-    playPerforin: playPerforin,
-    playHeartbeat: playHeartbeat,
-    playFuse: playFuse,
-    playPlace: playPlace,
-    playSkill: playSkill,
-    playHurt: playHurt,
+    playSwallow: safe(playSwallow),
+    playDigest: safe(playDigest),
+    playAcid: safe(playAcid),
+    playAntibody: safe(playAntibody),
+    playPerforin: safe(playPerforin),
+    playHeartbeat: safe(playHeartbeat),
+    playFuse: safe(playFuse),
+    playPlace: safe(playPlace),
+    playSkill: safe(playSkill),
+    playHurt: safe(playHurt),
     toggleSound: toggleSound,
     isEnabled: isEnabled
   };
