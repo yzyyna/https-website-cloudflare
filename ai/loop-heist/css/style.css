@@ -66,6 +66,7 @@ html, body {
 .level-meta { font-size: 13px; color: #8b9bb8; }
 
 .menu-foot { margin: 0; font-size: 12px; color: #5d6d8a; text-align: center; }
+.menu-note { margin: 0; font-size: 12px; color: #5d6d8a; text-align: center; }
 
 /* 游戏画面 */
 #game { gap: 10px; overflow: hidden; }
@@ -95,7 +96,25 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
+.hud-hint-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .hud-hint { margin: 0; font-size: 13px; color: #8b9bb8; line-height: 1.5; }
+
+.hud-hint-row[data-collapsed="true"] .hud-hint { display: none; }
+
+.hint-toggle { flex: none; min-width: 52px; min-height: 34px; padding: 0 12px; font-size: 13px; }
+
+.hud-btn:focus-visible,
+.action-btn:focus-visible,
+.level-btn:focus-visible {
+  outline: 2px solid #ffe66d;
+  outline-offset: 2px;
+}
 
 .hud-btn,
 .action-btn {
@@ -113,6 +132,10 @@ html, body {
 .hud-btn { min-width: 64px; }
 
 .action-btn.primary { background: #ffe66d; border-color: #ffe66d; color: #1a1a1a; font-weight: 600; }
+
+/* 轮回可用高亮与不可用灰显：updateHud() 按是否走过一步实时切换 */
+.action-btn.ready { box-shadow: 0 0 0 3px rgba(255, 230, 109, 0.35); }
+.action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .stage {
   position: relative;
@@ -216,7 +239,8 @@ html, body {
 /* 横屏手机等短视口：压缩 HUD 与方向键，保证操作区始终在视口内 */
 @media (max-height: 520px) {
   .hud { gap: 3px; }
-  .hud-hint { display: none; }
+  /* 提示不再直接隐藏，改为默认收起，需要时点「提示」展开，避免丢掉关卡指导 */
+  .hud-hint-row[data-collapsed="true"] .hud-hint { display: none; }
   .hud-level { font-size: 15px; }
   .hud-stats { font-size: 12px; gap: 10px; }
   .stage { min-height: 96px; }
@@ -228,4 +252,5 @@ html, body {
   .action-col { min-width: 96px; gap: 6px; }
   .action-btn { min-height: 40px; padding: 0 12px; font-size: 13px; }
   .hud-btn { min-height: 40px; }
+  .hint-toggle { min-height: 36px; }
 }

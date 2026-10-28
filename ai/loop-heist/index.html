@@ -21,6 +21,7 @@
     </header>
     <div id="levelList" class="level-list"></div>
     <p class="menu-foot">方向键 / WASD 或屏幕按钮移动 · 空格 等待 · R 轮回 · X 重来 · M 静音 · Esc 返回</p>
+    <p class="menu-note">存档只记录解锁进度与最佳轮回次数；刷新后局内挑战会从本关重新开始。</p>
   </section>
 
   <!-- 游戏画面 -->
@@ -36,7 +37,10 @@
         <span id="plateInfo"></span>
         <span id="tickInfo"></span>
       </div>
-      <p id="hint" class="hud-hint"></p>
+      <div class="hud-hint-row">
+        <p id="hint" class="hud-hint"></p>
+        <button id="btnHint" class="hud-btn hint-toggle" type="button" aria-expanded="true" title="展开或收起本关提示">提示</button>
+      </div>
     </div>
 
     <div id="stage" class="stage">

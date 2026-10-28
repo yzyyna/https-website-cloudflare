@@ -96,6 +96,21 @@
       ? '压力板 ' + w.pressedCount + '/' + w.plates.length
       : '';
     $('tickInfo').textContent = '回合 ' + w.tick;
+    // 走过至少一步后，「轮回」才真正可用，此时给它主操作的高亮
+    var canLoop = w.status === 'play' && w.history.length > 0 && state.ghosts.length < maxGhosts();
+    $('btnLoop').classList.toggle('ready', canLoop);
+    $('btnLoop').disabled = !canLoop;
+  }
+
+  /* 关卡提示折叠：短视口默认收起，展开后仍完整显示，不再整体隐藏 */
+  function applyHintCollapsed(collapsed) {
+    var row = document.querySelector('.hud-hint-row');
+    var btn = $('btnHint');
+    if (row) row.setAttribute('data-collapsed', collapsed ? 'true' : 'false');
+    if (btn) {
+      btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      btn.textContent = collapsed ? '提示' : '收起';
+    }
   }
 
   function newAttempt() {
@@ -111,6 +126,8 @@
     state.level = i;
     state.ghosts = [];
     state.shakeUntil = 0;
+    // 短视口默认收起提示，保留随时展开的入口
+    applyHintCollapsed(window.matchMedia && window.matchMedia('(max-height: 520px)').matches);
     showScreen('game');
     newAttempt();
   }
@@ -276,6 +293,10 @@
     onControl($('btnReset'), resetLevel);
     onControl($('btnMenu'), function () { showScreen('menu'); });
     onControl($('btnMute'), toggleMute);
+    onControl($('btnHint'), function () {
+      var row = document.querySelector('.hud-hint-row');
+      applyHintCollapsed(!(row && row.getAttribute('data-collapsed') === 'true'));
+    });
     onControl($('btnNext'), function () { startLevel(state.level + 1); });
     onControl($('btnRetry'), function () { startLevel(state.level); });
     onControl($('btnOverMenu'), function () { showScreen('menu'); });
