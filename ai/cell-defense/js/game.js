@@ -75,6 +75,13 @@
     this.dragOffset = { x: 0, y: 0 };
     this.mouse = { x: 0, y: 0, down: false };
 
+    // 首次对局引导（每步只提示一次）
+    this.onboardSeen = {};
+    this.onboardHintTimer = null;
+
+    // 拖拽融合时的候选高亮目标
+    this.mergeTarget = null;
+
     // 初始化微流管道系统
     this.bloodFlow = new window.BloodFlow(window.innerWidth, window.innerHeight);
 
@@ -82,6 +89,7 @@
     this.bindEvents();
     this.renderAvatars();
     this.updateHUD();
+    this.refreshResumeEntry();
 
     // 启动帧循环
     this.lastTime = performance.now();
@@ -167,7 +175,9 @@
     // 4. 波次结束判定 -> 弹出 Rogue 突变卡
     if (this.waveActive && this.enemiesToSpawn.length === 0 && this.enemies.length === 0) {
       this.waveActive = false;
+      this.awaitingMutation = this.wave < this.maxWaves;
       this.stats.wavesCompleted++;
+      this.persist();
       if (this.wave < this.maxWaves) {
         this.openMutationModal();
       } else {
@@ -425,6 +435,21 @@
       ctx.globalAlpha = 1.0;
     }
 
+    // 6.5 拖拽融合候选高亮：给可融合目标描一圈脉冲光环
+    if (this.mergeTarget && !this.mergeTarget.dead) {
+      var mt = this.mergeTarget;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(mt.x, mt.y, mt.radius + 6, 0, Math.PI * 2);
+      ctx.setLineDash([6, 5]);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.shadowColor = '#fbbf24';
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // 7. 正在拖拽放置的预览细胞虚影
     if (this.selectedCellType && this.mouse.down) {
       ctx.save();
@@ -499,6 +524,21 @@
     if (dnaElem) dnaElem.textContent = this.dna;
     if (healthElem) healthElem.textContent = Math.round((this.health / this.maxHealth) * 100) + '%';
     if (waveElem) waveElem.textContent = 'W' + this.wave + ' / ' + this.maxWaves;
+
+    // 低组织活性告警：血量低于 30% 时红色脉动 + 全屏暗红渐隐
+    var critical = this.maxHealth > 0 && (this.health / this.maxHealth) < 0.3;
+    if (healthElem) healthElem.classList.toggle('warn', critical);
+    var alertLayer = document.getElementById('vignette-alert');
+    if (alertLayer) alertLayer.classList.toggle('show', critical);
+
+    // 首次对局引导推进
+    if (this.cells.length === 0) {
+      this.showOnboardHint('place', '先选中底栏细胞，点击血管旁的虚线基座安放', 7000);
+    } else if (this.cells.length < 3) {
+      this.showOnboardHint('merge', '把两只同类型同阶的细胞拖拽重叠，即可融合升阶', 7000);
+    } else {
+      this.showOnboardHint('skill', '神谕技能可扭转战局，注意各自冷却时间', 7000);
+    }
 
     // 刷新卡片可造状态灰显
     var cards = document.querySelectorAll('.cell-card');
@@ -594,6 +634,107 @@
     });
   };
 
+  /**
+   * 首次对局引导提示：同一 key 只出现一次，到时长自动淡出
+   */
+  Game.prototype.showOnboardHint = function(key, text, durationMs) {
+    if (this.onboardSeen[key]) return;
+    this.onboardSeen[key] = true;
+
+    var hint = document.getElementById('onboard-hint');
+    if (!hint) return;
+
+    hint.textContent = text;
+    hint.classList.add('show');
+
+    var self = this;
+    if (this.onboardHintTimer) clearTimeout(this.onboardHintTimer);
+    this.onboardHintTimer = setTimeout(function() {
+      hint.classList.remove('show');
+      self.onboardHintTimer = null;
+    }, durationMs || 6000);
+  };
+
+  Game.prototype.hideOnboardHint = function() {
+    var hint = document.getElementById('onboard-hint');
+    if (hint) hint.classList.remove('show');
+    if (this.onboardHintTimer) {
+      clearTimeout(this.onboardHintTimer);
+      this.onboardHintTimer = null;
+    }
+  };
+
+  /**
+   * 暂停 / 继续：统一收口图标与蒙层，避免按钮文字与实际状态不一致
+   */
+  Game.prototype.setPaused = function(paused) {
+    this.isPaused = !!paused;
+    var pBtn = document.getElementById('btn-pause');
+    if (pBtn) {
+      pBtn.textContent = this.isPaused ? '▶️' : '⏸️';
+      pBtn.setAttribute('aria-pressed', this.isPaused ? 'true' : 'false');
+    }
+    var mask = document.getElementById('modal-pause');
+    if (mask) mask.classList.toggle('open', this.isPaused);
+    if (this.isPaused) this.persist();
+  };
+
+  Game.prototype.togglePause = function() {
+    if (this.isOver) return;
+    this.setPaused(!this.isPaused);
+  };
+
+  /**
+   * 写入局内快照；localStorage 不可用时静默失败，不影响游戏
+   */
+  Game.prototype.persist = function() {
+    if (!window.CellSave) return false;
+    if (this.isOver) return false;
+    return window.CellSave.save(this);
+  };
+
+  /**
+   * 从快照恢复：复用 save 模块的校验与重建逻辑
+   */
+  Game.prototype.applyResume = function(data) {
+    if (!window.CellSave || !window.CellSave.apply(this, data)) {
+      this.resetGame();
+      this.startWave();
+      return;
+    }
+    if (data.awaitingMutation) {
+      this.openMutationModal();
+    } else if (data.waveActive && this.enemiesToSpawn.length > 0) {
+      this.startWave();
+    } else {
+      // 波次间休整：给出下一波提示
+      this.showOnboardHint('rest', '防线休整中，下一波即将来袭，可继续布置细胞', 5000);
+    }
+    this.setPaused(false);
+  };
+
+  /**
+   * 在开始模态框上显示「继续上次防线」入口与摘要
+   */
+  Game.prototype.refreshResumeEntry = function() {
+    if (!window.CellSave) return;
+    var btn = document.getElementById('btn-resume-game');
+    var hint = document.getElementById('resume-hint');
+    if (!btn) return;
+
+    var data = window.CellSave.load();
+    if (!data) {
+      btn.hidden = true;
+      if (hint) hint.hidden = true;
+      return;
+    }
+    btn.hidden = false;
+    if (hint) {
+      hint.hidden = false;
+      hint.textContent = '已存档：' + window.CellSave.summary(data);
+    }
+  };
+
   Game.prototype.addProjectile = function(proj) {
     if (this.projectiles.length > 180) {
       this.projectiles.splice(0, this.projectiles.length - 180);
@@ -629,11 +770,28 @@
       self.initCanvas();
     });
 
-    // 启动按钮
+    // 启动新防线（同时清除旧快照，避免残留状态干扰）
     document.getElementById('btn-start-game').addEventListener('click', function() {
       document.getElementById('modal-start').classList.remove('open');
       if (window.CellAudio) window.CellAudio.init();
+      if (window.CellSave) window.CellSave.clear();
+      self.resetGame();
       self.startWave();
+      self.persist();
+    });
+
+    // 继续上次防线
+    document.getElementById('btn-resume-game').addEventListener('click', function() {
+      document.getElementById('modal-start').classList.remove('open');
+      if (window.CellAudio) window.CellAudio.init();
+      var data = window.CellSave && window.CellSave.load();
+      if (data) {
+        self.applyResume(data);
+      } else {
+        self.resetGame();
+        self.startWave();
+      }
+      self.persist();
     });
 
     // 重新开始按钮
@@ -666,35 +824,48 @@
 
     // 暂停切换
     document.getElementById('btn-pause').addEventListener('click', function() {
-      self.isPaused = !self.isPaused;
-      this.textContent = self.isPaused ? '▶️' : '⏸️';
+      self.togglePause();
+    });
+
+    document.getElementById('btn-resume').addEventListener('click', function() {
+      self.setPaused(false);
     });
 
     // 底部细胞选择卡点击与悬停提示
+    // 触屏没有 hover：点击选中时让 tooltip 常驻，再次点击同一卡片或点击空白处才隐藏
     var cards = document.querySelectorAll('.cell-card');
     var tooltipBox = document.getElementById('tooltip-box');
     var tooltipTitle = document.getElementById('tooltip-title');
     var tooltipDesc = document.getElementById('tooltip-desc');
+    var tooltipPinned = false;
 
-    function showTooltip(title, desc) {
+    function showTooltip(title, desc, pin) {
       if (tooltipBox && tooltipTitle && tooltipDesc) {
         tooltipTitle.textContent = title;
         tooltipDesc.textContent = desc;
         tooltipBox.classList.add('show');
+        tooltipPinned = !!pin;
+        tooltipBox.classList.toggle('pinned', !!pin);
       }
     }
 
     function hideTooltip() {
       if (tooltipBox) tooltipBox.classList.remove('show');
+      if (tooltipBox) tooltipBox.classList.remove('pinned');
+      tooltipPinned = false;
     }
 
     cards.forEach(function(card) {
       var type = card.getAttribute('data-type');
       var cfg = window.CELL_CONFIGS[type];
       card.addEventListener('mouseenter', function() {
+        if (tooltipPinned) return;
         if (cfg) showTooltip(cfg.name + ' (' + cfg.title + ')', cfg.desc + ' · 消耗⚡' + cfg.cost);
       });
-      card.addEventListener('mouseleave', hideTooltip);
+      card.addEventListener('mouseleave', function() {
+        if (tooltipPinned) return;
+        hideTooltip();
+      });
 
       card.addEventListener('click', function() {
         cards.forEach(function(c) { c.classList.remove('active'); });
@@ -704,7 +875,15 @@
         } else {
           self.selectedCellType = type;
           this.classList.add('active');
-          if (cfg) showTooltip(cfg.name + ' (' + cfg.title + ')', '点击血管旁的虚线基座或空白处即可安放 · 消耗⚡' + cfg.cost);
+          if (cfg) {
+            var affordable = self.atp >= cfg.cost;
+            showTooltip(
+              cfg.name + ' (' + cfg.title + ')',
+              (affordable ? '点击血管旁的虚线基座或空白处即可安放' : 'ATP 不足，还差 ⚡' + (cfg.cost - self.atp) + '，巨噬细胞消化病菌可补充') +
+              ' · 消耗⚡' + cfg.cost,
+              true
+            );
+          }
         }
       });
     });
@@ -719,19 +898,43 @@
       var elem = document.getElementById(sb.id);
       if (elem) {
         elem.addEventListener('mouseenter', function() { showTooltip(sb.title, sb.desc); });
-        elem.addEventListener('mouseleave', hideTooltip);
-        elem.addEventListener('click', function() { self.triggerSkill(sb.name); });
+        elem.addEventListener('mouseleave', function() {
+          if (tooltipPinned) return;
+          hideTooltip();
+        });
+        elem.addEventListener('click', function() {
+          var sk = self.skills[sb.name];
+          // 冷却中点击时说明原因，而不是毫无反应
+          if (sk && sk.currentCd > 0) {
+            showTooltip(sb.title, '冷却中，还需 ' + Math.ceil(sk.currentCd) + ' 秒 · ' + sb.desc, true);
+            setTimeout(hideTooltip, 1800);
+            return;
+          }
+          self.triggerSkill(sb.name);
+        });
       }
     });
 
     // 键盘全局快捷键支持 (PC 操作沉浸体验)
     window.addEventListener('keydown', function(e) {
       if (self.isOver) return;
+      // 长按连发只响应首次按下，避免按住 1 疯狂切换选中态
+      if (e.repeat) return;
+      // 弹窗打开时交给浏览器处理（Esc/Enter 作用于按钮），避免误触快捷键
+      var modalOpen = document.querySelector('.modal-mask.open');
+      if (modalOpen && modalOpen.id !== 'modal-pause') return;
       if (e.code === 'Space') {
         e.preventDefault();
-        self.isPaused = !self.isPaused;
-        var pBtn = document.getElementById('btn-pause');
-        if (pBtn) pBtn.textContent = self.isPaused ? '▶️' : '⏸️';
+        self.togglePause();
+      } else if (e.key === 'Escape') {
+        // Esc 取消当前选中的细胞，比反复点卡片更顺手
+        if (self.selectedCellType) {
+          self.selectedCellType = null;
+          cards.forEach(function(c) { c.classList.remove('active'); });
+          hideTooltip();
+        } else if (self.isPaused) {
+          self.setPaused(false);
+        }
       } else if (e.key === '1') {
         selectCardByIndex(0);
       } else if (e.key === '2') {
@@ -764,6 +967,13 @@
       }
     });
 
+    // 切到后台/最小化自动暂停：塔防挂机等于白给，回来后手动继续
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden && !self.isOver && !self.isPaused) {
+        self.setPaused(true);
+      }
+    });
+
     // 画布统一指针交互 (Pointer Events: 兼容鼠标与单多点触控)
     function getPointerPos(e) {
       var rect = self.canvas.getBoundingClientRect();
@@ -793,6 +1003,10 @@
             if (window.CellAudio) window.CellAudio.playPlace();
             if (navigator.vibrate) navigator.vibrate(20);
           }
+        } else {
+          // ATP 不足时给出明确反馈，避免误以为点击失灵
+          self.createFloatingText('⚡ ATP 不足', pos.x, pos.y - 20, '#f87171');
+          if (window.CellAudio) window.CellAudio.playHurt();
         }
         return;
       }
@@ -835,6 +1049,24 @@
         var cell = self.cells[i];
         cell.isHovered = Math.hypot(cell.x - pos.x, cell.y - pos.y) <= cell.radius;
       }
+
+      // 拖拽中实时高亮可融合目标，让玩家看得见「该叠到谁身上」
+      if (self.draggingCell) {
+        var next = null;
+        for (var j = 0; j < self.cells.length; j++) {
+          var cand = self.cells[j];
+          if (cand !== self.draggingCell && cand.type === self.draggingCell.type &&
+              cand.tier === self.draggingCell.tier && cand.tier < 3 &&
+              Math.hypot(cand.x - self.draggingCell.x, cand.y - self.draggingCell.y) <= (cand.radius + self.draggingCell.radius) * 1.1) {
+            next = cand;
+            break;
+          }
+        }
+        if (self.mergeTarget !== next) {
+          self.mergeTarget = next;
+          if (navigator.vibrate && next) navigator.vibrate(12);
+        }
+      }
     }
 
     function onPointerUp(e) {
@@ -845,12 +1077,14 @@
         self.draggingCell = null;
 
         // 检测是否拖拽到另一只相同类型的细胞上进行融合突变 (Merge & Morph)
+        var merged = false;
         for (var i = 0; i < self.cells.length; i++) {
           var target = self.cells[i];
           if (target !== dragged && target.type === dragged.type && target.tier === dragged.tier && target.tier < 3) {
             var dist = Math.hypot(target.x - dragged.x, target.y - dragged.y);
             if (dist <= (target.radius + dragged.radius) * 1.1) {
               // 成功融合！升阶！
+              merged = true;
               target.tier++;
               var newConf = window.CELL_CONFIGS[target.type];
               target.baseRadius = newConf.radius * (1 + (target.tier - 1) * 0.28);
@@ -867,11 +1101,35 @@
 
               self.createShockwave(target.x, target.y, 80, '#38bdf8');
               self.createSparks(target.x, target.y, 30, '#fbbf24');
-              self.createFloatingText('★ 基因融合升阶！', target.x, target.y - 30, '#fbbf24');
+              self.createFloatingText('★ 融合升阶 T' + target.tier, target.x, target.y - 30, '#fbbf24');
+              self.hideOnboardHint();
               if (window.CellAudio) window.CellAudio.playFuse();
               if (navigator.vibrate) navigator.vibrate([25, 40, 30]);
+              self.persist();
               break;
             }
+          }
+        }
+
+        self.mergeTarget = null;
+
+        // 未融合成功：说明规则，避免玩家反复试错
+        if (!merged) {
+          if (dragged.tier >= 3) {
+            self.createFloatingText('已是最高阶，无法继续融合', dragged.x, dragged.y - 20, '#fbbf24');
+          } else {
+            var sameType = false;
+            for (var k = 0; k < self.cells.length; k++) {
+              var other = self.cells[k];
+              if (other !== dragged && other.type === dragged.type && other.tier === dragged.tier && other.tier < 3) {
+                sameType = true;
+                break;
+              }
+            }
+            self.createFloatingText(
+              sameType ? '再靠近一点：两只细胞需要重叠松手' : '需要两只同类型同阶的细胞重叠',
+              dragged.x, dragged.y - 20, '#f87171'
+            );
           }
         }
       }
@@ -927,6 +1185,7 @@
     this.cells.push(cell);
     this.createShockwave(posX, posY, 40, cell.color);
     this.createSparks(posX, posY, 14, cell.color);
+    this.persist();
     return true;
   };
 
@@ -955,15 +1214,19 @@
       card.addEventListener('click', function() {
         self.applyMutation(mut.id);
         document.getElementById('modal-mutation').classList.remove('open');
-        self.isPaused = false;
+        self.awaitingMutation = false;
         self.wave++;
         self.startWave();
+        self.setPaused(false);
+        self.persist();
       });
 
       container.appendChild(card);
     });
 
     document.getElementById('modal-mutation').classList.add('open');
+    // 同步暂停按钮图标，避免显示与实际状态不一致
+    this.setPaused(true);
   };
 
   /**
@@ -998,6 +1261,8 @@
 
     stats.textContent = '最终波次: W' + this.wave + ' | 吞噬病菌: ' + this.stats.swallowed + ' | 消灭总数: ' + this.stats.killed;
     modal.classList.add('open');
+    // 结算后不再提供「继续」，清掉旧快照，避免下一次进入时恢复已结束的局
+    if (window.CellSave) window.CellSave.clear();
   };
 
   /**
@@ -1022,7 +1287,11 @@
     this.shockwaves = [];
     this.activeMutations = {};
     this.stats = { swallowed: 0, killed: 0, wavesCompleted: 0 };
-    
+    this.onboardSeen = {};
+    this.hideOnboardHint();
+    this.mergeTarget = null;
+    this.awaitingMutation = false;
+
     // 重置槽位占用
     if (this.bloodFlow && this.bloodFlow.slots) {
       for (var s = 0; s < this.bloodFlow.slots.length; s++) {
@@ -1036,6 +1305,12 @@
 
   window.addEventListener('DOMContentLoaded', function() {
     window.gameInstance = new Game();
+
+    // 关闭/刷新页面时保存局内进度，作为断点续玩的兜底
+    window.addEventListener('beforeunload', function() {
+      var g = window.gameInstance;
+      if (g && !g.isOver && g.cells.length > 0) g.persist();
+    });
   });
 
 })(window);

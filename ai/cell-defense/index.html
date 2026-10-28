@@ -19,6 +19,12 @@
   <!-- 显微镜暗角与荧光滤镜 -->
   <div class="microscope-overlay"></div>
 
+  <!-- 组织濒危告警（低活性时全屏红色渐隐） -->
+  <div class="vignette-alert" id="vignette-alert"></div>
+
+  <!-- 首次对局引导提示条 -->
+  <div class="onboard-hint" id="onboard-hint" role="status" aria-live="polite"></div>
+
   <!-- HUD 顶部状态栏 -->
   <header class="hud-header">
     <div class="hud-group">
@@ -59,9 +65,9 @@
           <div class="val val-wave" id="hud-wave">W1 / 10</div>
         </div>
       </div>
-      <button class="btn-control" id="btn-speed" title="调节战局速率">⚡ 1x</button>
-      <button class="btn-control" id="btn-sound" title="开关声效">🔊</button>
-      <button class="btn-control" id="btn-pause" title="暂停/继续">⏸️</button>
+      <button class="btn-control" id="btn-speed" title="调节战局速率" aria-label="调节战局速率">⚡ 1x</button>
+      <button class="btn-control" id="btn-sound" title="开关声效" aria-label="开关声效">🔊</button>
+      <button class="btn-control" id="btn-pause" title="暂停/继续" aria-label="暂停或继续">⏸️</button>
     </div>
   </header>
 
@@ -137,9 +143,11 @@
         <p>• <strong>变异融合</strong>：将两只相同的细胞<strong>拖拽重叠</strong>，即可融合突变为高阶特种体。</p>
         <p>• <strong>心跳与微流</strong>：每 6 秒一次心跳血液涌流，抗体会随血流自然漂移封锁走廊。</p>
       </div>
-      <div style="display:flex; justify-content:center; gap:12px; margin-top:8px;">
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:8px; flex-wrap:wrap;">
         <button class="btn-large" id="btn-start-game">🔬 启动免疫防线</button>
+        <button class="btn-large btn-ghost" id="btn-resume-game" hidden>♻️ 继续上次防线</button>
       </div>
+      <p class="resume-hint" id="resume-hint" hidden></p>
     </div>
   </div>
 
@@ -170,11 +178,31 @@
     </div>
   </div>
 
+  <!-- 暂停蒙层 -->
+  <div class="modal-mask" id="modal-pause">
+    <div class="modal-content modal-content-compact">
+      <div class="modal-title">⏸️ 防线已暂停</div>
+      <div class="modal-subtitle">宿主微循环已静止，免疫细胞进入待命状态。<br>按空格 / Esc 或点击下方按钮继续作战。</div>
+      <div style="display:flex; justify-content:center; gap:12px;">
+        <button class="btn-large" id="btn-resume">▶️ 继续作战</button>
+      </div>
+      <div class="shortcut-hint">
+        <span><kbd>1</kbd>–<kbd>5</kbd> 选择细胞</span>
+        <span><kbd>Q</kbd> 肾上腺素</span>
+        <span><kbd>W</kbd> 局部发热</span>
+        <span><kbd>E</kbd> 干扰素</span>
+        <span><kbd>空格</kbd> 暂停</span>
+        <span><kbd>Esc</kbd> 取消选中</span>
+      </div>
+    </div>
+  </div>
+
   <!-- 普通顺序加载免构建脚本模块（遵循全局无构建标准） -->
   <script src="js/audio.js"></script>
   <script src="js/bloodflow.js"></script>
   <script src="js/enemies.js"></script>
   <script src="js/cells.js"></script>
+  <script src="js/save.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>

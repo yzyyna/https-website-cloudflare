@@ -67,6 +67,30 @@ html, body {
   background: radial-gradient(circle at center, transparent 60%, rgba(2, 7, 13, 0.6) 100%);
 }
 
+/* 组织濒危告警层（低活性时全屏暗红脉动） */
+.vignette-alert {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(239, 68, 68, 0.32) 100%);
+}
+
+.vignette-alert.show {
+  opacity: 1;
+  animation: vignette-breathe 1.6s infinite ease-in-out;
+}
+
+@keyframes vignette-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
 /* HUD 顶部栏 */
 .hud-header {
   position: absolute;
@@ -127,6 +151,18 @@ html, body {
 .val-health { color: #f87171 !important; text-shadow: 0 0 10px rgba(248, 113, 113, 0.5); }
 .val-wave { color: #fbbf24 !important; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
 
+/* 组织活性濒危告警 */
+.val-health.warn {
+  color: #ef4444 !important;
+  text-shadow: 0 0 14px rgba(239, 68, 68, 0.9);
+  animation: health-blink 0.9s infinite ease-in-out;
+}
+
+@keyframes health-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
 /* 按钮基础 */
 .btn-control {
   background: var(--panel-bg);
@@ -151,6 +187,14 @@ html, body {
 
 .btn-control:active {
   transform: scale(0.96);
+}
+
+/* 键盘可达性：仅在键盘导航时显示焦点环 */
+.btn-control:focus-visible,
+.cell-card:focus-visible,
+.skill-btn:focus-visible {
+  outline: 2px solid var(--primary-bio);
+  outline-offset: 2px;
 }
 
 /* 心跳与微流指示器 */
@@ -325,7 +369,6 @@ html, body {
   height: 100%;
   background: rgba(3, 7, 18, 0.78);
   border-radius: 10px;
-  display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
@@ -333,6 +376,48 @@ html, body {
   font-weight: bold;
   color: #e2e8f0;
   display: none;
+}
+
+/* 首次对局引导提示条（位于底栏上方，不拦截指针） */
+.onboard-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 112px);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(520px, 92vw);
+  background: rgba(5, 15, 24, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 13px;
+  color: #e2e8f0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px var(--primary-glow);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 15;
+}
+
+.onboard-hint.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.onboard-hint::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary-bio);
+  box-shadow: 0 0 10px var(--primary-bio);
+  animation: pulse-anim 1.2s infinite ease-in-out;
 }
 
 /* 浮动选单与悬停提示 */
@@ -368,7 +453,7 @@ html, body {
   justify-content: space-between;
 }
 
-/* 模态框体系（开始、游戏结束、Rogue三选一、图鉴） */
+/* 模态框体系（开始、游戏结束、Rogue 三选一） */
 .modal-mask {
   position: absolute;
   top: 0;
@@ -495,47 +580,182 @@ html, body {
   transform: scale(0.97);
 }
 
+.btn-large:focus-visible {
+  outline: 2px solid #6ee7b7;
+  outline-offset: 2px;
+}
+
+/* 次级幽灵按钮（继续上次防线） */
+.btn-large.btn-ghost {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid var(--primary-bio);
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+.btn-large.btn-ghost:hover {
+  background: rgba(16, 185, 129, 0.22);
+  box-shadow: 0 4px 16px var(--primary-glow);
+}
+
+/* 存档摘要一行说明 */
+.resume-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: center;
+  margin-top: 2px;
+}
+
+.modal-content-compact {
+  max-width: 360px;
+  gap: 12px;
+}
+
+/* 暂停蒙层内的快捷键速查表 */
+.shortcut-hint {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+  font-size: 11px;
+  color: var(--text-gray);
+  border-top: 1px solid rgba(52, 211, 153, 0.16);
+  padding-top: 12px;
+}
+
+.shortcut-hint kbd {
+  font-family: var(--font-mono);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 10px;
+  color: #e2e8f0;
+}
+
+/* 触屏端 tooltip 常驻时不拦截指针，仅作说明 */
+.tooltip-box.pinned {
+  border-color: #fbbf24;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(251, 191, 36, 0.4);
+}
+
 /* 移动端与小屏适配 */
 @media (max-width: 680px) {
   .hud-header {
     flex-wrap: wrap;
     gap: 8px;
+    left: 10px;
+    right: 10px;
   }
-  
+
   .hud-group {
     flex-wrap: wrap;
+    gap: 8px;
   }
-  
+
   .hud-card {
     padding: 4px 8px;
     font-size: 11px;
   }
-  
+
+  /* 底栏改为纵向两行：细胞栏独占一行可横滑，技能栏居中第二行，避免溢出屏外 */
   .hud-footer {
+    left: 8px;
+    right: 8px;
     bottom: max(8px, env(safe-area-inset-bottom));
+    transform: none;
+    max-width: none;
+    flex-direction: column;
+    align-items: stretch;
     gap: 6px;
+    overflow: visible;
+    padding: 0;
   }
-  
+
+  .cell-selector,
+  .hud-skills {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .cell-selector::-webkit-scrollbar,
+  .hud-skills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hud-skills {
+    justify-content: center;
+  }
+
   .cell-card {
     width: 58px;
     height: 72px;
+    flex: none;
   }
-  
+
   .cell-avatar {
     width: 28px;
     height: 28px;
   }
-  
+
   .cell-name {
     font-size: 10px;
   }
-  
+
   .skill-btn {
     width: 50px;
-    height: 72px;
+    height: 60px;
+    flex: none;
   }
-  
+
   .mutation-cards {
     flex-direction: column;
+  }
+
+  /* 提示气泡需抬到两行底栏之上，且不超出视口 */
+  .tooltip-box {
+    bottom: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: min(320px, 78vw);
+  }
+
+  /* 引导条紧随底栏上方（底栏两行总高约 174px，留 8px 呼吸间距） */
+  .onboard-hint {
+    bottom: calc(max(8px, env(safe-area-inset-bottom)) + 182px);
+    max-width: 92vw;
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .modal-content {
+    padding: 18px 16px;
+  }
+
+  .modal-title {
+    font-size: 19px;
+  }
+}
+
+/* 尊重系统减少动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot,
+  .onboard-hint::before,
+  .vignette-alert.show,
+  .val-health.warn {
+    animation: none;
+  }
+
+  .cell-card:hover,
+  .mutation-card:hover,
+  .btn-large:hover {
+    transform: none;
+  }
+
+  * {
+    transition-duration: 0.01ms !important;
   }
 }
