@@ -19,7 +19,7 @@
 | [`internet-museum`](./internet-museum/) | **互联网考古馆**（穿越 1998~2099 数字文明沉浸展） | 原创沉浸交互 | 纯 HTML5 + CSS3 + 原生 JS + Web Audio |
 | [`learn-lang`](./learn-lang/) | **多语种语言学习应用**（3D 闪卡 + 单词发音） | `aWebsite` | 纯 HTML5 + CSS3 + 原生 JS |
 | [`iot-hub`](./iot-hub/) | **物联网设备监控面板**（万级数据虚拟滚动） | `bOpencodeXAlpha` | 单文件纯 HTML + CSS + JS |
-| [`stellar-fusion`](./stellar-fusion/) | **3D 星际能源控制台**（三版本横向对标：Gemini / MuseSpark / HELIOS-7） | `cGoogleGemini` & `dMuseSpark` | 纯 WebGL 2.0 + 原生 GLSL |
+| [`stellar-fusion`](./stellar-fusion/) | **3D 星际能源控制台**（三模型横向对标：Gemini / MuseSpark / GLM（HELIOS-7）） | `cGoogleGemini` & `dMuseSpark` & GLM 标杆版 | 纯 WebGL 2.0 + 原生 GLSL |
 | [`tank-battle`](./tank-battle/) | **3D 坦克大战：钢铁风暴**（等轴/追尾多视角 + 5大关卡/泰坦BOSS战 + 道具升级） | 原创 3D 游戏 | 纯 WebGL 1.0 + Web Audio 原生合成 |
 | [`cell-defense`](./cell-defense/) | **细胞防线：微观免疫战**（阿米巴软体物理 + 吞噬消化 + 基因融合变异 + 血液微流控） | 原创微观塔防 | 纯 HTML5 Canvas + Web Audio 原生合成 |
 | [`loop-heist`](./loop-heist/) | **时光回放小偷**（回合制潜行解谜，每次行动录成幽灵重放，幽灵替你踩压力板） | 原创趣味解谜 | 纯 HTML5 + CSS3 + Canvas 2D + Web Audio 原生合成 |
