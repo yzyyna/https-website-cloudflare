@@ -5,7 +5,7 @@
 <title>ZCode Token 用量总览</title>
 <meta name="description" content="ZCode Token 用量总览：每日用量与趋势、模型累计分布、模型×日期热力图、月度汇总与模型测速记录。每天 12:01 / 23:58 自动更新。">
 <meta property="og:title" content="ZCode Token 用量总览">
-<meta property="og:description" content="累计 88.80 亿 tokens · 52 天 · 日均 1.71 亿 · 每天 12:01 / 23:58 自动更新">
+<meta property="og:description" content="累计 88.85 亿 tokens · 53 天 · 日均 1.68 亿 · 每天 12:01 / 23:58 自动更新">
 <style>
   :root{color-scheme:dark}
   html{scroll-behavior:smooth}
@@ -28,6 +28,17 @@
   .stat .v.em{color:#ffb02e}
   .panel{background:#10141b;border:1px solid #252a32;border-radius:12px;padding:16px 18px}
   .panel .foot{margin:10px 0 0}
+  .sec-hd{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin:30px 0 12px}
+  .sec-hd h2{margin:0}
+  .filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .filter-chips{display:inline-flex;background:#10141b;border:1px solid #252a32;border-radius:6px;padding:2px;gap:2px}
+  .f-btn{background:transparent;border:none;color:#8a919c;font-size:12px;padding:4px 10px;border-radius:4px;cursor:pointer;transition:all .15s;font-family:inherit}
+  .f-btn:hover{color:#d7dbe2;background:rgba(255,255,255,.05)}
+  .f-btn.active{background:#1a2333;color:#4ea1ff;font-weight:500}
+  .filter-custom{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#8a919c}
+  .filter-custom input[type="date"]{background:#10141b;border:1px solid #252a32;color:#d7dbe2;border-radius:6px;padding:3px 7px;font-size:11.5px;font-family:inherit;color-scheme:dark;outline:none;transition:border-color .15s}
+  .filter-custom input[type="date"]:focus{border-color:#3f8cff}
+  .filter-custom .f-sep{font-size:11.5px;color:#8a919c}
   .foot{font-size:12px;color:#8a919c;margin-top:14px;line-height:1.7}
   .scale{display:flex;align-items:center;gap:8px;margin-top:10px}
   .scale .bar{width:120px;height:8px;border-radius:4px;background:linear-gradient(90deg,rgba(63,140,255,.10),rgba(63,140,255,.92))}
@@ -61,6 +72,12 @@
     .stat .v{font-size:15px}
     .panel{padding:14px}
     h2{margin:24px 0 10px}
+    .sec-hd{margin:24px 0 10px;flex-direction:column;align-items:stretch;gap:10px}
+    .filter-bar{justify-content:space-between}
+    .filter-chips{width:100%;justify-content:space-between}
+    .f-btn{flex:1;text-align:center;padding:5px 0}
+    .filter-custom{width:100%}
+    .filter-custom input[type="date"]{flex:1;min-width:0}
     .cs{margin:0 -4px}
     .cs svg{max-width:none;width:1000px}
     #totop{right:14px;bottom:14px}
@@ -68,23 +85,23 @@
   #tip{position:fixed;display:none;pointer-events:none;background:#1c2027;color:#d7dbe2;border:1px solid #333a45;border-radius:6px;padding:6px 10px;font-size:12px;z-index:9;max-width:360px}
 </style></head><body>
 <div class="wrap" id="top">
-<h1>ZCode Token 用量总览 <span class="rgt">账本 2026-09-08 → 2026-10-29</span></h1>
+<h1>ZCode Token 用量总览 <span class="rgt">账本 2026-09-08 → 2026-10-30</span></h1>
 <div class="stats">
-  <div class="stat"><div class="k">累计 tokens</div><div class="v em">88.80 亿</div></div>
-  <div class="stat"><div class="k">统计天数</div><div class="v">52 天</div></div>
-  <div class="stat"><div class="k">日均</div><div class="v">1.71 亿</div></div>
-  <div class="stat"><div class="k">完成请求</div><div class="v">43,172</div></div>
+  <div class="stat"><div class="k">累计 tokens</div><div class="v em">88.85 亿</div></div>
+  <div class="stat"><div class="k">统计天数</div><div class="v">53 天</div></div>
+  <div class="stat"><div class="k">日均</div><div class="v">1.68 亿</div></div>
+  <div class="stat"><div class="k">完成请求</div><div class="v">43,220</div></div>
   <div class="stat"><div class="k">单日峰值（10-21）</div><div class="v">5.08 亿</div></div>
-  <div class="stat"><div class="k">今日已用（截至 23:58）</div><div class="v">2.19 亿</div></div>
-  <div class="stat"><div class="k">今日请求</div><div class="v">1,231</div></div>
-  <div class="stat"><div class="k">今日主力</div><div class="v" style="font-size:14px">group/deepseek</div></div>
-  <div class="stat"><div class="k">近 7 天合计</div><div class="v">11.84 亿</div></div>
+  <div class="stat"><div class="k">今日已用（截至 10:19）</div><div class="v">0.05 亿</div></div>
+  <div class="stat"><div class="k">今日请求</div><div class="v">48</div></div>
+  <div class="stat"><div class="k">今日主力</div><div class="v" style="font-size:14px">antigravity/gemini-3.8-flash</div></div>
+  <div class="stat"><div class="k">近 7 天合计</div><div class="v">9.33 亿</div></div>
   <div class="stat"><div class="k">近 7 天主力</div><div class="v" style="font-size:14px">gemini-3.8-flash-high</div></div>
 </div>
 <div class="legend"><span><span class="sw" style="background:#3f8cff"></span>每日用量（左轴）</span><span><span class="ln" style="background:#e5e7eb"></span>7日均线</span><span><span class="ln" style="background:#ffb02e;height:3px"></span>累计（右轴）</span></div>
 <div class="panel">
 <div class="cs">
-<svg width="1160" height="540" viewBox="0 0 1160 540" role="img" aria-label="ZCode Token 每日用量柱状图与累计曲线，2026-09-08 至 2026-10-29，累计 88.80 亿">
+<svg width="1160" height="540" viewBox="0 0 1160 540" role="img" aria-label="ZCode Token 每日用量柱状图与累计曲线，2026-09-08 至 2026-10-30，累计 88.85 亿">
 <rect x="66" y="56" width="1020" height="418" fill="none" stroke="#252a32"/>
 <line x1="66" y1="474.0" x2="1086" y2="474.0" stroke="#252a32" stroke-width="1" opacity="0.55"/>
 <text x="58" y="478.0" text-anchor="end" font-size="12" fill="#8a919c">0</text>
@@ -113,197 +130,215 @@
 <text x="1094" y="60.0" font-size="12" fill="#ffb02e" opacity="0.85">100</text>
 <text x="66" y="34" font-size="12" fill="#8a919c">亿 tokens / 天</text>
 <text x="1086" y="34" text-anchor="end" font-size="12" fill="#ffb02e" opacity="0.9">累计（亿）</text>
-<text x="75.8" y="494" text-anchor="middle" font-size="12" fill="#8a919c">09-08</text>
-<text x="173.9" y="494" text-anchor="middle" font-size="12" fill="#8a919c">09-13</text>
-<text x="272.0" y="494" text-anchor="middle" font-size="12" fill="#8a919c">09-18</text>
-<text x="370.0" y="494" text-anchor="middle" font-size="12" fill="#8a919c">09-23</text>
-<text x="468.1" y="494" text-anchor="middle" font-size="12" fill="#8a919c">09-28</text>
-<text x="566.2" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-03</text>
-<text x="664.3" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-08</text>
-<text x="762.3" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-13</text>
-<text x="860.4" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-18</text>
-<text x="958.5" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-23</text>
-<text x="1076.2" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-29</text>
-<rect x="69.7" y="455.3" width="12.2" height="18.7" rx="2" fill="#5a6270" opacity="0.55"/>
-<rect x="89.3" y="463.7" width="12.2" height="10.3" rx="2" fill="#5a6270" opacity="0.55"/>
-<rect x="109.0" y="246.7" width="12.2" height="227.3" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="128.6" y="391.4" width="12.2" height="82.6" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="148.2" y="382.2" width="12.2" height="91.8" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="167.8" y="377.6" width="12.2" height="96.4" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="187.4" y="341.5" width="12.2" height="132.5" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="207.0" y="332.4" width="12.2" height="141.6" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="226.7" y="324.1" width="12.2" height="149.9" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="246.3" y="290.8" width="12.2" height="183.2" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="265.9" y="245.6" width="12.2" height="228.4" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="285.5" y="462.5" width="12.2" height="11.5" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="305.1" y="350.7" width="12.2" height="123.3" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="324.7" y="357.7" width="12.2" height="116.3" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="344.3" y="442.9" width="12.2" height="31.1" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="364.0" y="428.7" width="12.2" height="45.3" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="383.6" y="326.2" width="12.2" height="147.8" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="403.2" y="467.2" width="12.2" height="6.8" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="422.8" y="441.5" width="12.2" height="32.5" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="442.4" y="422.1" width="12.2" height="51.9" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="462.0" y="285.6" width="12.2" height="188.4" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="481.7" y="400.2" width="12.2" height="73.8" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="501.3" y="389.3" width="12.2" height="84.7" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="520.9" y="437.8" width="12.2" height="36.2" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="540.5" y="452.4" width="12.2" height="21.6" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="560.1" y="443.6" width="12.2" height="30.4" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="579.7" y="276.5" width="12.2" height="197.5" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="599.3" y="428.1" width="12.2" height="45.9" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="619.0" y="465.2" width="12.2" height="8.8" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="638.6" y="341.2" width="12.2" height="132.8" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="658.2" y="277.0" width="12.2" height="197.0" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="677.8" y="253.4" width="12.2" height="220.6" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="697.4" y="333.7" width="12.2" height="140.3" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="717.0" y="307.4" width="12.2" height="166.6" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="736.7" y="263.3" width="12.2" height="210.7" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="756.3" y="323.7" width="12.2" height="150.3" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="775.9" y="134.0" width="12.2" height="340.0" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="795.5" y="356.4" width="12.2" height="117.6" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="815.1" y="291.5" width="12.2" height="182.5" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="834.7" y="451.3" width="12.2" height="22.7" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="854.3" y="459.9" width="12.2" height="14.1" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="874.0" y="383.2" width="12.2" height="90.8" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="893.6" y="284.5" width="12.2" height="189.5" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="913.2" y="120.2" width="12.2" height="353.8" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="932.8" y="258.4" width="12.2" height="215.6" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="952.4" y="295.7" width="12.2" height="178.3" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="972.0" y="391.2" width="12.2" height="82.8" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="991.7" y="440.5" width="12.2" height="33.5" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="1011.3" y="274.7" width="12.2" height="199.3" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="1030.9" y="415.4" width="12.2" height="58.6" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="1050.5" y="354.5" width="12.2" height="119.5" rx="2" fill="#3f8cff" opacity="0.92"/>
-<rect x="1070.1" y="321.4" width="12.2" height="152.6" rx="2" fill="#3f8cff" opacity="0.92"/>
-<polyline points="75.8,472.9 95.4,472.3 115.0,458.6 134.7,453.7 154.3,448.2 173.9,442.4 193.5,434.4 213.1,425.9 232.7,416.9 252.3,405.9 272.0,392.2 291.6,391.5 311.2,384.1 330.8,377.2 350.4,375.3 370.0,372.6 389.7,363.7 409.3,363.3 428.9,361.4 448.5,358.2 468.1,346.9 487.7,342.5 507.3,337.4 527.0,335.3 546.6,334.0 566.2,332.1 585.8,320.3 605.4,317.5 625.0,317.0 644.7,309.0 664.3,297.2 683.9,284.0 703.5,275.6 723.1,265.6 742.7,252.9 762.3,243.9 782.0,223.5 801.6,216.5 821.2,205.5 840.8,204.1 860.4,203.3 880.0,197.9 899.7,186.5 919.3,165.3 938.9,152.3 958.5,141.6 978.1,136.6 997.7,134.6 1017.3,122.7 1037.0,119.2 1056.6,112.0 1076.2,102.8" fill="none" stroke="#ffb02e" stroke-width="2"/>
-<polyline points="193.5,379.8 213.1,362.2 232.7,342.3 252.3,348.6 272.0,327.7 291.6,339.2 311.2,335.4 330.8,337.7 350.4,353.5 370.0,368.4 389.7,373.5 409.3,405.1 428.9,402.1 448.5,412.3 468.1,402.0 487.7,396.0 507.3,390.3 527.0,406.3 546.6,404.1 566.2,404.4 585.8,383.6 605.4,404.0 625.0,413.3 644.7,406.4 664.3,383.4 683.9,355.0 703.5,339.3 723.1,343.7 742.7,320.2 762.3,300.0 782.0,270.4 801.6,281.7 821.2,287.1 840.8,303.9 860.4,325.7 880.0,342.9 899.7,337.3 919.3,335.3 938.9,321.3 958.5,321.9 978.1,313.3 997.7,310.5 1017.3,295.0 1037.0,313.7 1056.6,347.2 1076.2,356.2" fill="none" stroke="#e5e7eb" stroke-width="1.2" opacity="0.65"/>
-<circle cx="75.8" cy="472.9" r="2.6" fill="#ffb02e"/>
-<circle cx="95.4" cy="472.3" r="2.6" fill="#ffb02e"/>
-<circle cx="115.0" cy="458.6" r="2.6" fill="#ffb02e"/>
-<circle cx="134.7" cy="453.7" r="2.6" fill="#ffb02e"/>
-<circle cx="154.3" cy="448.2" r="2.6" fill="#ffb02e"/>
-<circle cx="173.9" cy="442.4" r="2.6" fill="#ffb02e"/>
-<circle cx="193.5" cy="434.4" r="2.6" fill="#ffb02e"/>
-<circle cx="213.1" cy="425.9" r="2.6" fill="#ffb02e"/>
-<circle cx="232.7" cy="416.9" r="2.6" fill="#ffb02e"/>
-<circle cx="252.3" cy="405.9" r="2.6" fill="#ffb02e"/>
-<circle cx="272.0" cy="392.2" r="2.6" fill="#ffb02e"/>
-<circle cx="291.6" cy="391.5" r="2.6" fill="#ffb02e"/>
-<circle cx="311.2" cy="384.1" r="2.6" fill="#ffb02e"/>
-<circle cx="330.8" cy="377.2" r="2.6" fill="#ffb02e"/>
-<circle cx="350.4" cy="375.3" r="2.6" fill="#ffb02e"/>
-<circle cx="370.0" cy="372.6" r="2.6" fill="#ffb02e"/>
-<circle cx="389.7" cy="363.7" r="2.6" fill="#ffb02e"/>
-<circle cx="409.3" cy="363.3" r="2.6" fill="#ffb02e"/>
-<circle cx="428.9" cy="361.4" r="2.6" fill="#ffb02e"/>
-<circle cx="448.5" cy="358.2" r="2.6" fill="#ffb02e"/>
-<circle cx="468.1" cy="346.9" r="2.6" fill="#ffb02e"/>
-<circle cx="487.7" cy="342.5" r="2.6" fill="#ffb02e"/>
-<circle cx="507.3" cy="337.4" r="2.6" fill="#ffb02e"/>
-<circle cx="527.0" cy="335.3" r="2.6" fill="#ffb02e"/>
-<circle cx="546.6" cy="334.0" r="2.6" fill="#ffb02e"/>
-<circle cx="566.2" cy="332.1" r="2.6" fill="#ffb02e"/>
-<circle cx="585.8" cy="320.3" r="2.6" fill="#ffb02e"/>
-<circle cx="605.4" cy="317.5" r="2.6" fill="#ffb02e"/>
-<circle cx="625.0" cy="317.0" r="2.6" fill="#ffb02e"/>
-<circle cx="644.7" cy="309.0" r="2.6" fill="#ffb02e"/>
-<circle cx="664.3" cy="297.2" r="2.6" fill="#ffb02e"/>
-<circle cx="683.9" cy="284.0" r="2.6" fill="#ffb02e"/>
-<circle cx="703.5" cy="275.6" r="2.6" fill="#ffb02e"/>
-<circle cx="723.1" cy="265.6" r="2.6" fill="#ffb02e"/>
-<circle cx="742.7" cy="252.9" r="2.6" fill="#ffb02e"/>
-<circle cx="762.3" cy="243.9" r="2.6" fill="#ffb02e"/>
-<circle cx="782.0" cy="223.5" r="2.6" fill="#ffb02e"/>
-<circle cx="801.6" cy="216.5" r="2.6" fill="#ffb02e"/>
-<circle cx="821.2" cy="205.5" r="2.6" fill="#ffb02e"/>
-<circle cx="840.8" cy="204.1" r="2.6" fill="#ffb02e"/>
-<circle cx="860.4" cy="203.3" r="2.6" fill="#ffb02e"/>
-<circle cx="880.0" cy="197.9" r="2.6" fill="#ffb02e"/>
-<circle cx="899.7" cy="186.5" r="2.6" fill="#ffb02e"/>
-<circle cx="919.3" cy="165.3" r="2.6" fill="#ffb02e"/>
-<circle cx="938.9" cy="152.3" r="2.6" fill="#ffb02e"/>
-<circle cx="958.5" cy="141.6" r="2.6" fill="#ffb02e"/>
-<circle cx="978.1" cy="136.6" r="2.6" fill="#ffb02e"/>
-<circle cx="997.7" cy="134.6" r="2.6" fill="#ffb02e"/>
-<circle cx="1017.3" cy="122.7" r="2.6" fill="#ffb02e"/>
-<circle cx="1037.0" cy="119.2" r="2.6" fill="#ffb02e"/>
-<circle cx="1056.6" cy="112.0" r="2.6" fill="#ffb02e"/>
-<circle cx="1076.2" cy="102.8" r="2.6" fill="#ffb02e"/>
+<text x="75.6" y="494" text-anchor="middle" font-size="12" fill="#8a919c">09-08</text>
+<text x="171.8" y="494" text-anchor="middle" font-size="12" fill="#8a919c">09-13</text>
+<text x="268.1" y="494" text-anchor="middle" font-size="12" fill="#8a919c">09-18</text>
+<text x="364.3" y="494" text-anchor="middle" font-size="12" fill="#8a919c">09-23</text>
+<text x="460.5" y="494" text-anchor="middle" font-size="12" fill="#8a919c">09-28</text>
+<text x="556.8" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-03</text>
+<text x="653.0" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-08</text>
+<text x="749.2" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-13</text>
+<text x="845.4" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-18</text>
+<text x="941.7" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-23</text>
+<text x="1076.4" y="494" text-anchor="middle" font-size="12" fill="#8a919c">10-30</text>
+<rect x="69.7" y="455.3" width="11.9" height="18.7" rx="2" fill="#5a6270" opacity="0.55"/>
+<rect x="88.9" y="463.7" width="11.9" height="10.3" rx="2" fill="#5a6270" opacity="0.55"/>
+<rect x="108.1" y="246.7" width="11.9" height="227.3" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="127.4" y="391.4" width="11.9" height="82.6" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="146.6" y="382.2" width="11.9" height="91.8" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="165.9" y="377.6" width="11.9" height="96.4" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="185.1" y="341.5" width="11.9" height="132.5" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="204.4" y="332.4" width="11.9" height="141.6" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="223.6" y="324.1" width="11.9" height="149.9" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="242.9" y="290.8" width="11.9" height="183.2" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="262.1" y="245.6" width="11.9" height="228.4" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="281.4" y="462.5" width="11.9" height="11.5" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="300.6" y="350.7" width="11.9" height="123.3" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="319.8" y="357.7" width="11.9" height="116.3" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="339.1" y="442.9" width="11.9" height="31.1" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="358.3" y="428.7" width="11.9" height="45.3" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="377.6" y="326.2" width="11.9" height="147.8" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="396.8" y="467.2" width="11.9" height="6.8" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="416.1" y="441.5" width="11.9" height="32.5" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="435.3" y="422.1" width="11.9" height="51.9" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="454.6" y="285.6" width="11.9" height="188.4" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="473.8" y="400.2" width="11.9" height="73.8" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="493.1" y="389.3" width="11.9" height="84.7" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="512.3" y="437.8" width="11.9" height="36.2" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="531.5" y="452.4" width="11.9" height="21.6" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="550.8" y="443.6" width="11.9" height="30.4" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="570.0" y="276.5" width="11.9" height="197.5" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="589.3" y="428.1" width="11.9" height="45.9" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="608.5" y="465.2" width="11.9" height="8.8" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="627.8" y="341.2" width="11.9" height="132.8" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="647.0" y="277.0" width="11.9" height="197.0" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="666.3" y="253.4" width="11.9" height="220.6" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="685.5" y="333.7" width="11.9" height="140.3" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="704.8" y="307.4" width="11.9" height="166.6" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="724.0" y="263.3" width="11.9" height="210.7" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="743.2" y="323.7" width="11.9" height="150.3" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="762.5" y="134.0" width="11.9" height="340.0" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="781.7" y="356.4" width="11.9" height="117.6" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="801.0" y="291.5" width="11.9" height="182.5" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="820.2" y="451.3" width="11.9" height="22.7" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="839.5" y="459.9" width="11.9" height="14.1" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="858.7" y="383.2" width="11.9" height="90.8" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="878.0" y="284.5" width="11.9" height="189.5" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="897.2" y="120.2" width="11.9" height="353.8" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="916.4" y="258.4" width="11.9" height="215.6" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="935.7" y="295.7" width="11.9" height="178.3" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="954.9" y="391.2" width="11.9" height="82.8" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="974.2" y="440.5" width="11.9" height="33.5" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="993.4" y="274.7" width="11.9" height="199.3" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="1012.7" y="415.4" width="11.9" height="58.6" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="1031.9" y="354.5" width="11.9" height="119.5" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="1051.2" y="321.4" width="11.9" height="152.6" rx="2" fill="#3f8cff" opacity="0.92"/>
+<rect x="1070.4" y="470.5" width="11.9" height="3.5" rx="2" fill="#3f8cff" opacity="0.92"/>
+<polyline points="75.6,472.9 94.9,472.3 114.1,458.6 133.4,453.7 152.6,448.2 171.8,442.4 191.1,434.4 210.3,425.9 229.6,416.9 248.8,405.9 268.1,392.2 287.3,391.5 306.6,384.1 325.8,377.2 345.1,375.3 364.3,372.6 383.5,363.7 402.8,363.3 422.0,361.4 441.3,358.2 460.5,346.9 479.8,342.5 499.0,337.4 518.3,335.3 537.5,334.0 556.8,332.1 576.0,320.3 595.2,317.5 614.5,317.0 633.7,309.0 653.0,297.2 672.2,284.0 691.5,275.6 710.7,265.6 730.0,252.9 749.2,243.9 768.5,223.5 787.7,216.5 806.9,205.5 826.2,204.1 845.4,203.3 864.7,197.9 883.9,186.5 903.2,165.3 922.4,152.3 941.7,141.6 960.9,136.6 980.2,134.6 999.4,122.7 1018.6,119.2 1037.9,112.0 1057.1,102.8 1076.4,102.6" fill="none" stroke="#ffb02e" stroke-width="2"/>
+<polyline points="191.1,379.8 210.3,362.2 229.6,342.3 248.8,348.6 268.1,327.7 287.3,339.2 306.6,335.4 325.8,337.7 345.1,353.5 364.3,368.4 383.5,373.5 402.8,405.1 422.0,402.1 441.3,412.3 460.5,402.0 479.8,396.0 499.0,390.3 518.3,406.3 537.5,404.1 556.8,404.4 576.0,383.6 595.2,404.0 614.5,413.3 633.7,406.4 653.0,383.4 672.2,355.0 691.5,339.3 710.7,343.7 730.0,320.2 749.2,300.0 768.5,270.4 787.7,281.7 806.9,287.1 826.2,303.9 845.4,325.7 864.7,342.9 883.9,337.3 903.2,335.3 922.4,321.3 941.7,321.9 960.9,313.3 980.2,310.5 999.4,295.0 1018.6,313.7 1037.9,347.2 1057.1,356.2 1076.4,381.2" fill="none" stroke="#e5e7eb" stroke-width="1.2" opacity="0.65"/>
+<circle cx="75.6" cy="472.9" r="2.6" fill="#ffb02e"/>
+<circle cx="94.9" cy="472.3" r="2.6" fill="#ffb02e"/>
+<circle cx="114.1" cy="458.6" r="2.6" fill="#ffb02e"/>
+<circle cx="133.4" cy="453.7" r="2.6" fill="#ffb02e"/>
+<circle cx="152.6" cy="448.2" r="2.6" fill="#ffb02e"/>
+<circle cx="171.8" cy="442.4" r="2.6" fill="#ffb02e"/>
+<circle cx="191.1" cy="434.4" r="2.6" fill="#ffb02e"/>
+<circle cx="210.3" cy="425.9" r="2.6" fill="#ffb02e"/>
+<circle cx="229.6" cy="416.9" r="2.6" fill="#ffb02e"/>
+<circle cx="248.8" cy="405.9" r="2.6" fill="#ffb02e"/>
+<circle cx="268.1" cy="392.2" r="2.6" fill="#ffb02e"/>
+<circle cx="287.3" cy="391.5" r="2.6" fill="#ffb02e"/>
+<circle cx="306.6" cy="384.1" r="2.6" fill="#ffb02e"/>
+<circle cx="325.8" cy="377.2" r="2.6" fill="#ffb02e"/>
+<circle cx="345.1" cy="375.3" r="2.6" fill="#ffb02e"/>
+<circle cx="364.3" cy="372.6" r="2.6" fill="#ffb02e"/>
+<circle cx="383.5" cy="363.7" r="2.6" fill="#ffb02e"/>
+<circle cx="402.8" cy="363.3" r="2.6" fill="#ffb02e"/>
+<circle cx="422.0" cy="361.4" r="2.6" fill="#ffb02e"/>
+<circle cx="441.3" cy="358.2" r="2.6" fill="#ffb02e"/>
+<circle cx="460.5" cy="346.9" r="2.6" fill="#ffb02e"/>
+<circle cx="479.8" cy="342.5" r="2.6" fill="#ffb02e"/>
+<circle cx="499.0" cy="337.4" r="2.6" fill="#ffb02e"/>
+<circle cx="518.3" cy="335.3" r="2.6" fill="#ffb02e"/>
+<circle cx="537.5" cy="334.0" r="2.6" fill="#ffb02e"/>
+<circle cx="556.8" cy="332.1" r="2.6" fill="#ffb02e"/>
+<circle cx="576.0" cy="320.3" r="2.6" fill="#ffb02e"/>
+<circle cx="595.2" cy="317.5" r="2.6" fill="#ffb02e"/>
+<circle cx="614.5" cy="317.0" r="2.6" fill="#ffb02e"/>
+<circle cx="633.7" cy="309.0" r="2.6" fill="#ffb02e"/>
+<circle cx="653.0" cy="297.2" r="2.6" fill="#ffb02e"/>
+<circle cx="672.2" cy="284.0" r="2.6" fill="#ffb02e"/>
+<circle cx="691.5" cy="275.6" r="2.6" fill="#ffb02e"/>
+<circle cx="710.7" cy="265.6" r="2.6" fill="#ffb02e"/>
+<circle cx="730.0" cy="252.9" r="2.6" fill="#ffb02e"/>
+<circle cx="749.2" cy="243.9" r="2.6" fill="#ffb02e"/>
+<circle cx="768.5" cy="223.5" r="2.6" fill="#ffb02e"/>
+<circle cx="787.7" cy="216.5" r="2.6" fill="#ffb02e"/>
+<circle cx="806.9" cy="205.5" r="2.6" fill="#ffb02e"/>
+<circle cx="826.2" cy="204.1" r="2.6" fill="#ffb02e"/>
+<circle cx="845.4" cy="203.3" r="2.6" fill="#ffb02e"/>
+<circle cx="864.7" cy="197.9" r="2.6" fill="#ffb02e"/>
+<circle cx="883.9" cy="186.5" r="2.6" fill="#ffb02e"/>
+<circle cx="903.2" cy="165.3" r="2.6" fill="#ffb02e"/>
+<circle cx="922.4" cy="152.3" r="2.6" fill="#ffb02e"/>
+<circle cx="941.7" cy="141.6" r="2.6" fill="#ffb02e"/>
+<circle cx="960.9" cy="136.6" r="2.6" fill="#ffb02e"/>
+<circle cx="980.2" cy="134.6" r="2.6" fill="#ffb02e"/>
+<circle cx="999.4" cy="122.7" r="2.6" fill="#ffb02e"/>
+<circle cx="1018.6" cy="119.2" r="2.6" fill="#ffb02e"/>
+<circle cx="1037.9" cy="112.0" r="2.6" fill="#ffb02e"/>
+<circle cx="1057.1" cy="102.8" r="2.6" fill="#ffb02e"/>
+<circle cx="1076.4" cy="102.6" r="2.6" fill="#ffb02e"/>
 <line id="xg" x1="0" x2="0" y1="56" y2="474" stroke="#8a919c" stroke-opacity="0" stroke-width="1" stroke-dasharray="3,3"/>
-<rect class="ov" data-x="75.8" x="66.0" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-08 · 0.27 亿 · 输入 0.27 亿 / 输出 0.000 亿 · 68 请求（残段下界）"></rect>
-<rect class="ov" data-x="95.4" x="85.6" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-09 · 0.15 亿 · 输入 0.15 亿 / 输出 0.000 亿 · 37 请求（残段下界）"></rect>
-<rect class="ov" data-x="115.0" x="105.2" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-10 · 3.26 亿 · 输入 1.26 亿 / 输出 0.001 亿 · 1472 请求"></rect>
-<rect class="ov" data-x="134.7" x="124.8" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-11 · 1.19 亿 · 输入 1.18 亿 / 输出 0.002 亿 · 511 请求"></rect>
-<rect class="ov" data-x="154.3" x="144.5" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-12 · 1.32 亿 · 输入 1.31 亿 / 输出 0.003 亿 · 488 请求"></rect>
-<rect class="ov" data-x="173.9" x="164.1" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-13 · 1.38 亿 · 输入 1.38 亿 / 输出 0.003 亿 · 568 请求"></rect>
-<rect class="ov" data-x="193.5" x="183.7" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-14 · 1.90 亿 · 输入 1.90 亿 / 输出 0.002 亿 · 501 请求"></rect>
-<rect class="ov" data-x="213.1" x="203.3" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-15 · 2.03 亿 · 输入 2.03 亿 / 输出 0.003 亿 · 510 请求"></rect>
-<rect class="ov" data-x="232.7" x="222.9" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-16 · 2.15 亿 · 输入 2.15 亿 / 输出 0.004 亿 · 592 请求"></rect>
-<rect class="ov" data-x="252.3" x="242.5" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-17 · 2.63 亿 · 输入 2.62 亿 / 输出 0.005 亿 · 967 请求"></rect>
-<rect class="ov" data-x="272.0" x="262.2" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-18 · 3.28 亿 · 输入 3.28 亿 / 输出 0.003 亿 · 854 请求"></rect>
-<rect class="ov" data-x="291.6" x="281.8" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-19 · 0.17 亿 · 输入 0.16 亿 / 输出 0.001 亿 · 101 请求"></rect>
-<rect class="ov" data-x="311.2" x="301.4" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-20 · 1.77 亿 · 输入 1.77 亿 / 输出 0.005 亿 · 947 请求"></rect>
-<rect class="ov" data-x="330.8" x="321.0" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-21 · 1.67 亿 · 输入 1.67 亿 / 输出 0.002 亿 · 444 请求"></rect>
-<rect class="ov" data-x="350.4" x="340.6" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-22 · 0.45 亿 · 输入 0.44 亿 / 输出 0.002 亿 · 466 请求"></rect>
-<rect class="ov" data-x="370.0" x="360.2" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-23 · 0.65 亿 · 输入 0.65 亿 / 输出 0.004 亿 · 573 请求"></rect>
-<rect class="ov" data-x="389.7" x="379.8" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-24 · 2.12 亿 · 输入 2.11 亿（缓存读 0.00）/ 输出 0.008 亿 · 1226 请求"></rect>
-<rect class="ov" data-x="409.3" x="399.5" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-25 · 0.10 亿 · 输入 0.10 亿（缓存读 0.09）/ 输出 0.002 亿 · 239 请求"></rect>
-<rect class="ov" data-x="428.9" x="419.1" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-26 · 0.47 亿 · 输入 0.46 亿（缓存读 0.45）/ 输出 0.002 亿 · 303 请求"></rect>
-<rect class="ov" data-x="448.5" x="438.7" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-27 · 0.75 亿 · 输入 0.74 亿（缓存读 0.72）/ 输出 0.004 亿 · 473 请求"></rect>
-<rect class="ov" data-x="468.1" x="458.3" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-28 · 2.70 亿 · 输入 2.70 亿（缓存读 2.58）/ 输出 0.007 亿 · 1278 请求"></rect>
-<rect class="ov" data-x="487.7" x="477.9" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-29 · 1.06 亿 · 输入 1.05 亿（缓存读 0.97）/ 输出 0.007 亿 · 826 请求"></rect>
-<rect class="ov" data-x="507.3" x="497.5" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-09-30 · 1.22 亿 · 输入 1.21 亿（缓存读 1.13）/ 输出 0.005 亿 · 982 请求"></rect>
-<rect class="ov" data-x="527.0" x="517.2" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-01 · 0.52 亿 · 输入 0.52 亿（缓存读 0.49）/ 输出 0.005 亿 · 570 请求"></rect>
-<rect class="ov" data-x="546.6" x="536.8" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-02 · 0.31 亿 · 输入 0.31 亿（缓存读 0.30）/ 输出 0.001 亿 · 192 请求"></rect>
-<rect class="ov" data-x="566.2" x="556.4" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-03 · 0.44 亿 · 输入 0.44 亿（缓存读 0.40）/ 输出 0.001 亿 · 547 请求"></rect>
-<rect class="ov" data-x="585.8" x="576.0" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-04 · 2.84 亿 · 输入 2.83 亿（缓存读 1.85）/ 输出 0.010 亿 · 1545 请求"></rect>
-<rect class="ov" data-x="605.4" x="595.6" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-05 · 0.66 亿 · 输入 0.66 亿（缓存读 0.59）/ 输出 0.001 亿 · 136 请求"></rect>
-<rect class="ov" data-x="625.0" x="615.2" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-06 · 0.13 亿 · 输入 0.13 亿（缓存读 0.08）/ 输出 0.001 亿 · 93 请求"></rect>
-<rect class="ov" data-x="644.7" x="634.8" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-07 · 1.91 亿 · 输入 1.90 亿（缓存读 1.79）/ 输出 0.006 亿 · 1080 请求"></rect>
-<rect class="ov" data-x="664.3" x="654.5" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-08 · 2.83 亿 · 输入 2.82 亿（缓存读 2.62）/ 输出 0.007 亿 · 1159 请求"></rect>
-<rect class="ov" data-x="683.9" x="674.1" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-09 · 3.17 亿 · 输入 3.15 亿（缓存读 2.82）/ 输出 0.016 亿 · 1578 请求"></rect>
-<rect class="ov" data-x="703.5" x="693.7" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-10 · 2.01 亿 · 输入 2.00 亿（缓存读 1.79）/ 输出 0.012 亿 · 1217 请求"></rect>
-<rect class="ov" data-x="723.1" x="713.3" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-11 · 2.39 亿 · 输入 2.36 亿（缓存读 2.26）/ 输出 0.028 亿 · 2204 请求"></rect>
-<rect class="ov" data-x="742.7" x="732.9" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-12 · 3.03 亿 · 输入 3.02 亿（缓存读 2.88）/ 输出 0.010 亿 · 1033 请求"></rect>
-<rect class="ov" data-x="762.3" x="752.5" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-13 · 2.16 亿 · 输入 2.15 亿（缓存读 1.93）/ 输出 0.010 亿 · 1309 请求"></rect>
-<rect class="ov" data-x="782.0" x="772.2" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-14 · 4.88 亿 · 输入 4.86 亿（缓存读 4.64）/ 输出 0.016 亿 · 2122 请求"></rect>
-<rect class="ov" data-x="801.6" x="791.8" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-15 · 1.69 亿 · 输入 1.68 亿（缓存读 1.55）/ 输出 0.006 亿 · 1092 请求"></rect>
-<rect class="ov" data-x="821.2" x="811.4" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-16 · 2.62 亿 · 输入 2.61 亿（缓存读 2.52）/ 输出 0.010 亿 · 1271 请求"></rect>
-<rect class="ov" data-x="840.8" x="831.0" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-17 · 0.33 亿 · 输入 0.32 亿（缓存读 0.30）/ 输出 0.006 亿 · 274 请求"></rect>
-<rect class="ov" data-x="860.4" x="850.6" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-18 · 0.20 亿 · 输入 0.20 亿（缓存读 0.18）/ 输出 0.001 亿 · 59 请求"></rect>
-<rect class="ov" data-x="880.0" x="870.2" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-19 · 1.30 亿 · 输入 1.30 亿（缓存读 1.18）/ 输出 0.005 亿 · 702 请求"></rect>
-<rect class="ov" data-x="899.7" x="889.8" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-20 · 2.72 亿 · 输入 2.71 亿（缓存读 2.59）/ 输出 0.007 亿 · 964 请求"></rect>
-<rect class="ov" data-x="919.3" x="909.5" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-21 · 5.08 亿 · 输入 5.06 亿（缓存读 4.82）/ 输出 0.018 亿 · 2053 请求"></rect>
-<rect class="ov" data-x="938.9" x="929.1" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-22 · 3.10 亿 · 输入 3.09 亿（缓存读 2.95）/ 输出 0.008 亿 · 1562 请求"></rect>
-<rect class="ov" data-x="958.5" x="948.7" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-23 · 2.56 亿 · 输入 2.55 亿（缓存读 2.35）/ 输出 0.007 亿 · 1164 请求"></rect>
-<rect class="ov" data-x="978.1" x="968.3" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-24 · 1.19 亿 · 输入 1.19 亿（缓存读 1.15）/ 输出 0.002 亿 · 228 请求"></rect>
-<rect class="ov" data-x="997.7" x="987.9" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-25 · 0.48 亿 · 输入 0.48 亿（缓存读 0.45）/ 输出 0.001 亿 · 245 请求"></rect>
-<rect class="ov" data-x="1017.3" x="1007.5" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-26 · 2.86 亿 · 输入 2.85 亿（缓存读 2.51）/ 输出 0.011 亿 · 1521 请求"></rect>
-<rect class="ov" data-x="1037.0" x="1027.2" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-27 · 0.84 亿 · 输入 0.84 亿（缓存读 0.68）/ 输出 0.003 亿 · 625 请求"></rect>
-<rect class="ov" data-x="1056.6" x="1046.8" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-28 · 1.72 亿 · 输入 1.71 亿（缓存读 1.43）/ 输出 0.005 亿 · 970 请求"></rect>
-<rect class="ov" data-x="1076.2" x="1066.4" y="56" width="19.6" height="418" fill="transparent" data-tip="2026-10-29 · 2.19 亿 · 输入 2.18 亿（缓存读 2.04）/ 输出 0.009 亿 · 1231 请求"></rect>
-<text x="919.3" y="112.2" text-anchor="middle" font-size="12" fill="#d7dbe2">5.08</text>
-<text x="1076.2" y="313.4" text-anchor="middle" font-size="12" fill="#d7dbe2">2.19</text>
-<text x="1070.2" y="92.8" text-anchor="end" font-size="13" font-weight="500" fill="#ffb02e">88.80 亿</text>
+<rect class="ov" data-x="75.6" x="66.0" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-08 · 0.27 亿 · 输入 0.27 亿 / 输出 0.000 亿 · 68 请求（残段下界）"></rect>
+<rect class="ov" data-x="94.9" x="85.2" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-09 · 0.15 亿 · 输入 0.15 亿 / 输出 0.000 亿 · 37 请求（残段下界）"></rect>
+<rect class="ov" data-x="114.1" x="104.5" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-10 · 3.26 亿 · 输入 1.26 亿 / 输出 0.001 亿 · 1472 请求"></rect>
+<rect class="ov" data-x="133.4" x="123.7" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-11 · 1.19 亿 · 输入 1.18 亿 / 输出 0.002 亿 · 511 请求"></rect>
+<rect class="ov" data-x="152.6" x="143.0" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-12 · 1.32 亿 · 输入 1.31 亿 / 输出 0.003 亿 · 488 请求"></rect>
+<rect class="ov" data-x="171.8" x="162.2" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-13 · 1.38 亿 · 输入 1.38 亿 / 输出 0.003 亿 · 568 请求"></rect>
+<rect class="ov" data-x="191.1" x="181.5" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-14 · 1.90 亿 · 输入 1.90 亿 / 输出 0.002 亿 · 501 请求"></rect>
+<rect class="ov" data-x="210.3" x="200.7" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-15 · 2.03 亿 · 输入 2.03 亿 / 输出 0.003 亿 · 510 请求"></rect>
+<rect class="ov" data-x="229.6" x="220.0" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-16 · 2.15 亿 · 输入 2.15 亿 / 输出 0.004 亿 · 592 请求"></rect>
+<rect class="ov" data-x="248.8" x="239.2" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-17 · 2.63 亿 · 输入 2.62 亿 / 输出 0.005 亿 · 967 请求"></rect>
+<rect class="ov" data-x="268.1" x="258.5" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-18 · 3.28 亿 · 输入 3.28 亿 / 输出 0.003 亿 · 854 请求"></rect>
+<rect class="ov" data-x="287.3" x="277.7" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-19 · 0.17 亿 · 输入 0.16 亿 / 输出 0.001 亿 · 101 请求"></rect>
+<rect class="ov" data-x="306.6" x="296.9" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-20 · 1.77 亿 · 输入 1.77 亿 / 输出 0.005 亿 · 947 请求"></rect>
+<rect class="ov" data-x="325.8" x="316.2" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-21 · 1.67 亿 · 输入 1.67 亿 / 输出 0.002 亿 · 444 请求"></rect>
+<rect class="ov" data-x="345.1" x="335.4" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-22 · 0.45 亿 · 输入 0.44 亿 / 输出 0.002 亿 · 466 请求"></rect>
+<rect class="ov" data-x="364.3" x="354.7" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-23 · 0.65 亿 · 输入 0.65 亿 / 输出 0.004 亿 · 573 请求"></rect>
+<rect class="ov" data-x="383.5" x="373.9" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-24 · 2.12 亿 · 输入 2.11 亿（缓存读 0.00）/ 输出 0.008 亿 · 1226 请求"></rect>
+<rect class="ov" data-x="402.8" x="393.2" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-25 · 0.10 亿 · 输入 0.10 亿（缓存读 0.09）/ 输出 0.002 亿 · 239 请求"></rect>
+<rect class="ov" data-x="422.0" x="412.4" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-26 · 0.47 亿 · 输入 0.46 亿（缓存读 0.45）/ 输出 0.002 亿 · 303 请求"></rect>
+<rect class="ov" data-x="441.3" x="431.7" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-27 · 0.75 亿 · 输入 0.74 亿（缓存读 0.72）/ 输出 0.004 亿 · 473 请求"></rect>
+<rect class="ov" data-x="460.5" x="450.9" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-28 · 2.70 亿 · 输入 2.70 亿（缓存读 2.58）/ 输出 0.007 亿 · 1278 请求"></rect>
+<rect class="ov" data-x="479.8" x="470.2" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-29 · 1.06 亿 · 输入 1.05 亿（缓存读 0.97）/ 输出 0.007 亿 · 826 请求"></rect>
+<rect class="ov" data-x="499.0" x="489.4" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-09-30 · 1.22 亿 · 输入 1.21 亿（缓存读 1.13）/ 输出 0.005 亿 · 982 请求"></rect>
+<rect class="ov" data-x="518.3" x="508.6" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-01 · 0.52 亿 · 输入 0.52 亿（缓存读 0.49）/ 输出 0.005 亿 · 570 请求"></rect>
+<rect class="ov" data-x="537.5" x="527.9" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-02 · 0.31 亿 · 输入 0.31 亿（缓存读 0.30）/ 输出 0.001 亿 · 192 请求"></rect>
+<rect class="ov" data-x="556.8" x="547.1" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-03 · 0.44 亿 · 输入 0.44 亿（缓存读 0.40）/ 输出 0.001 亿 · 547 请求"></rect>
+<rect class="ov" data-x="576.0" x="566.4" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-04 · 2.84 亿 · 输入 2.83 亿（缓存读 1.85）/ 输出 0.010 亿 · 1545 请求"></rect>
+<rect class="ov" data-x="595.2" x="585.6" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-05 · 0.66 亿 · 输入 0.66 亿（缓存读 0.59）/ 输出 0.001 亿 · 136 请求"></rect>
+<rect class="ov" data-x="614.5" x="604.9" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-06 · 0.13 亿 · 输入 0.13 亿（缓存读 0.08）/ 输出 0.001 亿 · 93 请求"></rect>
+<rect class="ov" data-x="633.7" x="624.1" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-07 · 1.91 亿 · 输入 1.90 亿（缓存读 1.79）/ 输出 0.006 亿 · 1080 请求"></rect>
+<rect class="ov" data-x="653.0" x="643.4" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-08 · 2.83 亿 · 输入 2.82 亿（缓存读 2.62）/ 输出 0.007 亿 · 1159 请求"></rect>
+<rect class="ov" data-x="672.2" x="662.6" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-09 · 3.17 亿 · 输入 3.15 亿（缓存读 2.82）/ 输出 0.016 亿 · 1578 请求"></rect>
+<rect class="ov" data-x="691.5" x="681.8" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-10 · 2.01 亿 · 输入 2.00 亿（缓存读 1.79）/ 输出 0.012 亿 · 1217 请求"></rect>
+<rect class="ov" data-x="710.7" x="701.1" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-11 · 2.39 亿 · 输入 2.36 亿（缓存读 2.26）/ 输出 0.028 亿 · 2204 请求"></rect>
+<rect class="ov" data-x="730.0" x="720.3" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-12 · 3.03 亿 · 输入 3.02 亿（缓存读 2.88）/ 输出 0.010 亿 · 1033 请求"></rect>
+<rect class="ov" data-x="749.2" x="739.6" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-13 · 2.16 亿 · 输入 2.15 亿（缓存读 1.93）/ 输出 0.010 亿 · 1309 请求"></rect>
+<rect class="ov" data-x="768.5" x="758.8" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-14 · 4.88 亿 · 输入 4.86 亿（缓存读 4.64）/ 输出 0.016 亿 · 2122 请求"></rect>
+<rect class="ov" data-x="787.7" x="778.1" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-15 · 1.69 亿 · 输入 1.68 亿（缓存读 1.55）/ 输出 0.006 亿 · 1092 请求"></rect>
+<rect class="ov" data-x="806.9" x="797.3" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-16 · 2.62 亿 · 输入 2.61 亿（缓存读 2.52）/ 输出 0.010 亿 · 1271 请求"></rect>
+<rect class="ov" data-x="826.2" x="816.6" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-17 · 0.33 亿 · 输入 0.32 亿（缓存读 0.30）/ 输出 0.006 亿 · 274 请求"></rect>
+<rect class="ov" data-x="845.4" x="835.8" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-18 · 0.20 亿 · 输入 0.20 亿（缓存读 0.18）/ 输出 0.001 亿 · 59 请求"></rect>
+<rect class="ov" data-x="864.7" x="855.1" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-19 · 1.30 亿 · 输入 1.30 亿（缓存读 1.18）/ 输出 0.005 亿 · 702 请求"></rect>
+<rect class="ov" data-x="883.9" x="874.3" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-20 · 2.72 亿 · 输入 2.71 亿（缓存读 2.59）/ 输出 0.007 亿 · 964 请求"></rect>
+<rect class="ov" data-x="903.2" x="893.5" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-21 · 5.08 亿 · 输入 5.06 亿（缓存读 4.82）/ 输出 0.018 亿 · 2053 请求"></rect>
+<rect class="ov" data-x="922.4" x="912.8" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-22 · 3.10 亿 · 输入 3.09 亿（缓存读 2.95）/ 输出 0.008 亿 · 1562 请求"></rect>
+<rect class="ov" data-x="941.7" x="932.0" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-23 · 2.56 亿 · 输入 2.55 亿（缓存读 2.35）/ 输出 0.007 亿 · 1164 请求"></rect>
+<rect class="ov" data-x="960.9" x="951.3" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-24 · 1.19 亿 · 输入 1.19 亿（缓存读 1.15）/ 输出 0.002 亿 · 228 请求"></rect>
+<rect class="ov" data-x="980.2" x="970.5" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-25 · 0.48 亿 · 输入 0.48 亿（缓存读 0.45）/ 输出 0.001 亿 · 245 请求"></rect>
+<rect class="ov" data-x="999.4" x="989.8" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-26 · 2.86 亿 · 输入 2.85 亿（缓存读 2.51）/ 输出 0.011 亿 · 1521 请求"></rect>
+<rect class="ov" data-x="1018.6" x="1009.0" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-27 · 0.84 亿 · 输入 0.84 亿（缓存读 0.68）/ 输出 0.003 亿 · 625 请求"></rect>
+<rect class="ov" data-x="1037.9" x="1028.3" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-28 · 1.72 亿 · 输入 1.71 亿（缓存读 1.43）/ 输出 0.005 亿 · 970 请求"></rect>
+<rect class="ov" data-x="1057.1" x="1047.5" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-29 · 2.19 亿 · 输入 2.18 亿（缓存读 2.04）/ 输出 0.009 亿 · 1231 请求"></rect>
+<rect class="ov" data-x="1076.4" x="1066.8" y="56" width="19.2" height="418" fill="transparent" data-tip="2026-10-30 · 0.05 亿 · 输入 0.05 亿（缓存读 0.04）/ 输出 0.000 亿 · 48 请求"></rect>
+<text x="903.2" y="112.2" text-anchor="middle" font-size="12" fill="#d7dbe2">5.08</text>
+<text x="1076.4" y="462.5" text-anchor="middle" font-size="12" fill="#d7dbe2">0.05</text>
+<text x="1070.4" y="92.6" text-anchor="end" font-size="13" font-weight="500" fill="#ffb02e">88.85 亿</text>
 </svg>
 </div>
-<p class="foot">※ 灰柱（09-08 / 09-09）为 30 天剪切造成的残段下界，真值略高；累计 88.80 亿为保守下界；末柱为当日进行中值。悬停任意位置可看当天 输入/输出 构成（输入含缓存读，是重读上下文的量，实际成本远低于字面量）。账本每天 23:58 与 12:01 各快照一次，只增不减。</p>
+<p class="foot">※ 灰柱（09-08 / 09-09）为 30 天剪切造成的残段下界，真值略高；累计 88.85 亿为保守下界；末柱为当日进行中值。悬停任意位置可看当天 输入/输出 构成（输入含缓存读，是重读上下文的量，实际成本远低于字面量）。账本每天 23:58 与 12:01 各快照一次，只增不减。</p>
 </div>
 <section id="models">
-<h2>模型累计 Top 10（全周期 2026-09-08 → 2026-10-29）</h2>
+<div class="sec-hd">
+  <h2 id="top10-title">模型累计 Top 10（全周期 2026-09-08 → 2026-10-30）</h2>
+  <div class="filter-bar">
+    <div class="filter-chips">
+      <button type="button" class="f-btn active" data-range="all">全部</button>
+      <button type="button" class="f-btn" data-range="30d">近 30 天</button>
+      <button type="button" class="f-btn" data-range="7d">近 7 天</button>
+      <button type="button" class="f-btn" data-range="month">本月</button>
+    </div>
+    <div class="filter-custom">
+      <input type="date" id="f-start" value="2026-09-08" min="2026-09-08" max="2026-10-30">
+      <span class="f-sep">至</span>
+      <input type="date" id="f-end" value="2026-10-30" min="2026-09-08" max="2026-10-30">
+    </div>
+  </div>
+</div>
 <div class="panel">
-<div class="cs">
-<svg width="1160" height="376" viewBox="0 0 1160 376" role="img" aria-label="模型累计 Top 10，2026-09-08 至 2026-10-29 全周期">
+<div class="cs" id="top10-svg-wrap">
+<svg width="1160" height="376" viewBox="0 0 1160 376" role="img" aria-label="模型累计 Top 10，2026-09-08 至 2026-10-30 全周期">
 <text x="210" y="37" text-anchor="end" font-size="12" fill="#d7dbe2">gemini-3.8-flash-high</text>
-<rect x="220" y="22" width="228.3" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="gemini-3.8-flash-high · 28.94 亿 · 11,297 次 · 占全周期 32.6% · 含早期估算"></rect>
-<text x="458.3" y="37" font-size="12" fill="#d7dbe2">28.94 亿 <tspan fill="#8a919c">· 11,297 次 · 32.6% · 含早期估算</tspan></text>
+<rect x="220" y="22" width="228.1" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="gemini-3.8-flash-high · 28.94 亿 · 11,297 次 · 占全周期 32.6% · 含早期估算"></rect>
+<text x="458.1" y="37" font-size="12" fill="#d7dbe2">28.94 亿 <tspan fill="#8a919c">· 11,297 次 · 32.6% · 含早期估算</tspan></text>
 <text x="210" y="71" text-anchor="end" font-size="12" fill="#d7dbe2">step-5-preview</text>
-<rect x="220" y="56" width="144.2" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="step-5-preview · 18.28 亿 · 9,117 次 · 占全周期 20.6%"></rect>
-<text x="374.2" y="71" font-size="12" fill="#d7dbe2">18.28 亿 <tspan fill="#8a919c">· 9,117 次 · 20.6%</tspan></text>
+<rect x="220" y="56" width="144.1" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="step-5-preview · 18.28 亿 · 9,117 次 · 占全周期 20.6%"></rect>
+<text x="374.1" y="71" font-size="12" fill="#d7dbe2">18.28 亿 <tspan fill="#8a919c">· 9,117 次 · 20.6%</tspan></text>
 <text x="210" y="105" text-anchor="end" font-size="12" fill="#d7dbe2">GLM-5.3-Flash</text>
-<rect x="220" y="90" width="104.8" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="GLM-5.3-Flash · 13.29 亿 · 6,785 次 · 占全周期 15.0% · 含早期估算"></rect>
-<text x="334.8" y="105" font-size="12" fill="#d7dbe2">13.29 亿 <tspan fill="#8a919c">· 6,785 次 · 15.0% · 含早期估算</tspan></text>
+<rect x="220" y="90" width="104.7" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="GLM-5.3-Flash · 13.29 亿 · 6,785 次 · 占全周期 15.0% · 含早期估算"></rect>
+<text x="334.7" y="105" font-size="12" fill="#d7dbe2">13.29 亿 <tspan fill="#8a919c">· 6,785 次 · 15.0% · 含早期估算</tspan></text>
 <text x="210" y="139" text-anchor="end" font-size="12" fill="#d7dbe2">deepseek-v4.1-flash</text>
 <rect x="220" y="124" width="61.1" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="deepseek-v4.1-flash · 7.75 亿 · 2,873 次 · 占全周期 8.7%"></rect>
 <text x="291.1" y="139" font-size="12" fill="#d7dbe2">7.75 亿 <tspan fill="#8a919c">· 2,873 次 · 8.7%</tspan></text>
@@ -314,216 +349,217 @@
 <rect x="220" y="192" width="27.5" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="GLM-5.3 · 3.49 亿 · 2,824 次 · 占全周期 3.9%"></rect>
 <text x="257.5" y="207" font-size="12" fill="#d7dbe2">3.49 亿 <tspan fill="#8a919c">· 2,824 次 · 3.9%</tspan></text>
 <text x="210" y="241" text-anchor="end" font-size="12" fill="#d7dbe2">muse-spark-1.3-contributor</text>
-<rect x="220" y="226" width="12.6" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="muse-spark-1.3-contributor · 1.59 亿 · 1,294 次 · 占全周期 1.8%"></rect>
-<text x="242.6" y="241" font-size="12" fill="#d7dbe2">1.59 亿 <tspan fill="#8a919c">· 1,294 次 · 1.8%</tspan></text>
+<rect x="220" y="226" width="12.5" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="muse-spark-1.3-contributor · 1.59 亿 · 1,294 次 · 占全周期 1.8%"></rect>
+<text x="242.5" y="241" font-size="12" fill="#d7dbe2">1.59 亿 <tspan fill="#8a919c">· 1,294 次 · 1.8%</tspan></text>
 <text x="210" y="275" text-anchor="end" font-size="12" fill="#d7dbe2">grok-4.6</text>
-<rect x="220" y="260" width="9.4" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="grok-4.6 · 1.19 亿 · 511 次 · 占全周期 1.3% · 含早期估算"></rect>
-<text x="239.4" y="275" font-size="12" fill="#d7dbe2">1.19 亿 <tspan fill="#8a919c">· 511 次 · 1.3% · 含早期估算</tspan></text>
+<rect x="220" y="260" width="9.3" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="grok-4.6 · 1.19 亿 · 511 次 · 占全周期 1.3% · 含早期估算"></rect>
+<text x="239.3" y="275" font-size="12" fill="#d7dbe2">1.19 亿 <tspan fill="#8a919c">· 511 次 · 1.3% · 含早期估算</tspan></text>
 <text x="210" y="309" text-anchor="end" font-size="12" fill="#d7dbe2">group/glm</text>
-<rect x="220" y="294" width="8.8" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="group/glm · 1.11 亿 · 545 次 · 占全周期 1.3%"></rect>
-<text x="238.8" y="309" font-size="12" fill="#d7dbe2">1.11 亿 <tspan fill="#8a919c">· 545 次 · 1.3%</tspan></text>
+<rect x="220" y="294" width="8.7" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="group/glm · 1.11 亿 · 545 次 · 占全周期 1.2%"></rect>
+<text x="238.7" y="309" font-size="12" fill="#d7dbe2">1.11 亿 <tspan fill="#8a919c">· 545 次 · 1.2%</tspan></text>
 <text x="210" y="343" text-anchor="end" font-size="12" fill="#d7dbe2">antigravity/gemini-3.8-flash</text>
-<rect x="220" y="328" width="8.2" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="antigravity/gemini-3.8-flash · 1.04 亿 · 524 次 · 占全周期 1.2%"></rect>
-<text x="238.2" y="343" font-size="12" fill="#d7dbe2">1.04 亿 <tspan fill="#8a919c">· 524 次 · 1.2%</tspan></text>
+<rect x="220" y="328" width="8.6" height="20" rx="3" fill="#3f8cff" opacity="0.9" data-tip="antigravity/gemini-3.8-flash · 1.10 亿 · 572 次 · 占全周期 1.2%"></rect>
+<text x="238.6" y="343" font-size="12" fill="#d7dbe2">1.10 亿 <tspan fill="#8a919c">· 572 次 · 1.2%</tspan></text>
 </svg>
 </div>
-<p class="foot">全周期口径：09-14 起来自每日模型明细账（精确；09-13 为建账首日、仅含 14:47 后部分）；09-08→09-12 共 5 天（6.18 亿，占 7.0%）按当日主力模型整天记账估算。</p>
+<p class="foot" id="top10-foot">全周期口径：09-14 起来自每日模型明细账（精确；09-13 为建账首日、仅含 14:47 后部分）；09-08→09-12 共 5 天（6.18 亿，占 7.0%）按当日主力模型整天记账估算。</p>
 </div>
 </section>
 <section id="heat">
 <h2>模型 × 日期 热力图</h2>
 <div class="panel">
 <div class="cs">
-<svg width="1160" height="236" viewBox="0 0 1160 236" role="img" aria-label="模型乘日期用量热力图，2026-09-08 至 2026-10-29">
+<svg width="1160" height="236" viewBox="0 0 1160 236" role="img" aria-label="模型乘日期用量热力图，2026-09-08 至 2026-10-30">
 <text x="207" y="20" text-anchor="end" font-size="11" fill="#d7dbe2">gemini-3.8-flash-high</text>
-<rect class="hcell" data-col="5" x="304.9" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.51" data-tip="gemini-3.8-flash-high · 2026-09-13 · 1.233 亿"></rect>
-<rect class="hcell" data-col="6" x="322.7" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.68" data-tip="gemini-3.8-flash-high · 2026-09-14 · 1.739 亿"></rect>
-<rect class="hcell" data-col="7" x="340.5" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.41" data-tip="gemini-3.8-flash-high · 2026-09-15 · 0.945 亿"></rect>
-<rect class="hcell" data-col="8" x="358.3" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.59" data-tip="gemini-3.8-flash-high · 2026-09-16 · 1.475 亿"></rect>
-<rect class="hcell" data-col="9" x="376.1" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="gemini-3.8-flash-high · 2026-09-17 · 2.363 亿"></rect>
-<rect class="hcell" data-col="10" x="393.9" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.52" data-tip="gemini-3.8-flash-high · 2026-09-18 · 1.270 亿"></rect>
-<rect class="hcell" data-col="13" x="447.2" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.8-flash-high · 2026-09-21 · 0.240 亿"></rect>
-<rect class="hcell" data-col="21" x="589.6" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="gemini-3.8-flash-high · 2026-09-29 · 0.078 亿"></rect>
-<rect class="hcell" data-col="23" x="625.1" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.17" data-tip="gemini-3.8-flash-high · 2026-10-01 · 0.253 亿"></rect>
-<rect class="hcell" data-col="26" x="678.5" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.71" data-tip="gemini-3.8-flash-high · 2026-10-04 · 1.823 亿"></rect>
-<rect class="hcell" data-col="27" x="696.3" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.25" data-tip="gemini-3.8-flash-high · 2026-10-05 · 0.480 亿"></rect>
-<rect class="hcell" data-col="30" x="749.7" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.68" data-tip="gemini-3.8-flash-high · 2026-10-08 · 1.718 亿"></rect>
-<rect class="hcell" data-col="32" x="785.2" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="gemini-3.8-flash-high · 2026-10-10 · 0.693 亿"></rect>
-<rect class="hcell" data-col="34" x="820.8" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-12 · 0.008 亿"></rect>
-<rect class="hcell" data-col="35" x="838.6" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="gemini-3.8-flash-high · 2026-10-13 · 0.215 亿"></rect>
-<rect class="hcell" data-col="36" x="856.4" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="gemini-3.8-flash-high · 2026-10-14 · 0.380 亿"></rect>
-<rect class="hcell" data-col="37" x="874.2" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="gemini-3.8-flash-high · 2026-10-15 · 0.171 亿"></rect>
-<rect class="hcell" data-col="38" x="892.0" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.8-flash-high · 2026-10-16 · 0.236 亿"></rect>
-<rect class="hcell" data-col="39" x="909.8" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-17 · 0.002 亿"></rect>
-<rect class="hcell" data-col="41" x="945.3" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="gemini-3.8-flash-high · 2026-10-19 · 0.370 亿"></rect>
-<rect class="hcell" data-col="42" x="963.1" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-20 · 0.002 亿"></rect>
-<rect class="hcell" data-col="43" x="980.9" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.81" data-tip="gemini-3.8-flash-high · 2026-10-21 · 2.090 亿"></rect>
-<rect class="hcell" data-col="44" x="998.7" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="gemini-3.8-flash-high · 2026-10-22 · 1.561 亿"></rect>
-<rect class="hcell" data-col="45" x="1016.5" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.76" data-tip="gemini-3.8-flash-high · 2026-10-23 · 1.953 亿"></rect>
-<rect class="hcell" data-col="46" x="1034.3" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.45" data-tip="gemini-3.8-flash-high · 2026-10-24 · 1.063 亿"></rect>
-<rect class="hcell" data-col="47" x="1052.1" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="gemini-3.8-flash-high · 2026-10-25 · 0.193 亿"></rect>
-<rect class="hcell" data-col="48" x="1069.8" y="7" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.66" data-tip="gemini-3.8-flash-high · 2026-10-26 · 1.659 亿"></rect>
+<rect class="hcell" data-col="5" x="303.3" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.51" data-tip="gemini-3.8-flash-high · 2026-09-13 · 1.233 亿"></rect>
+<rect class="hcell" data-col="6" x="320.7" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.68" data-tip="gemini-3.8-flash-high · 2026-09-14 · 1.739 亿"></rect>
+<rect class="hcell" data-col="7" x="338.2" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.41" data-tip="gemini-3.8-flash-high · 2026-09-15 · 0.945 亿"></rect>
+<rect class="hcell" data-col="8" x="355.6" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.59" data-tip="gemini-3.8-flash-high · 2026-09-16 · 1.475 亿"></rect>
+<rect class="hcell" data-col="9" x="373.1" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="gemini-3.8-flash-high · 2026-09-17 · 2.363 亿"></rect>
+<rect class="hcell" data-col="10" x="390.5" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.52" data-tip="gemini-3.8-flash-high · 2026-09-18 · 1.270 亿"></rect>
+<rect class="hcell" data-col="13" x="442.9" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.8-flash-high · 2026-09-21 · 0.240 亿"></rect>
+<rect class="hcell" data-col="21" x="582.5" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="gemini-3.8-flash-high · 2026-09-29 · 0.078 亿"></rect>
+<rect class="hcell" data-col="23" x="617.4" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.17" data-tip="gemini-3.8-flash-high · 2026-10-01 · 0.253 亿"></rect>
+<rect class="hcell" data-col="26" x="669.8" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.71" data-tip="gemini-3.8-flash-high · 2026-10-04 · 1.823 亿"></rect>
+<rect class="hcell" data-col="27" x="687.2" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.25" data-tip="gemini-3.8-flash-high · 2026-10-05 · 0.480 亿"></rect>
+<rect class="hcell" data-col="30" x="739.6" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.68" data-tip="gemini-3.8-flash-high · 2026-10-08 · 1.718 亿"></rect>
+<rect class="hcell" data-col="32" x="774.5" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="gemini-3.8-flash-high · 2026-10-10 · 0.693 亿"></rect>
+<rect class="hcell" data-col="34" x="809.4" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-12 · 0.008 亿"></rect>
+<rect class="hcell" data-col="35" x="826.8" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="gemini-3.8-flash-high · 2026-10-13 · 0.215 亿"></rect>
+<rect class="hcell" data-col="36" x="844.3" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="gemini-3.8-flash-high · 2026-10-14 · 0.380 亿"></rect>
+<rect class="hcell" data-col="37" x="861.8" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="gemini-3.8-flash-high · 2026-10-15 · 0.171 亿"></rect>
+<rect class="hcell" data-col="38" x="879.2" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.8-flash-high · 2026-10-16 · 0.236 亿"></rect>
+<rect class="hcell" data-col="39" x="896.7" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-17 · 0.002 亿"></rect>
+<rect class="hcell" data-col="41" x="931.6" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="gemini-3.8-flash-high · 2026-10-19 · 0.370 亿"></rect>
+<rect class="hcell" data-col="42" x="949.0" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="gemini-3.8-flash-high · 2026-10-20 · 0.002 亿"></rect>
+<rect class="hcell" data-col="43" x="966.5" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.81" data-tip="gemini-3.8-flash-high · 2026-10-21 · 2.090 亿"></rect>
+<rect class="hcell" data-col="44" x="983.9" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="gemini-3.8-flash-high · 2026-10-22 · 1.561 亿"></rect>
+<rect class="hcell" data-col="45" x="1001.4" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.76" data-tip="gemini-3.8-flash-high · 2026-10-23 · 1.953 亿"></rect>
+<rect class="hcell" data-col="46" x="1018.8" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.45" data-tip="gemini-3.8-flash-high · 2026-10-24 · 1.063 亿"></rect>
+<rect class="hcell" data-col="47" x="1036.3" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="gemini-3.8-flash-high · 2026-10-25 · 0.193 亿"></rect>
+<rect class="hcell" data-col="48" x="1053.7" y="7" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.66" data-tip="gemini-3.8-flash-high · 2026-10-26 · 1.659 亿"></rect>
 <text x="207" y="40" text-anchor="end" font-size="11" fill="#d7dbe2">step-5-preview</text>
-<rect class="hcell" data-col="12" x="429.5" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="step-5-preview · 2026-09-20 · 0.353 亿"></rect>
-<rect class="hcell" data-col="13" x="447.2" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="step-5-preview · 2026-09-21 · 0.131 亿"></rect>
-<rect class="hcell" data-col="14" x="465.0" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-22 · 0.109 亿"></rect>
-<rect class="hcell" data-col="15" x="482.8" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="step-5-preview · 2026-09-23 · 0.458 亿"></rect>
-<rect class="hcell" data-col="16" x="500.6" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.61" data-tip="step-5-preview · 2026-09-24 · 1.743 亿"></rect>
-<rect class="hcell" data-col="18" x="536.2" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-26 · 0.096 亿"></rect>
-<rect class="hcell" data-col="19" x="554.0" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="step-5-preview · 2026-09-27 · 0.078 亿"></rect>
-<rect class="hcell" data-col="20" x="571.8" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.61" data-tip="step-5-preview · 2026-09-28 · 1.751 亿"></rect>
-<rect class="hcell" data-col="21" x="589.6" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-29 · 0.088 亿"></rect>
-<rect class="hcell" data-col="22" x="607.3" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="step-5-preview · 2026-09-30 · 0.268 亿"></rect>
-<rect class="hcell" data-col="23" x="625.1" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="step-5-preview · 2026-10-01 · 0.068 亿"></rect>
-<rect class="hcell" data-col="26" x="678.5" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="step-5-preview · 2026-10-04 · 0.706 亿"></rect>
-<rect class="hcell" data-col="28" x="714.1" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="step-5-preview · 2026-10-06 · 0.037 亿"></rect>
-<rect class="hcell" data-col="29" x="731.9" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="step-5-preview · 2026-10-07 · 0.207 亿"></rect>
-<rect class="hcell" data-col="30" x="749.7" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="step-5-preview · 2026-10-08 · 0.358 亿"></rect>
-<rect class="hcell" data-col="31" x="767.4" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.24" data-tip="step-5-preview · 2026-10-09 · 0.526 亿"></rect>
-<rect class="hcell" data-col="32" x="785.2" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="step-5-preview · 2026-10-10 · 0.035 亿"></rect>
-<rect class="hcell" data-col="33" x="803.0" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="step-5-preview · 2026-10-11 · 0.511 亿"></rect>
-<rect class="hcell" data-col="34" x="820.8" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="step-5-preview · 2026-10-12 · 2.714 亿"></rect>
-<rect class="hcell" data-col="35" x="838.6" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.46" data-tip="step-5-preview · 2026-10-13 · 1.250 亿"></rect>
-<rect class="hcell" data-col="36" x="856.4" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.72" data-tip="step-5-preview · 2026-10-14 · 2.122 亿"></rect>
-<rect class="hcell" data-col="37" x="874.2" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.40" data-tip="step-5-preview · 2026-10-15 · 1.065 亿"></rect>
-<rect class="hcell" data-col="38" x="892.0" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="step-5-preview · 2026-10-16 · 0.806 亿"></rect>
-<rect class="hcell" data-col="42" x="963.1" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="step-5-preview · 2026-10-20 · 0.150 亿"></rect>
-<rect class="hcell" data-col="43" x="980.9" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="step-5-preview · 2026-10-21 · 0.790 亿"></rect>
-<rect class="hcell" data-col="44" x="998.7" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.40" data-tip="step-5-preview · 2026-10-22 · 1.074 亿"></rect>
-<rect class="hcell" data-col="45" x="1016.5" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="step-5-preview · 2026-10-23 · 0.181 亿"></rect>
-<rect class="hcell" data-col="47" x="1052.1" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="step-5-preview · 2026-10-25 · 0.016 亿"></rect>
-<rect class="hcell" data-col="48" x="1069.8" y="27" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.26" data-tip="step-5-preview · 2026-10-26 · 0.592 亿"></rect>
+<rect class="hcell" data-col="12" x="425.4" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="step-5-preview · 2026-09-20 · 0.353 亿"></rect>
+<rect class="hcell" data-col="13" x="442.9" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="step-5-preview · 2026-09-21 · 0.131 亿"></rect>
+<rect class="hcell" data-col="14" x="460.3" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-22 · 0.109 亿"></rect>
+<rect class="hcell" data-col="15" x="477.8" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="step-5-preview · 2026-09-23 · 0.458 亿"></rect>
+<rect class="hcell" data-col="16" x="495.2" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.61" data-tip="step-5-preview · 2026-09-24 · 1.743 亿"></rect>
+<rect class="hcell" data-col="18" x="530.2" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-26 · 0.096 亿"></rect>
+<rect class="hcell" data-col="19" x="547.6" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="step-5-preview · 2026-09-27 · 0.078 亿"></rect>
+<rect class="hcell" data-col="20" x="565.1" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.61" data-tip="step-5-preview · 2026-09-28 · 1.751 亿"></rect>
+<rect class="hcell" data-col="21" x="582.5" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="step-5-preview · 2026-09-29 · 0.088 亿"></rect>
+<rect class="hcell" data-col="22" x="600.0" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="step-5-preview · 2026-09-30 · 0.268 亿"></rect>
+<rect class="hcell" data-col="23" x="617.4" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="step-5-preview · 2026-10-01 · 0.068 亿"></rect>
+<rect class="hcell" data-col="26" x="669.8" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="step-5-preview · 2026-10-04 · 0.706 亿"></rect>
+<rect class="hcell" data-col="28" x="704.7" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="step-5-preview · 2026-10-06 · 0.037 亿"></rect>
+<rect class="hcell" data-col="29" x="722.1" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="step-5-preview · 2026-10-07 · 0.207 亿"></rect>
+<rect class="hcell" data-col="30" x="739.6" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="step-5-preview · 2026-10-08 · 0.358 亿"></rect>
+<rect class="hcell" data-col="31" x="757.0" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.24" data-tip="step-5-preview · 2026-10-09 · 0.526 亿"></rect>
+<rect class="hcell" data-col="32" x="774.5" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="step-5-preview · 2026-10-10 · 0.035 亿"></rect>
+<rect class="hcell" data-col="33" x="791.9" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="step-5-preview · 2026-10-11 · 0.511 亿"></rect>
+<rect class="hcell" data-col="34" x="809.4" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="step-5-preview · 2026-10-12 · 2.714 亿"></rect>
+<rect class="hcell" data-col="35" x="826.8" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.46" data-tip="step-5-preview · 2026-10-13 · 1.250 亿"></rect>
+<rect class="hcell" data-col="36" x="844.3" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.72" data-tip="step-5-preview · 2026-10-14 · 2.122 亿"></rect>
+<rect class="hcell" data-col="37" x="861.8" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.40" data-tip="step-5-preview · 2026-10-15 · 1.065 亿"></rect>
+<rect class="hcell" data-col="38" x="879.2" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="step-5-preview · 2026-10-16 · 0.806 亿"></rect>
+<rect class="hcell" data-col="42" x="949.0" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="step-5-preview · 2026-10-20 · 0.150 亿"></rect>
+<rect class="hcell" data-col="43" x="966.5" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="step-5-preview · 2026-10-21 · 0.790 亿"></rect>
+<rect class="hcell" data-col="44" x="983.9" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.40" data-tip="step-5-preview · 2026-10-22 · 1.074 亿"></rect>
+<rect class="hcell" data-col="45" x="1001.4" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="step-5-preview · 2026-10-23 · 0.181 亿"></rect>
+<rect class="hcell" data-col="47" x="1036.3" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="step-5-preview · 2026-10-25 · 0.016 亿"></rect>
+<rect class="hcell" data-col="48" x="1053.7" y="27" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.26" data-tip="step-5-preview · 2026-10-26 · 0.592 亿"></rect>
 <text x="207" y="60" text-anchor="end" font-size="11" fill="#d7dbe2">GLM-5.3-Flash</text>
-<rect class="hcell" data-col="5" x="304.9" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3-Flash · 2026-09-13 · 0.115 亿"></rect>
-<rect class="hcell" data-col="6" x="322.7" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3-Flash · 2026-09-14 · 0.023 亿"></rect>
-<rect class="hcell" data-col="7" x="340.5" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-15 · 0.023 亿"></rect>
-<rect class="hcell" data-col="8" x="358.3" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.46" data-tip="GLM-5.3-Flash · 2026-09-16 · 0.581 亿"></rect>
-<rect class="hcell" data-col="9" x="376.1" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="GLM-5.3-Flash · 2026-09-17 · 0.234 亿"></rect>
-<rect class="hcell" data-col="10" x="393.9" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.89" data-tip="GLM-5.3-Flash · 2026-09-18 · 1.235 亿"></rect>
-<rect class="hcell" data-col="11" x="411.7" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3-Flash · 2026-09-19 · 0.089 亿"></rect>
-<rect class="hcell" data-col="12" x="429.5" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="GLM-5.3-Flash · 2026-09-20 · 0.831 亿"></rect>
-<rect class="hcell" data-col="13" x="447.2" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-21 · 0.010 亿"></rect>
-<rect class="hcell" data-col="14" x="465.0" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-22 · 0.013 亿"></rect>
-<rect class="hcell" data-col="15" x="482.8" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-23 · 0.012 亿"></rect>
-<rect class="hcell" data-col="16" x="500.6" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.18" data-tip="GLM-5.3-Flash · 2026-09-24 · 0.152 亿"></rect>
-<rect class="hcell" data-col="18" x="536.2" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="GLM-5.3-Flash · 2026-09-26 · 0.322 亿"></rect>
-<rect class="hcell" data-col="19" x="554.0" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.52" data-tip="GLM-5.3-Flash · 2026-09-27 · 0.667 亿"></rect>
-<rect class="hcell" data-col="20" x="571.8" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.48" data-tip="GLM-5.3-Flash · 2026-09-28 · 0.608 亿"></rect>
-<rect class="hcell" data-col="21" x="589.6" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.38" data-tip="GLM-5.3-Flash · 2026-09-29 · 0.460 亿"></rect>
-<rect class="hcell" data-col="22" x="607.3" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3-Flash · 2026-09-30 · 0.045 亿"></rect>
-<rect class="hcell" data-col="23" x="625.1" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="GLM-5.3-Flash · 2026-10-01 · 0.106 亿"></rect>
-<rect class="hcell" data-col="24" x="642.9" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.24" data-tip="GLM-5.3-Flash · 2026-10-02 · 0.241 亿"></rect>
-<rect class="hcell" data-col="25" x="660.7" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="GLM-5.3-Flash · 2026-10-03 · 0.369 亿"></rect>
-<rect class="hcell" data-col="26" x="678.5" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3-Flash · 2026-10-04 · 0.003 亿"></rect>
-<rect class="hcell" data-col="27" x="696.3" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="GLM-5.3-Flash · 2026-10-05 · 0.161 亿"></rect>
-<rect class="hcell" data-col="29" x="731.9" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3-Flash · 2026-10-07 · 0.097 亿"></rect>
-<rect class="hcell" data-col="30" x="749.7" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="GLM-5.3-Flash · 2026-10-08 · 0.322 亿"></rect>
-<rect class="hcell" data-col="31" x="767.4" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3-Flash · 2026-10-09 · 0.193 亿"></rect>
-<rect class="hcell" data-col="32" x="785.2" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.41" data-tip="GLM-5.3-Flash · 2026-10-10 · 0.509 亿"></rect>
-<rect class="hcell" data-col="33" x="803.0" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3-Flash · 2026-10-11 · 0.008 亿"></rect>
-<rect class="hcell" data-col="34" x="820.8" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3-Flash · 2026-10-12 · 0.126 亿"></rect>
-<rect class="hcell" data-col="35" x="838.6" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="GLM-5.3-Flash · 2026-10-13 · 0.308 亿"></rect>
-<rect class="hcell" data-col="36" x="856.4" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.26" data-tip="GLM-5.3-Flash · 2026-10-14 · 0.276 亿"></rect>
-<rect class="hcell" data-col="37" x="874.2" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="GLM-5.3-Flash · 2026-10-15 · 0.367 亿"></rect>
-<rect class="hcell" data-col="38" x="892.0" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="GLM-5.3-Flash · 2026-10-16 · 1.254 亿"></rect>
-<rect class="hcell" data-col="39" x="909.8" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3-Flash · 2026-10-17 · 0.031 亿"></rect>
-<rect class="hcell" data-col="40" x="927.5" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3-Flash · 2026-10-18 · 0.202 亿"></rect>
-<rect class="hcell" data-col="41" x="945.3" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.33" data-tip="GLM-5.3-Flash · 2026-10-19 · 0.388 亿"></rect>
-<rect class="hcell" data-col="42" x="963.1" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.53" data-tip="GLM-5.3-Flash · 2026-10-20 · 0.687 亿"></rect>
-<rect class="hcell" data-col="43" x="980.9" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.49" data-tip="GLM-5.3-Flash · 2026-10-21 · 0.628 亿"></rect>
-<rect class="hcell" data-col="44" x="998.7" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="GLM-5.3-Flash · 2026-10-22 · 0.300 亿"></rect>
-<rect class="hcell" data-col="45" x="1016.5" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.18" data-tip="GLM-5.3-Flash · 2026-10-23 · 0.150 亿"></rect>
-<rect class="hcell" data-col="46" x="1034.3" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3-Flash · 2026-10-24 · 0.125 亿"></rect>
-<rect class="hcell" data-col="47" x="1052.1" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.26" data-tip="GLM-5.3-Flash · 2026-10-25 · 0.272 亿"></rect>
-<rect class="hcell" data-col="48" x="1069.8" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="GLM-5.3-Flash · 2026-10-26 · 0.369 亿"></rect>
-<rect class="hcell" data-col="49" x="1087.6" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3-Flash · 2026-10-27 · 0.086 亿"></rect>
-<rect class="hcell" data-col="50" x="1105.4" y="47" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3-Flash · 2026-10-28 · 0.024 亿"></rect>
+<rect class="hcell" data-col="5" x="303.3" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3-Flash · 2026-09-13 · 0.115 亿"></rect>
+<rect class="hcell" data-col="6" x="320.7" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3-Flash · 2026-09-14 · 0.023 亿"></rect>
+<rect class="hcell" data-col="7" x="338.2" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-15 · 0.023 亿"></rect>
+<rect class="hcell" data-col="8" x="355.6" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.46" data-tip="GLM-5.3-Flash · 2026-09-16 · 0.581 亿"></rect>
+<rect class="hcell" data-col="9" x="373.1" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="GLM-5.3-Flash · 2026-09-17 · 0.234 亿"></rect>
+<rect class="hcell" data-col="10" x="390.5" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.89" data-tip="GLM-5.3-Flash · 2026-09-18 · 1.235 亿"></rect>
+<rect class="hcell" data-col="11" x="408.0" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3-Flash · 2026-09-19 · 0.089 亿"></rect>
+<rect class="hcell" data-col="12" x="425.4" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="GLM-5.3-Flash · 2026-09-20 · 0.831 亿"></rect>
+<rect class="hcell" data-col="13" x="442.9" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-21 · 0.010 亿"></rect>
+<rect class="hcell" data-col="14" x="460.3" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-22 · 0.013 亿"></rect>
+<rect class="hcell" data-col="15" x="477.8" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3-Flash · 2026-09-23 · 0.012 亿"></rect>
+<rect class="hcell" data-col="16" x="495.2" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.18" data-tip="GLM-5.3-Flash · 2026-09-24 · 0.152 亿"></rect>
+<rect class="hcell" data-col="18" x="530.2" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="GLM-5.3-Flash · 2026-09-26 · 0.322 亿"></rect>
+<rect class="hcell" data-col="19" x="547.6" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.52" data-tip="GLM-5.3-Flash · 2026-09-27 · 0.667 亿"></rect>
+<rect class="hcell" data-col="20" x="565.1" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.48" data-tip="GLM-5.3-Flash · 2026-09-28 · 0.608 亿"></rect>
+<rect class="hcell" data-col="21" x="582.5" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.38" data-tip="GLM-5.3-Flash · 2026-09-29 · 0.460 亿"></rect>
+<rect class="hcell" data-col="22" x="600.0" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3-Flash · 2026-09-30 · 0.045 亿"></rect>
+<rect class="hcell" data-col="23" x="617.4" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="GLM-5.3-Flash · 2026-10-01 · 0.106 亿"></rect>
+<rect class="hcell" data-col="24" x="634.9" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.24" data-tip="GLM-5.3-Flash · 2026-10-02 · 0.241 亿"></rect>
+<rect class="hcell" data-col="25" x="652.3" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="GLM-5.3-Flash · 2026-10-03 · 0.369 亿"></rect>
+<rect class="hcell" data-col="26" x="669.8" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3-Flash · 2026-10-04 · 0.003 亿"></rect>
+<rect class="hcell" data-col="27" x="687.2" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="GLM-5.3-Flash · 2026-10-05 · 0.161 亿"></rect>
+<rect class="hcell" data-col="29" x="722.1" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3-Flash · 2026-10-07 · 0.097 亿"></rect>
+<rect class="hcell" data-col="30" x="739.6" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.29" data-tip="GLM-5.3-Flash · 2026-10-08 · 0.322 亿"></rect>
+<rect class="hcell" data-col="31" x="757.0" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3-Flash · 2026-10-09 · 0.193 亿"></rect>
+<rect class="hcell" data-col="32" x="774.5" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.41" data-tip="GLM-5.3-Flash · 2026-10-10 · 0.509 亿"></rect>
+<rect class="hcell" data-col="33" x="791.9" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3-Flash · 2026-10-11 · 0.008 亿"></rect>
+<rect class="hcell" data-col="34" x="809.4" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3-Flash · 2026-10-12 · 0.126 亿"></rect>
+<rect class="hcell" data-col="35" x="826.8" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="GLM-5.3-Flash · 2026-10-13 · 0.308 亿"></rect>
+<rect class="hcell" data-col="36" x="844.3" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.26" data-tip="GLM-5.3-Flash · 2026-10-14 · 0.276 亿"></rect>
+<rect class="hcell" data-col="37" x="861.8" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="GLM-5.3-Flash · 2026-10-15 · 0.367 亿"></rect>
+<rect class="hcell" data-col="38" x="879.2" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="GLM-5.3-Flash · 2026-10-16 · 1.254 亿"></rect>
+<rect class="hcell" data-col="39" x="896.7" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3-Flash · 2026-10-17 · 0.031 亿"></rect>
+<rect class="hcell" data-col="40" x="914.1" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3-Flash · 2026-10-18 · 0.202 亿"></rect>
+<rect class="hcell" data-col="41" x="931.6" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.33" data-tip="GLM-5.3-Flash · 2026-10-19 · 0.388 亿"></rect>
+<rect class="hcell" data-col="42" x="949.0" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.53" data-tip="GLM-5.3-Flash · 2026-10-20 · 0.687 亿"></rect>
+<rect class="hcell" data-col="43" x="966.5" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.49" data-tip="GLM-5.3-Flash · 2026-10-21 · 0.628 亿"></rect>
+<rect class="hcell" data-col="44" x="983.9" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="GLM-5.3-Flash · 2026-10-22 · 0.300 亿"></rect>
+<rect class="hcell" data-col="45" x="1001.4" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.18" data-tip="GLM-5.3-Flash · 2026-10-23 · 0.150 亿"></rect>
+<rect class="hcell" data-col="46" x="1018.8" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3-Flash · 2026-10-24 · 0.125 亿"></rect>
+<rect class="hcell" data-col="47" x="1036.3" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.26" data-tip="GLM-5.3-Flash · 2026-10-25 · 0.272 亿"></rect>
+<rect class="hcell" data-col="48" x="1053.7" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="GLM-5.3-Flash · 2026-10-26 · 0.369 亿"></rect>
+<rect class="hcell" data-col="49" x="1071.2" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3-Flash · 2026-10-27 · 0.086 亿"></rect>
+<rect class="hcell" data-col="50" x="1088.6" y="47" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3-Flash · 2026-10-28 · 0.024 亿"></rect>
 <text x="207" y="80" text-anchor="end" font-size="11" fill="#d7dbe2">deepseek-v4.1-flash</text>
-<rect class="hcell" data-col="16" x="500.6" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-09-24 · 0.000 亿"></rect>
-<rect class="hcell" data-col="26" x="678.5" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-04 · 0.009 亿"></rect>
-<rect class="hcell" data-col="31" x="767.4" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.47" data-tip="deepseek-v4.1-flash · 2026-10-09 · 0.906 亿"></rect>
-<rect class="hcell" data-col="32" x="785.2" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="deepseek-v4.1-flash · 2026-10-10 · 0.334 亿"></rect>
-<rect class="hcell" data-col="33" x="803.0" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="deepseek-v4.1-flash · 2026-10-11 · 1.242 亿"></rect>
-<rect class="hcell" data-col="34" x="820.8" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="deepseek-v4.1-flash · 2026-10-12 · 0.072 亿"></rect>
-<rect class="hcell" data-col="35" x="838.6" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="deepseek-v4.1-flash · 2026-10-13 · 0.012 亿"></rect>
-<rect class="hcell" data-col="36" x="856.4" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="deepseek-v4.1-flash · 2026-10-14 · 0.313 亿"></rect>
-<rect class="hcell" data-col="37" x="874.2" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="deepseek-v4.1-flash · 2026-10-15 · 0.086 亿"></rect>
-<rect class="hcell" data-col="38" x="892.0" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="deepseek-v4.1-flash · 2026-10-16 · 0.324 亿"></rect>
-<rect class="hcell" data-col="39" x="909.8" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-17 · 0.007 亿"></rect>
-<rect class="hcell" data-col="41" x="945.3" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="deepseek-v4.1-flash · 2026-10-19 · 0.542 亿"></rect>
-<rect class="hcell" data-col="42" x="963.1" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="deepseek-v4.1-flash · 2026-10-20 · 1.881 亿"></rect>
-<rect class="hcell" data-col="43" x="980.9" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.73" data-tip="deepseek-v4.1-flash · 2026-10-21 · 1.488 亿"></rect>
-<rect class="hcell" data-col="44" x="998.7" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="deepseek-v4.1-flash · 2026-10-22 · 0.160 亿"></rect>
-<rect class="hcell" data-col="45" x="1016.5" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.20" data-tip="deepseek-v4.1-flash · 2026-10-23 · 0.276 亿"></rect>
-<rect class="hcell" data-col="46" x="1034.3" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-24 · 0.002 亿"></rect>
-<rect class="hcell" data-col="48" x="1069.8" y="67" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="deepseek-v4.1-flash · 2026-10-26 · 0.093 亿"></rect>
+<rect class="hcell" data-col="16" x="495.2" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-09-24 · 0.000 亿"></rect>
+<rect class="hcell" data-col="26" x="669.8" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-04 · 0.009 亿"></rect>
+<rect class="hcell" data-col="31" x="757.0" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.47" data-tip="deepseek-v4.1-flash · 2026-10-09 · 0.906 亿"></rect>
+<rect class="hcell" data-col="32" x="774.5" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.23" data-tip="deepseek-v4.1-flash · 2026-10-10 · 0.334 亿"></rect>
+<rect class="hcell" data-col="33" x="791.9" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.62" data-tip="deepseek-v4.1-flash · 2026-10-11 · 1.242 亿"></rect>
+<rect class="hcell" data-col="34" x="809.4" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="deepseek-v4.1-flash · 2026-10-12 · 0.072 亿"></rect>
+<rect class="hcell" data-col="35" x="826.8" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="deepseek-v4.1-flash · 2026-10-13 · 0.012 亿"></rect>
+<rect class="hcell" data-col="36" x="844.3" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="deepseek-v4.1-flash · 2026-10-14 · 0.313 亿"></rect>
+<rect class="hcell" data-col="37" x="861.8" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="deepseek-v4.1-flash · 2026-10-15 · 0.086 亿"></rect>
+<rect class="hcell" data-col="38" x="879.2" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.22" data-tip="deepseek-v4.1-flash · 2026-10-16 · 0.324 亿"></rect>
+<rect class="hcell" data-col="39" x="896.7" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-17 · 0.007 亿"></rect>
+<rect class="hcell" data-col="41" x="931.6" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="deepseek-v4.1-flash · 2026-10-19 · 0.542 亿"></rect>
+<rect class="hcell" data-col="42" x="949.0" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="deepseek-v4.1-flash · 2026-10-20 · 1.881 亿"></rect>
+<rect class="hcell" data-col="43" x="966.5" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.73" data-tip="deepseek-v4.1-flash · 2026-10-21 · 1.488 亿"></rect>
+<rect class="hcell" data-col="44" x="983.9" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="deepseek-v4.1-flash · 2026-10-22 · 0.160 亿"></rect>
+<rect class="hcell" data-col="45" x="1001.4" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.20" data-tip="deepseek-v4.1-flash · 2026-10-23 · 0.276 亿"></rect>
+<rect class="hcell" data-col="46" x="1018.8" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="deepseek-v4.1-flash · 2026-10-24 · 0.002 亿"></rect>
+<rect class="hcell" data-col="48" x="1053.7" y="67" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="deepseek-v4.1-flash · 2026-10-26 · 0.093 亿"></rect>
 <text x="207" y="100" text-anchor="end" font-size="11" fill="#d7dbe2">gemini-3.7-flash-high</text>
-<rect class="hcell" data-col="6" x="322.7" y="87" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="gemini-3.7-flash-high · 2026-09-14 · 0.118 亿"></rect>
-<rect class="hcell" data-col="7" x="340.5" y="87" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.59" data-tip="gemini-3.7-flash-high · 2026-09-15 · 0.963 亿"></rect>
-<rect class="hcell" data-col="9" x="376.1" y="87" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="gemini-3.7-flash-high · 2026-09-17 · 0.015 亿"></rect>
-<rect class="hcell" data-col="10" x="393.9" y="87" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.49" data-tip="gemini-3.7-flash-high · 2026-09-18 · 0.762 亿"></rect>
-<rect class="hcell" data-col="12" x="429.5" y="87" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.36" data-tip="gemini-3.7-flash-high · 2026-09-20 · 0.527 亿"></rect>
-<rect class="hcell" data-col="13" x="447.2" y="87" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.76" data-tip="gemini-3.7-flash-high · 2026-09-21 · 1.275 亿"></rect>
-<rect class="hcell" data-col="16" x="500.6" y="87" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="gemini-3.7-flash-high · 2026-09-24 · 0.137 亿"></rect>
-<rect class="hcell" data-col="21" x="589.6" y="87" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.7-flash-high · 2026-09-29 · 0.147 亿"></rect>
-<rect class="hcell" data-col="22" x="607.3" y="87" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.33" data-tip="gemini-3.7-flash-high · 2026-09-30 · 0.464 亿"></rect>
-<rect class="hcell" data-col="29" x="731.9" y="87" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="gemini-3.7-flash-high · 2026-10-07 · 1.535 亿"></rect>
-<rect class="hcell" data-col="30" x="749.7" y="87" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="gemini-3.7-flash-high · 2026-10-08 · 0.066 亿"></rect>
+<rect class="hcell" data-col="6" x="320.7" y="87" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="gemini-3.7-flash-high · 2026-09-14 · 0.118 亿"></rect>
+<rect class="hcell" data-col="7" x="338.2" y="87" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.59" data-tip="gemini-3.7-flash-high · 2026-09-15 · 0.963 亿"></rect>
+<rect class="hcell" data-col="9" x="373.1" y="87" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="gemini-3.7-flash-high · 2026-09-17 · 0.015 亿"></rect>
+<rect class="hcell" data-col="10" x="390.5" y="87" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.49" data-tip="gemini-3.7-flash-high · 2026-09-18 · 0.762 亿"></rect>
+<rect class="hcell" data-col="12" x="425.4" y="87" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.36" data-tip="gemini-3.7-flash-high · 2026-09-20 · 0.527 亿"></rect>
+<rect class="hcell" data-col="13" x="442.9" y="87" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.76" data-tip="gemini-3.7-flash-high · 2026-09-21 · 1.275 亿"></rect>
+<rect class="hcell" data-col="16" x="495.2" y="87" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="gemini-3.7-flash-high · 2026-09-24 · 0.137 亿"></rect>
+<rect class="hcell" data-col="21" x="582.5" y="87" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="gemini-3.7-flash-high · 2026-09-29 · 0.147 亿"></rect>
+<rect class="hcell" data-col="22" x="600.0" y="87" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.33" data-tip="gemini-3.7-flash-high · 2026-09-30 · 0.464 亿"></rect>
+<rect class="hcell" data-col="29" x="722.1" y="87" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="gemini-3.7-flash-high · 2026-10-07 · 1.535 亿"></rect>
+<rect class="hcell" data-col="30" x="739.6" y="87" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="gemini-3.7-flash-high · 2026-10-08 · 0.066 亿"></rect>
 <text x="207" y="120" text-anchor="end" font-size="11" fill="#d7dbe2">GLM-5.3</text>
-<rect class="hcell" data-col="6" x="322.7" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-09-14 · 0.022 亿"></rect>
-<rect class="hcell" data-col="7" x="340.5" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-15 · 0.102 亿"></rect>
-<rect class="hcell" data-col="8" x="358.3" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-09-16 · 0.085 亿"></rect>
-<rect class="hcell" data-col="9" x="376.1" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-17 · 0.007 亿"></rect>
-<rect class="hcell" data-col="10" x="393.9" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-18 · 0.005 亿"></rect>
-<rect class="hcell" data-col="11" x="411.7" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-09-19 · 0.076 亿"></rect>
-<rect class="hcell" data-col="12" x="429.5" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3 · 2026-09-20 · 0.037 亿"></rect>
-<rect class="hcell" data-col="14" x="465.0" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3 · 2026-09-22 · 0.164 亿"></rect>
-<rect class="hcell" data-col="15" x="482.8" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-23 · 0.097 亿"></rect>
-<rect class="hcell" data-col="16" x="500.6" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3 · 2026-09-24 · 0.073 亿"></rect>
-<rect class="hcell" data-col="17" x="518.4" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3 · 2026-09-25 · 0.065 亿"></rect>
-<rect class="hcell" data-col="20" x="571.8" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-28 · 0.003 亿"></rect>
-<rect class="hcell" data-col="21" x="589.6" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3 · 2026-09-29 · 0.135 亿"></rect>
-<rect class="hcell" data-col="22" x="607.3" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-30 · 0.105 亿"></rect>
-<rect class="hcell" data-col="23" x="625.1" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-10-01 · 0.092 亿"></rect>
-<rect class="hcell" data-col="24" x="642.9" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-02 · 0.020 亿"></rect>
-<rect class="hcell" data-col="26" x="678.5" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-04 · 0.012 亿"></rect>
-<rect class="hcell" data-col="27" x="696.3" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-05 · 0.008 亿"></rect>
-<rect class="hcell" data-col="28" x="714.1" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-06 · 0.005 亿"></rect>
-<rect class="hcell" data-col="29" x="731.9" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-07 · 0.003 亿"></rect>
-<rect class="hcell" data-col="30" x="749.7" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-08 · 0.024 亿"></rect>
-<rect class="hcell" data-col="31" x="767.4" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3 · 2026-10-09 · 0.040 亿"></rect>
-<rect class="hcell" data-col="33" x="803.0" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="GLM-5.3 · 2026-10-11 · 0.233 亿"></rect>
-<rect class="hcell" data-col="34" x="820.8" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-12 · 0.028 亿"></rect>
-<rect class="hcell" data-col="35" x="838.6" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3 · 2026-10-13 · 0.283 亿"></rect>
-<rect class="hcell" data-col="36" x="856.4" y="107" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="GLM-5.3 · 2026-10-14 · 1.763 亿"></rect>
+<rect class="hcell" data-col="6" x="320.7" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-09-14 · 0.022 亿"></rect>
+<rect class="hcell" data-col="7" x="338.2" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-15 · 0.102 亿"></rect>
+<rect class="hcell" data-col="8" x="355.6" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-09-16 · 0.085 亿"></rect>
+<rect class="hcell" data-col="9" x="373.1" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-17 · 0.007 亿"></rect>
+<rect class="hcell" data-col="10" x="390.5" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-18 · 0.005 亿"></rect>
+<rect class="hcell" data-col="11" x="408.0" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-09-19 · 0.076 亿"></rect>
+<rect class="hcell" data-col="12" x="425.4" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3 · 2026-09-20 · 0.037 亿"></rect>
+<rect class="hcell" data-col="14" x="460.3" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.16" data-tip="GLM-5.3 · 2026-09-22 · 0.164 亿"></rect>
+<rect class="hcell" data-col="15" x="477.8" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-23 · 0.097 亿"></rect>
+<rect class="hcell" data-col="16" x="495.2" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3 · 2026-09-24 · 0.073 亿"></rect>
+<rect class="hcell" data-col="17" x="512.7" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="GLM-5.3 · 2026-09-25 · 0.065 亿"></rect>
+<rect class="hcell" data-col="20" x="565.1" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-09-28 · 0.003 亿"></rect>
+<rect class="hcell" data-col="21" x="582.5" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="GLM-5.3 · 2026-09-29 · 0.135 亿"></rect>
+<rect class="hcell" data-col="22" x="600.0" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.13" data-tip="GLM-5.3 · 2026-09-30 · 0.105 亿"></rect>
+<rect class="hcell" data-col="23" x="617.4" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.12" data-tip="GLM-5.3 · 2026-10-01 · 0.092 亿"></rect>
+<rect class="hcell" data-col="24" x="634.9" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-02 · 0.020 亿"></rect>
+<rect class="hcell" data-col="26" x="669.8" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-04 · 0.012 亿"></rect>
+<rect class="hcell" data-col="27" x="687.2" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-05 · 0.008 亿"></rect>
+<rect class="hcell" data-col="28" x="704.7" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-06 · 0.005 亿"></rect>
+<rect class="hcell" data-col="29" x="722.1" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.08" data-tip="GLM-5.3 · 2026-10-07 · 0.003 亿"></rect>
+<rect class="hcell" data-col="30" x="739.6" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-08 · 0.024 亿"></rect>
+<rect class="hcell" data-col="31" x="757.0" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.10" data-tip="GLM-5.3 · 2026-10-09 · 0.040 亿"></rect>
+<rect class="hcell" data-col="33" x="791.9" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.19" data-tip="GLM-5.3 · 2026-10-11 · 0.233 亿"></rect>
+<rect class="hcell" data-col="34" x="809.4" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.09" data-tip="GLM-5.3 · 2026-10-12 · 0.028 亿"></rect>
+<rect class="hcell" data-col="35" x="826.8" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.21" data-tip="GLM-5.3 · 2026-10-13 · 0.283 亿"></rect>
+<rect class="hcell" data-col="36" x="844.3" y="107" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="GLM-5.3 · 2026-10-14 · 1.763 亿"></rect>
 <text x="207" y="140" text-anchor="end" font-size="11" fill="#d7dbe2">muse-spark-1.3-contributor</text>
-<rect class="hcell" data-col="31" x="767.4" y="127" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="muse-spark-1.3-contributor · 2026-10-09 · 0.733 亿"></rect>
-<rect class="hcell" data-col="32" x="785.2" y="127" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.34" data-tip="muse-spark-1.3-contributor · 2026-10-10 · 0.234 亿"></rect>
-<rect class="hcell" data-col="33" x="803.0" y="127" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="muse-spark-1.3-contributor · 2026-10-11 · 0.180 亿"></rect>
-<rect class="hcell" data-col="34" x="820.8" y="127" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.17" data-tip="muse-spark-1.3-contributor · 2026-10-12 · 0.077 亿"></rect>
-<rect class="hcell" data-col="35" x="838.6" y="127" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="muse-spark-1.3-contributor · 2026-10-13 · 0.063 亿"></rect>
-<rect class="hcell" data-col="36" x="856.4" y="127" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="muse-spark-1.3-contributor · 2026-10-14 · 0.026 亿"></rect>
-<rect class="hcell" data-col="39" x="909.8" y="127" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.39" data-tip="muse-spark-1.3-contributor · 2026-10-17 · 0.278 亿"></rect>
+<rect class="hcell" data-col="31" x="757.0" y="127" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="muse-spark-1.3-contributor · 2026-10-09 · 0.733 亿"></rect>
+<rect class="hcell" data-col="32" x="774.5" y="127" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.34" data-tip="muse-spark-1.3-contributor · 2026-10-10 · 0.234 亿"></rect>
+<rect class="hcell" data-col="33" x="791.9" y="127" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.28" data-tip="muse-spark-1.3-contributor · 2026-10-11 · 0.180 亿"></rect>
+<rect class="hcell" data-col="34" x="809.4" y="127" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.17" data-tip="muse-spark-1.3-contributor · 2026-10-12 · 0.077 亿"></rect>
+<rect class="hcell" data-col="35" x="826.8" y="127" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="muse-spark-1.3-contributor · 2026-10-13 · 0.063 亿"></rect>
+<rect class="hcell" data-col="36" x="844.3" y="127" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.11" data-tip="muse-spark-1.3-contributor · 2026-10-14 · 0.026 亿"></rect>
+<rect class="hcell" data-col="39" x="896.7" y="127" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.39" data-tip="muse-spark-1.3-contributor · 2026-10-17 · 0.278 亿"></rect>
 <text x="207" y="160" text-anchor="end" font-size="11" fill="#d7dbe2">grok-4.6</text>
 <text x="207" y="180" text-anchor="end" font-size="11" fill="#d7dbe2">group/glm</text>
-<rect class="hcell" data-col="49" x="1087.6" y="167" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="group/glm · 2026-10-27 · 0.039 亿"></rect>
-<rect class="hcell" data-col="50" x="1105.4" y="167" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.86" data-tip="group/glm · 2026-10-28 · 0.521 亿"></rect>
-<rect class="hcell" data-col="51" x="1123.2" y="167" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="group/glm · 2026-10-29 · 0.550 亿"></rect>
+<rect class="hcell" data-col="49" x="1071.2" y="167" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.14" data-tip="group/glm · 2026-10-27 · 0.039 亿"></rect>
+<rect class="hcell" data-col="50" x="1088.6" y="167" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.86" data-tip="group/glm · 2026-10-28 · 0.521 亿"></rect>
+<rect class="hcell" data-col="51" x="1106.1" y="167" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="group/glm · 2026-10-29 · 0.550 亿"></rect>
 <text x="207" y="200" text-anchor="end" font-size="11" fill="#d7dbe2">antigravity/gemini-3.8-flash</text>
-<rect class="hcell" data-col="49" x="1087.6" y="187" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="antigravity/gemini-3.8-flash · 2026-10-27 · 0.165 亿"></rect>
-<rect class="hcell" data-col="50" x="1105.4" y="187" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="antigravity/gemini-3.8-flash · 2026-10-28 · 0.564 亿"></rect>
-<rect class="hcell" data-col="51" x="1123.2" y="187" width="15.8" height="18" rx="2" fill="#3f8cff" fill-opacity="0.54" data-tip="antigravity/gemini-3.8-flash · 2026-10-29 · 0.315 亿"></rect>
-<text x="223.9" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-08</text>
-<text x="312.8" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-13</text>
-<text x="401.8" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-18</text>
-<text x="490.7" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-23</text>
-<text x="579.7" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-28</text>
-<text x="668.6" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-03</text>
-<text x="757.5" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-08</text>
-<text x="846.5" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-13</text>
-<text x="935.4" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-18</text>
-<text x="1024.4" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-23</text>
-<text x="1131.1" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-29</text>
+<rect class="hcell" data-col="49" x="1071.2" y="187" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.32" data-tip="antigravity/gemini-3.8-flash · 2026-10-27 · 0.165 亿"></rect>
+<rect class="hcell" data-col="50" x="1088.6" y="187" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.90" data-tip="antigravity/gemini-3.8-flash · 2026-10-28 · 0.564 亿"></rect>
+<rect class="hcell" data-col="51" x="1106.1" y="187" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.54" data-tip="antigravity/gemini-3.8-flash · 2026-10-29 · 0.315 亿"></rect>
+<rect class="hcell" data-col="52" x="1123.5" y="187" width="15.5" height="18" rx="2" fill="#3f8cff" fill-opacity="0.15" data-tip="antigravity/gemini-3.8-flash · 2026-10-30 · 0.051 亿"></rect>
+<text x="223.7" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-08</text>
+<text x="311.0" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-13</text>
+<text x="398.3" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-18</text>
+<text x="485.5" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-23</text>
+<text x="572.8" y="222" text-anchor="middle" font-size="11" fill="#8a919c">09-28</text>
+<text x="660.0" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-03</text>
+<text x="747.3" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-08</text>
+<text x="834.6" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-13</text>
+<text x="921.8" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-18</text>
+<text x="1009.1" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-23</text>
+<text x="1131.3" y="222" text-anchor="middle" font-size="11" fill="#8a919c">10-30</text>
 </svg>
 </div>
 <div class="scale" aria-hidden="true"><span>低</span><span class="bar"></span><span>高</span><span style="margin-left:14px">悬停某列可横向对比同一天各模型的用量</span></div>
@@ -534,8 +570,8 @@
 <h2>月度汇总</h2>
 <div class="panel">
 <div class="tw"><table class="speed"><tr><th>月份</th><th>天数</th><th>总量</th><th>日均</th><th>占全周期</th><th>峰值日</th></tr>
-<tr><td>2026-09</td><td>23</td><td>32.67 亿</td><td>1.42 亿</td><td>3679393974.4%</td><td>09-18（3.28 亿）</td></tr>
-<tr><td>2026-10</td><td>29</td><td>56.12 亿</td><td>1.94 亿</td><td>6320606025.6%</td><td>10-21（5.08 亿）</td></tr>
+<tr><td>2026-09</td><td>23</td><td>32.67 亿</td><td>1.42 亿</td><td>3677292832.3%</td><td>09-18（3.28 亿）</td></tr>
+<tr><td>2026-10</td><td>30</td><td>56.17 亿</td><td>1.87 亿</td><td>6322707167.7%</td><td>10-21（5.08 亿）</td></tr>
 </table></div>
 </div>
 </section>
@@ -757,11 +793,137 @@
 </div>
 <div class="spd-bar"><button type="button" id="spdbtn" data-label="查看更多（16 轮历史）">查看更多（16 轮历史）</button></div>
 </section>
-<p class="foot">数据来源：ZCode 本地账本（ledger.csv / ledger_models.csv）+ 本地明细库（今日统计）· 由 zcode-token-curve 自动生成、部署并推送 · 下一次自动更新：<b style="color:#ffb02e">明天 12:01</b> · 生成时间 2026-10-29 23:58</p>
+<p class="foot">数据来源：ZCode 本地账本（ledger.csv / ledger_models.csv）+ 本地明细库（今日统计）· 由 zcode-token-curve 自动生成、部署并推送 · 下一次自动更新：<b style="color:#ffb02e">今天 12:01</b> · 生成时间 2026-10-30 10:19</p>
 </div>
 <button id="totop" type="button" aria-label="回到顶部" data-tooltip="回到顶部">↑</button>
 <div id="tip" role="tooltip"></div>
 <script>
+const RAW_MODELS = {"exact":[["2026-09-13","gemini-3.8-flash-high",123333141,468],["2026-09-13","GLM-5.3-Flash",11549913,84],["2026-09-14","gemini-3.8-flash-high",173896440,354],["2026-09-14","gemini-3.7-flash-high",11820160,56],["2026-09-14","GLM-5.3-Flash",2339307,68],["2026-09-14","GLM-5.3",2196032,23],["2026-09-15","gemini-3.7-flash-high",96322972,196],["2026-09-15","gemini-3.8-flash-high",94508132,243],["2026-09-15","GLM-5.3",10169825,38],["2026-09-15","GLM-5.3-Flash",2282327,33],["2026-09-16","gemini-3.8-flash-high",147479105,163],["2026-09-16","GLM-5.3-Flash",58073517,315],["2026-09-16","GLM-5.3",8545924,99],["2026-09-16","claude-opus-4-6-thinking",988745,10],["2026-09-16","deepseek-v4-pro",104666,5],["2026-09-17","gemini-3.8-flash-high",236340846,828],["2026-09-17","GLM-5.3-Flash",23386215,99],["2026-09-17","gemini-3.7-flash-high",1518798,35],["2026-09-17","claude-opus-4-6-thinking",972960,1],["2026-09-17","GLM-5.3",734518,4],["2026-09-18","gemini-3.8-flash-high",127024072,343],["2026-09-18","GLM-5.3-Flash",123481579,261],["2026-09-18","gemini-3.7-flash-high",76183970,228],["2026-09-18","deepseek-v4-pro",627644,19],["2026-09-18","GLM-5.3",490330,3],["2026-09-19","GLM-5.3-Flash",8898999,69],["2026-09-19","GLM-5.3",7614367,32],["2026-09-20","GLM-5.3-Flash",83058804,401],["2026-09-20","gemini-3.7-flash-high",52715569,200],["2026-09-20","step-5-preview",35273732,310],["2026-09-20","GLM-5.3",3710488,14],["2026-09-20","step-3.7-flash",1942762,21],["2026-09-20","claude-sonnet-4-6",353368,1],["2026-09-21","gemini-3.7-flash-high",127543739,296],["2026-09-21","gemini-3.8-flash-high",23973332,83],["2026-09-21","step-5-preview",13070038,35],["2026-09-21","kimi-k2.7-code",1329914,20],["2026-09-21","GLM-5.3-Flash",1001428,9],["2026-09-21","kimi-k3",73610,1],["2026-09-22","GLM-5.3",16419535,229],["2026-09-22","step-5-preview",10880242,42],["2026-09-22","kimi-k2.7-code",9664238,131],["2026-09-22","kimi-k3",6380227,48],["2026-09-22","GLM-5.3-Flash",1313784,16],["2026-09-23","step-5-preview",45756581,348],["2026-09-23","GLM-5.3",9717937,167],["2026-09-23","kimi-k3",7829649,25],["2026-09-23","GLM-5.3-Flash",1183247,15],["2026-09-23","kimi-k2.7-code",468739,18],["2026-09-24","step-5-preview",174290167,916],["2026-09-24","GLM-5.3-Flash",15179407,104],["2026-09-24","gemini-3.7-flash-high",13745439,25],["2026-09-24","GLM-5.3",7288111,141],["2026-09-24","claude-sonnet-4-6",978326,12],["2026-09-24","kimi-k2.8-preview",586848,24],["2026-09-24","minimax-m3",40661,2],["2026-09-24","glm-5.3-flash",20690,1],["2026-09-24","deepseek-v4.1-flash",17393,1],["2026-09-25","GLM-5.3",6492555,166],["2026-09-25","kimi-k2.8-preview",1448970,32],["2026-09-25","kimi-k3",1402568,37],["2026-09-25","claude-sonnet-4-6",377362,4],["2026-09-26","GLM-5.3-Flash",32186970,197],["2026-09-26","step-5-preview",9576412,26],["2026-09-26","kimi-k2.8-preview",4833148,68],["2026-09-26","minimax-m3",0,5],["2026-09-26","traecn-deepseek-v4-flash",0,4],["2026-09-26","traecn-qwen-3.7-plus",0,3],["2026-09-27","GLM-5.3-Flash",66658941,388],["2026-09-27","step-5-preview",7802318,84],["2026-09-27","kimi-k2.8-preview",48259,1],["2026-09-28","step-5-preview",175074845,466],["2026-09-28","GLM-5.3-Flash",60806031,386],["2026-09-28","kimi-k2.8-preview",34232336,417],["2026-09-28","GLM-5.3",307222,9],["2026-09-29","GLM-5.3-Flash",46009621,159],["2026-09-29","kimi-k2.8-preview",14990724,259],["2026-09-29","gemini-3.7-flash-high",14715904,128],["2026-09-29","GLM-5.3",13512432,171],["2026-09-29","step-5-preview",8830282,65],["2026-09-29","gemini-3.8-flash-high",7813477,28],["2026-09-29","Kimi-K2.8-Preview",0,10],["2026-09-29","Qwen3.8-Max",0,2],["2026-09-29","minimax-m3",0,4],["2026-09-30","gemini-3.7-flash-high",46375165,206],["2026-09-30","kimi-k2.8-preview",30081205,414],["2026-09-30","step-5-preview",26802147,188],["2026-09-30","GLM-5.3",10490732,63],["2026-09-30","GLM-5.3-Flash",4483045,31],["2026-09-30","sensenova-6.8-flash-lite",3102237,43],["2026-09-30","kimi-k3",132553,6],["2026-09-30","deepseek-flash",94252,3],["2026-09-30","Kimi-K2.8-Preview",0,8],["2026-09-30","MiniMax-M3",0,8],["2026-09-30","minimax-m3",0,12],["2026-10-01","gemini-3.8-flash-high",25274834,185],["2026-10-01","GLM-5.3-Flash",10632515,91],["2026-10-01","GLM-5.3",9233907,157],["2026-10-01","step-5-preview",6840789,137],["2026-10-02","GLM-5.3-Flash",24137637,93],["2026-10-02","kimi-k2.8-preview",4812713,52],["2026-10-02","GLM-5.3",2008939,47],["2026-10-03","GLM-5.3-Flash",36887402,114],["2026-10-03","kimi-k2.8-preview",5617098,142],["2026-10-03","minimax-m3",551575,2],["2026-10-03","kimi-k3",287165,1],["2026-10-03","glm-5.3-flash",263406,1],["2026-10-03","claude-sonnet-4-6",70500,1],["2026-10-03","deepseek-v4.1-flash",0,1],["2026-10-03","step-5-preview",0,285],["2026-10-04","gemini-3.8-flash-high",182263896,1152],["2026-10-04","step-5-preview",70625048,224],["2026-10-04","minimax-m3",22588693,81],["2026-10-04","qwen3.8-flash",4300024,9],["2026-10-04","GLM-5.3",1220186,30],["2026-10-04","deepseek-v4.1-flash",893013,13],["2026-10-04","kimi-k2.8-preview",690618,9],["2026-10-04","glm-5.3-flash",431500,1],["2026-10-04","GLM-5.3-Flash",284047,10],["2026-10-04","Kimi-K2.8-Preview",211018,15],["2026-10-04","Qwen3.8-Flash",0,1],["2026-10-05","gemini-3.8-flash-high",48028902,76],["2026-10-05","GLM-5.3-Flash",16062466,24],["2026-10-05","GLM-5.3",769267,19],["2026-10-05","deepseek-flash",681180,2],["2026-10-05","kimi-k2.8-preview",275782,12],["2026-10-05","Kimi-K2.8-Preview",55895,3],["2026-10-06","deepseek-flash",6104545,26],["2026-10-06","step-5-preview",3681223,30],["2026-10-06","kimi-k2.8-preview",2381309,24],["2026-10-06","GLM-5.3",484529,13],["2026-10-07","gemini-3.7-flash-high",153504371,804],["2026-10-07","step-5-preview",20710261,44],["2026-10-07","GLM-5.3-Flash",9699604,198],["2026-10-07","minimax-m3",6379535,26],["2026-10-07","GLM-5.3",290226,8],["2026-10-08","gemini-3.8-flash-high",171848979,713],["2026-10-08","step-5-preview",35825176,67],["2026-10-08","step-5-preview-free",33100025,97],["2026-10-08","GLM-5.3-Flash",32211794,154],["2026-10-08","gemini-3.7-flash-high",6552375,75],["2026-10-08","GLM-5.3",2353080,51],["2026-10-08","claude-haiku-5-5",929384,2],["2026-10-09","deepseek-v4.1-flash",90583153,274],["2026-10-09","muse-spark-1.3-contributor",73304078,408],["2026-10-09","step-5-preview-free",53497430,173],["2026-10-09","step-5-preview",52631068,154],["2026-10-09","claude-haiku-5-5",21840038,353],["2026-10-09","GLM-5.3-Flash",19298690,152],["2026-10-09","GLM-5.3",3961053,59],["2026-10-09","minimax-m3",1595495,5],["2026-10-10","gemini-3.8-flash-high",69288042,372],["2026-10-10","GLM-5.3-Flash",50917551,216],["2026-10-10","deepseek-v4.1-flash",33412796,154],["2026-10-10","muse-spark-1.3-contributor",23364616,107],["2026-10-10","claude-haiku-5-5",20921595,327],["2026-10-10","step-5-preview",3472407,41],["2026-10-11","deepseek-v4.1-flash",124181476,778],["2026-10-11","step-5-preview",51147674,487],["2026-10-11","GLM-5.3",23343665,327],["2026-10-11","claude-haiku-5-5",21667321,326],["2026-10-11","muse-spark-1.3-contributor",18044042,282],["2026-10-11","GLM-5.3-Flash",750268,4],["2026-10-12","step-5-preview",271416445,776],["2026-10-12","GLM-5.3-Flash",12583824,56],["2026-10-12","muse-spark-1.3-contributor",7747067,86],["2026-10-12","deepseek-v4.1-flash",7174904,67],["2026-10-12","GLM-5.3",2750848,36],["2026-10-12","gemini-3.8-flash-high",831363,12],["2026-10-13","step-5-preview",124970285,803],["2026-10-13","GLM-5.3-Flash",30795534,108],["2026-10-13","GLM-5.3",28349851,202],["2026-10-13","gemini-3.8-flash-high",21545933,47],["2026-10-13","muse-spark-1.3-contributor",6297285,104],["2026-10-13","claude-haiku-5-5",2514611,37],["2026-10-13","deepseek-v4.1-flash",1207929,8],["2026-10-14","step-5-preview",212236177,911],["2026-10-14","GLM-5.3",176274626,716],["2026-10-14","gemini-3.8-flash-high",38033037,194],["2026-10-14","deepseek-v4.1-flash",31319821,117],["2026-10-14","GLM-5.3-Flash",27553578,123],["2026-10-14","muse-spark-1.3-contributor",2593894,61],["2026-10-15","step-5-preview",106465877,690],["2026-10-15","GLM-5.3-Flash",36674305,277],["2026-10-15","gemini-3.8-flash-high",17138558,82],["2026-10-15","deepseek-v4.1-flash",8551663,43],["2026-10-16","GLM-5.3-Flash",125399371,495],["2026-10-16","step-5-preview",80568544,462],["2026-10-16","deepseek-v4.1-flash",32393014,160],["2026-10-16","gemini-3.8-flash-high",23632395,154],["2026-10-17","muse-spark-1.3-contributor",27786294,246],["2026-10-17","GLM-5.3-Flash",3101109,14],["2026-10-17","deepseek-v4.1-flash",749643,4],["2026-10-17","claude-haiku-5-5",688508,8],["2026-10-17","gemini-3.8-flash-high",204933,2],["2026-10-18","GLM-5.3-Flash",20175032,59],["2026-10-19","deepseek-v4.1-flash",54184134,249],["2026-10-19","GLM-5.3-Flash",38826188,147],["2026-10-19","gemini-3.8-flash-high",36968183,304],["2026-10-19","gemini-3.5-flash-lite",323387,2],["2026-10-20","deepseek-v4.1-flash",188141402,470],["2026-10-20","GLM-5.3-Flash",68656624,358],["2026-10-20","step-5-preview",14963975,131],["2026-10-20","gemini-3.8-flash-high",209099,5],["2026-10-21","gemini-3.8-flash-high",208974249,920],["2026-10-21","deepseek-v4.1-flash",148756876,251],["2026-10-21","step-5-preview",79014855,464],["2026-10-21","GLM-5.3-Flash",62767812,355],["2026-10-21","claude-haiku-5-5",8356128,63],["2026-10-22","gemini-3.8-flash-high",156109710,842],["2026-10-22","step-5-preview",107387629,331],["2026-10-22","GLM-5.3-Flash",29968019,297],["2026-10-22","deepseek-v4.1-flash",16043956,92],["2026-10-23","gemini-3.8-flash-high",195253297,902],["2026-10-23","deepseek-v4.1-flash",27626653,97],["2026-10-23","step-5-preview",18110130,54],["2026-10-23","GLM-5.3-Flash",14962376,111],["2026-10-24","gemini-3.8-flash-high",106270049,195],["2026-10-24","GLM-5.3-Flash",12484921,30],["2026-10-24","deepseek-v4.1-flash",150559,3],["2026-10-25","GLM-5.3-Flash",27203533,64],["2026-10-25","gemini-3.8-flash-high",19328360,173],["2026-10-25","step-5-preview",1572950,8],["2026-10-26","gemini-3.8-flash-high",165924894,460],["2026-10-26","step-5-preview",59244293,538],["2026-10-26","GLM-5.3-Flash",36919735,380],["2026-10-26","minimax-m3.1-flash",14683064,52],["2026-10-26","deepseek-v4.1-flash",9262517,91],["2026-10-27","group/never-stuck",39785353,323],["2026-10-27","antigravity/gemini-3.8-flash",16501728,76],["2026-10-27","GLM-5.3-Flash",8551506,128],["2026-10-27","group/deepseek",7939285,38],["2026-10-27","group/glm",3893545,17],["2026-10-27","group/kimi",3485030,14],["2026-10-27","auto/deepseek-v4.1-flash",3370859,22],["2026-10-27","cursor/auto",233082,2],["2026-10-27","group/step",212780,1],["2026-10-27","grok/grok-4.7",198547,4],["2026-10-28","antigravity/gemini-3.8-flash",56441682,287],["2026-10-28","group/glm",52083645,329],["2026-10-28","group/step",21891536,57],["2026-10-28","group/deepseek",21188177,170],["2026-10-28","group/kimi",13642406,51],["2026-10-28","group/minimax",3750050,48],["2026-10-28","GLM-5.3-Flash",2422338,24],["2026-10-28","group/free-models",122424,4],["2026-10-29","group/deepseek",71740796,381],["2026-10-29","group/glm",55017933,199],["2026-10-29","antigravity/gemini-3.8-flash",31541349,161],["2026-10-29","group/minimax",30878986,232],["2026-10-29","group/step",23250069,169],["2026-10-29","group/kimi",6628396,89],["2026-10-30","antigravity/gemini-3.8-flash",5073634,48]],"est":[["2026-09-08","GLM-5.3-Flash",26872882,68],["2026-09-09","gemini-3.8-flash-high",14839847,37],["2026-09-10","gemini-3.8-flash-high",326285114,1472],["2026-09-11","grok-4.6",118566184,511],["2026-09-12","gemini-3.8-flash-high",131752032,488]],"dates":["2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-12","2026-09-13","2026-09-14","2026-09-15","2026-09-16","2026-09-17","2026-09-18","2026-09-19","2026-09-20","2026-09-21","2026-09-22","2026-09-23","2026-09-24","2026-09-25","2026-09-26","2026-09-27","2026-09-28","2026-09-29","2026-09-30","2026-10-01","2026-10-02","2026-10-03","2026-10-04","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-10","2026-10-11","2026-10-12","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-17","2026-10-18","2026-10-19","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-24","2026-10-25","2026-10-26","2026-10-27","2026-10-28","2026-10-29","2026-10-30"]};
+
+function renderTop10(startDate, endDate) {
+  const mt = {}, mc = {};
+  const estModels = new Set();
+  let estTotal = 0, estCount = 0;
+
+  for (let i = 0; i < RAW_MODELS.exact.length; i++) {
+    const it = RAW_MODELS.exact[i];
+    if (it[0] >= startDate && it[0] <= endDate) {
+      mt[it[1]] = (mt[it[1]] || 0) + it[2];
+      mc[it[1]] = (mc[it[1]] || 0) + it[3];
+    }
+  }
+  for (let i = 0; i < RAW_MODELS.est.length; i++) {
+    const it = RAW_MODELS.est[i];
+    if (it[0] >= startDate && it[0] <= endDate) {
+      mt[it[1]] = (mt[it[1]] || 0) + it[2];
+      mc[it[1]] = (mc[it[1]] || 0) + it[3];
+      estModels.add(it[1]);
+      estTotal += it[2];
+      estCount++;
+    }
+  }
+
+  const list = Object.entries(mt).sort((a, b) => b[1] - a[1]);
+  const grand = list.reduce((s, x) => s + x[1], 0);
+  const top = list.slice(0, 10);
+
+  const titleEl = document.getElementById('top10-title');
+  const footEl = document.getElementById('top10-foot');
+  const wrapEl = document.getElementById('top10-svg-wrap');
+  const fStart = document.getElementById('f-start');
+  const fEnd = document.getElementById('f-end');
+  if (fStart) fStart.value = startDate;
+  if (fEnd) fEnd.value = endDate;
+
+  const minD = RAW_MODELS.dates[0];
+  const maxD = RAW_MODELS.dates[RAW_MODELS.dates.length - 1];
+  const isAll = (startDate <= minD && endDate >= maxD);
+
+  if (top.length === 0) {
+    if (titleEl) titleEl.textContent = `模型累计（${startDate} → ${endDate}）`;
+    if (wrapEl) wrapEl.innerHTML = '<div style="padding:28px 12px;text-align:center;color:#8a919c;font-size:13px">所选时间范围（' + startDate + ' 至 ' + endDate + '）内无用量记录</div>';
+    if (footEl) footEl.textContent = '提示：请调整起止日期重试。';
+    return;
+  }
+
+  if (isAll) {
+    if (titleEl) titleEl.textContent = `模型累计 Top ${top.length}（全周期 ${minD} → ${maxD}）`;
+    if (footEl) footEl.textContent = `全周期口径：09-14 起来自每日模型明细账（精确；09-13 为建账首日、仅含 14:47 后部分）；09-08→09-12 共 ${RAW_MODELS.est.length} 天（${(estTotal/1e8).toFixed(2)} 亿，占 ${grand>0?(estTotal/grand*100).toFixed(1):'0.0'}%）按当日主力模型整天记账估算。`;
+  } else {
+    if (titleEl) titleEl.textContent = `模型累计 Top ${top.length}（${startDate} → ${endDate} · 合计 ${(grand/1e8).toFixed(2)} 亿）`;
+    if (estCount > 0) {
+      if (footEl) footEl.textContent = `筛选区间口径：包含早期主力估算 ${estCount} 天（${(estTotal/1e8).toFixed(2)} 亿，占区间 ${grand>0?(estTotal/grand*100).toFixed(1):'0.0'}%）；其余来自每日模型明细账。`;
+    } else {
+      if (footEl) footEl.textContent = '筛选区间口径：数据全部来自每日模型明细账（精确到每次请求及模型明细，无早期估算）。';
+    }
+  }
+
+  const W = 1160, ROWH = 34, bar_max = 700, name_w = 210, bar_x = 220;
+  const H2s = 26 + top.length * ROWH + 10;
+  const FG = '#d7dbe2', MUT = '#8a919c', BAR = '#3f8cff';
+
+  const q = [];
+  q.push(`<svg width="${W}" height="${H2s}" viewBox="0 0 ${W} ${H2s}" role="img" aria-label="模型累计 Top ${top.length}，${startDate} 至 ${endDate}">`);
+  for (let idx = 0; idx < top.length; idx++) {
+    const mid = top[idx][0], tok = top[idx][1];
+    const y = 22 + idx * ROWH;
+    const w = Math.max(4, grand > 0 ? tok / grand * bar_max : 4);
+    const est = estModels.has(mid) ? ' · 含早期估算' : '';
+    const pct = grand > 0 ? (tok / grand * 100).toFixed(1) : '0.0';
+    const reqStr = (mc[mid] || 0).toLocaleString();
+    const tokStr = (tok / 1e8).toFixed(2);
+    const tip = `${mid} · ${tokStr} 亿 · ${reqStr} 次 · 占${isAll ? '全周期' : '区间'} ${pct}%${est}`;
+    q.push(`<text x="${name_w}" y="${y + 15}" text-anchor="end" font-size="12" fill="${FG}">${mid}</text>`);
+    q.push(`<rect x="${bar_x}" y="${y}" width="${w.toFixed(1)}" height="20" rx="3" fill="${BAR}" opacity="0.9" data-tip="${tip}"></rect>`);
+    q.push(`<text x="${(bar_x + w + 10).toFixed(1)}" y="${y + 15}" font-size="12" fill="${FG}">${tokStr} 亿 <tspan fill="${MUT}">· ${reqStr} 次 · ${pct}%${est}</tspan></text>`);
+  }
+  q.push('</svg>');
+  if (wrapEl) wrapEl.innerHTML = q.join('\n');
+}
+
+function getRangeDates(key) {
+  const dList = RAW_MODELS.dates;
+  const maxD = dList[dList.length - 1];
+  const minD = dList[0];
+  if (key === 'all') return [minD, maxD];
+  if (key === '30d') return [dList[Math.max(0, dList.length - 30)], maxD];
+  if (key === '7d') return [dList[Math.max(0, dList.length - 7)], maxD];
+  if (key === 'month') {
+    const ym = maxD.slice(0, 7);
+    const filtered = dList.filter(d => d.startsWith(ym));
+    return [filtered[0] || maxD, maxD];
+  }
+  return [minD, maxD];
+}
+
+document.querySelectorAll('.f-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const range = btn.getAttribute('data-range');
+    const [s, e] = getRangeDates(range);
+    renderTop10(s, e);
+  });
+});
+
+function onCustomDateChange() {
+  const fStart = document.getElementById('f-start');
+  const fEnd = document.getElementById('f-end');
+  if (!fStart || !fEnd) return;
+  let s = fStart.value, e = fEnd.value;
+  if (!s || !e) return;
+  if (s > e) {
+    const tmp = s; s = e; e = tmp;
+    fStart.value = s; fEnd.value = e;
+  }
+  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+  renderTop10(s, e);
+}
+const fStart = document.getElementById('f-start');
+const fEnd = document.getElementById('f-end');
+if (fStart) fStart.addEventListener('change', onCustomDateChange);
+if (fEnd) fEnd.addEventListener('change', onCustomDateChange);
+
 const tip=document.getElementById('tip');
 const spdbtn=document.getElementById('spdbtn');
 if(spdbtn){
@@ -788,9 +950,17 @@ document.querySelectorAll('.hcell').forEach(c=>{
 const totop=document.getElementById('totop');
 addEventListener('scroll',()=>{totop.style.display=scrollY>600?'block':'none';},{passive:true});
 totop.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));
-document.querySelectorAll('[data-tip]').forEach(el=>{
-  el.addEventListener('mousemove',e=>{tip.style.display='block';tip.textContent=el.getAttribute('data-tip');tip.style.left=Math.min(e.clientX+12,innerWidth-(tip.offsetWidth||300)-12)+'px';tip.style.top=Math.min(e.clientY+14,innerHeight-70)+'px';});
-  el.addEventListener('mouseleave',()=>{tip.style.display='none';});
+document.addEventListener('mousemove', e => {
+  const el = e.target.closest('[data-tip]');
+  if (el) {
+    tip.style.display = 'block';
+    tip.textContent = el.getAttribute('data-tip');
+    tip.style.left = Math.min(e.clientX + 12, innerWidth - (tip.offsetWidth || 300) - 12) + 'px';
+    tip.style.top = Math.min(e.clientY + 14, innerHeight - 70) + 'px';
+  } else {
+    tip.style.display = 'none';
+  }
 });
+document.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
 </script>
 </body></html>
