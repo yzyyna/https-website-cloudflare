@@ -46,6 +46,7 @@
 | `tank-battle` | 3D 坦克大战进化版 | WebGL 1.0 + 多视角 + 5 大关卡/泰坦 BOSS + 合成音效 | 单文件 `index.html`（约 3.7k 行，10 个编号逻辑区） |
 | `cell-defense` | 细胞防线：微观免疫战 | Canvas 2D + 阿米巴软体物理 + 吞噬消化 + 基因融合 + 血液微流控 | 5 个普通 `<script>` 按依赖序加载（全局解耦）；双击即玩 |
 | `loop-heist` | 时光回放小偷 | 回合制潜行 + 循环录像幽灵 + Canvas 2D + 合成音效 | `js/levels.js`→`sim.js`→`audio.js`→`render.js`→`main.js`；`node loop-heist/test.js` 内核单测 |
+| `pelican-bicycle` | 鹈鹕踩单车六模型对标 | 同题 Prompt + 六版独立单文件 + 盲评聚合 | `index.html` 聚合页（iframe 切换 / 盲评评分 / localStorage）；六个 `<模型>/index.html` 为各模型原始产出，**手改会破坏对标公平性**，仅修兼容 Bug 并注明 |
 
 ## 5. 新子应用接入（按序完成，缺一不可）
 

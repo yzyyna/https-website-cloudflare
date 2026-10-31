@@ -23,6 +23,7 @@
 | [`tank-battle`](./tank-battle/) | **3D 坦克大战：钢铁风暴**（等轴/追尾多视角 + 5大关卡/泰坦BOSS战 + 道具升级） | 原创 3D 游戏 | 纯 WebGL 1.0 + Web Audio 原生合成 |
 | [`cell-defense`](./cell-defense/) | **细胞防线：微观免疫战**（阿米巴软体物理 + 吞噬消化 + 基因融合变异 + 血液微流控） | 原创微观塔防 | 纯 HTML5 Canvas + Web Audio 原生合成 |
 | [`loop-heist`](./loop-heist/) | **时光回放小偷**（回合制潜行解谜，每次行动录成幽灵重放，幽灵替你踩压力板） | 原创趣味解谜 | 纯 HTML5 + CSS3 + Canvas 2D + Web Audio 原生合成 |
+| [`pelican-bicycle`](./pelican-bicycle/) | **鹈鹕踩单车 · 六模型同题对标**（GLM / Kimi / Step / MiniMax / DeepSeek / Gemini 3.8 Flash 各写一版，盲评切换查看） | `magpie` 六模型同题 | 各版独立单文件：纯 HTML5 + Canvas/CSS/内联 SVG + Web Audio |
 
 ---
 
@@ -44,3 +45,4 @@
    - [http://localhost:8080/tank-battle/](http://localhost:8080/tank-battle/)（3D 坦克大战 · 钢铁风暴）
    - [http://localhost:8080/cell-defense/](http://localhost:8080/cell-defense/)（细胞防线 · 微观免疫战）
    - [http://localhost:8080/loop-heist/](http://localhost:8080/loop-heist/)（时光回放小偷）
+   - [http://localhost:8080/pelican-bicycle/](http://localhost:8080/pelican-bicycle/)（鹈鹕踩单车 · 六模型同题对标，含盲评打分）

@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="鹈鹕踩单车">
+<title>鹈鹕踩单车 · 六模型同题对标</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230a1020'/><circle cx='11' cy='22' r='5' fill='none' stroke='%23ffb454' stroke-width='2'/><circle cx='23' cy='22' r='5' fill='none' stroke='%23ffb454' stroke-width='2'/><path d='M11 22l4-7h6' fill='none' stroke='%2346e8ff' stroke-width='2' stroke-linecap='round'/></svg>">
+<style>
+:root {
+  --bg: #070c18;
+  --bg-soft: #0d1526;
+  --panel: rgba(16, 26, 46, 0.82);
+  --border: rgba(120, 170, 255, 0.18);
+  --text: #e6eefc;
+  --dim: #8fa3c4;
+  --beak: #ffb454;
+  --sky: #46e8ff;
+  --ok: #4be0a2;
+  --mono: "SF Mono", ui-monospace, "Cascadia Code", Consolas, Menlo, monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(255, 180, 84, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(70, 232, 255, 0.10) 0%, transparent 50%),
+    linear-gradient(180deg, #0a1020 0%, #070c18 60%, #05080f 100%);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+header {
+  padding: calc(28px + env(safe-area-inset-top)) 20px 18px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 180, 84, 0.4);
+  background: rgba(255, 180, 84, 0.08);
+  color: var(--beak);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  margin-bottom: 12px;
+}
+h1 {
+  font-size: clamp(24px, 5vw, 34px);
+  letter-spacing: 0.08em;
+  color: #fff;
+}
+h1 .thin { color: var(--dim); font-weight: 300; }
+.sub {
+  margin: 10px auto 0;
+  max-width: 680px;
+  color: var(--dim);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.prompt-box {
+  max-width: 820px;
+  margin: 16px auto 0;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.prompt-box summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--sky);
+  list-style: none;
+  user-select: none;
+}
+.prompt-box summary::-webkit-details-marker { display: none; }
+.prompt-box summary::before { content: "▸ "; }
+.prompt-box[open] summary::before { content: "▾ "; }
+.prompt-box pre {
+  margin: 0;
+  padding: 0 16px 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.75;
+  color: #b9c9e4;
+}
+.prompt-box .btn { margin: 0 16px 14px; }
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 16px 6px;
+}
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.seg-btn, .btn {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--dim);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.seg-btn.active { background: rgba(70, 232, 255, 0.14); color: var(--sky); }
+.btn {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+}
+.btn:hover, .seg-btn:hover { background: rgba(70, 232, 255, 0.10); }
+.btn:active, .seg-btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .4; cursor: default; }
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 16px;
+  scrollbar-width: thin;
+}
+.tabs::-webkit-scrollbar { height: 6px; }
+.tabs::-webkit-scrollbar-thumb { background: rgba(120, 170, 255, 0.25); border-radius: 3px; }
+.tab {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(16, 26, 46, 0.6);
+  color: var(--dim);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab.active {
+  color: #08101f;
+  background: linear-gradient(135deg, var(--sky), #7ef0d0);
+  border-color: transparent;
+  font-weight: 600;
+}
+.tab .star-mini { color: var(--beak); margin-left: 6px; font-size: 12px; }
+
+.stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 14px;
+  padding: 4px 16px 0;
+  align-items: start;
+}
+.frame-wrap {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #05080f;
+  height: min(74vh, 760px);
+  transition: max-width .2s;
+}
+.frame-wrap.phone {
+  max-width: 400px;
+  height: min(74vh, 760px);
+  margin: 0 auto;
+  border-radius: 26px;
+  border-width: 3px;
+  border-color: rgba(120, 170, 255, 0.3);
+}
+.frame-wrap:fullscreen { height: 100vh; max-width: none; border: none; border-radius: 0; }
+.frame-wrap iframe { width: 100%; height: 100%; border: 0; display: block; background: #05080f; }
+.frame-wrap .loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  background: #05080f;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+
+.meta {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  padding: 16px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.meta h3 { font-size: 16px; margin-bottom: 4px; }
+.meta .model {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  word-break: break-all;
+  margin-bottom: 10px;
+}
+.meta .k { color: var(--dim); }
+.meta .row { display: flex; gap: 6px; margin-top: 2px; }
+.meta .features { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.meta .features span {
+  font-size: 11.5px;
+  color: #b9c9e4;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+.meta .note {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  color: #b9c9e4;
+  font-size: 12.5px;
+}
+.meta .blind-note { color: var(--beak); font-size: 12.5px; margin-top: 10px; }
+
+.rate {
+  margin: 16px 16px 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+}
+.rate-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+.rate-head h2 { font-size: 15px; letter-spacing: 0.04em; }
+.rate-head .hint { color: var(--dim); font-size: 12px; }
+.stars { display: inline-flex; gap: 2px; }
+.stars button {
+  background: none;
+  border: none;
+  padding: 6px 2px;
+  min-width: 34px;
+  min-height: 44px;
+  font-size: 19px;
+  line-height: 1;
+  color: #3a4a68;
+  cursor: pointer;
+  transition: color .12s, transform .12s;
+}
+.stars button.on { color: var(--beak); }
+.stars button:hover { transform: scale(1.12); }
+.rate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.rate-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(8, 14, 28, 0.6);
+}
+.rate-item.current { border-color: rgba(70, 232, 255, 0.5); }
+.rate-item .label { font-size: 13px; white-space: nowrap; overflow: visible; }
+.rank {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  display: none;
+}
+.rank.show { display: block; }
+.rank ol { margin: 8px 0 0 20px; color: #c7d6ee; font-size: 13px; line-height: 1.9; }
+.rank .score { color: var(--beak); font-family: var(--mono); font-size: 12px; margin-left: 6px; }
+
+.table-wrap {
+  margin: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  overflow-x: auto;
+}
+table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 12.5px; }
+th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid rgba(120, 170, 255, 0.10); vertical-align: top; }
+th { color: var(--dim); font-weight: 500; font-size: 11.5px; letter-spacing: 0.06em; white-space: nowrap; }
+td.num { font-family: var(--mono); color: #b9c9e4; white-space: nowrap; }
+td.name { color: #fff; white-space: nowrap; }
+td .m { display: block; font-family: var(--mono); font-size: 10.5px; color: var(--dim); margin-top: 2px; }
+.table-hidden { display: none; }
+.masked {
+  margin: 16px;
+  padding: 26px 18px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  color: var(--dim);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.masked strong { color: var(--beak); }
+
+footer {
+  margin-top: 22px;
+  padding: 20px 16px calc(28px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  text-align: center;
+  color: var(--dim);
+  font-size: 12px;
+  line-height: 1.9;
+}
+footer code { font-family: var(--mono); color: #b9c9e4; }
+
+@media (max-width: 900px) {
+  .stage { grid-template-columns: minmax(0, 1fr); }
+  .frame-wrap { height: 62vh; }
+  .meta { order: 2; }
+}
+@media (max-width: 520px) {
+  .toolbar { justify-content: flex-start; }
+  .rate-grid { grid-template-columns: 1fr; }
+  .frame-wrap.phone { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">AI BENCHMARK · 同题六版</div>
+  <h1>鹈鹕踩单车 <span class="thin">/ Pelican on a Bicycle</span></h1>
+  <p class="sub">
+    同一段提示词，六个模型各自写一个单文件、零外链的页面。逐版切换查看，盲评打分，再揭晓谁画得最像在骑车。
+  </p>
+  <details class="prompt-box">
+    <summary>查看给六个模型的原始提示词</summary>
+    <pre id="promptText">请写一个单文件、自包含、双击即可离线运行的 HTML 页面，主题是「一只鹈鹕骑自行车」，把完整代码写入仓库文件。
+
+硬性要求：
+1. 只写这一个文件，不创建或修改其他文件，不启动本地服务，不安装依赖。
+2. 零外部资源：禁止 CDN、外链脚本/样式/字体/图片/音频，禁止 fetch/XHR，禁止任何 http(s) 地址；自行车与鹈鹕必须程序化绘制（Canvas 2D、内联 SVG、CSS 任选）。
+3. 真实骑行感：车轮转动、曲柄与蹬腿同步、身体随路面上下颠簸、背景视差滚动，让人一眼看出在骑车而不是摆拍。
+4. 至少 3 个可操作交互或状态切换，例如加速/减速/刹车、坡度或风阻、昼夜或天气切换、合成的车铃或鸟鸣、视角切换；键盘与鼠标/触摸都能触发主要交互。
+5. 移动端适配：viewport-fit=cover、安全区 env(safe-area-inset-*)、可点击目标不小于 44px；动画用 requestAnimationFrame；Canvas 或 AudioContext 不可用时降级提示而不是白屏报错。
+6. 中文界面；代码整洁、关键逻辑有注释；页面打开 3 秒内能直接看懂在发生什么。
+7. 直接动手写完整实现，不要把代码正文回传给我。完成后返回 tech、features、note。</pre>
+    <button class="btn" id="copyPrompt" type="button">复制提示词</button>
+  </details>
+</header>
+
+<section class="toolbar">
+  <div class="seg" role="group" aria-label="显示模式">
+    <button class="seg-btn active" id="modeBlind" type="button">盲评模式</button>
+    <button class="seg-btn" id="modeNamed" type="button">署名模式</button>
+  </div>
+  <div class="seg" role="group" aria-label="预览宽度">
+    <button class="seg-btn active" id="deviceDesktop" type="button">桌面</button>
+    <button class="seg-btn" id="devicePhone" type="button">手机</button>
+  </div>
+  <button class="btn" id="btnOpen" type="button">新窗口打开</button>
+  <button class="btn" id="btnFull" type="button">全屏预览</button>
+</section>
+
+<nav class="tabs" id="tabs" aria-label="版本切换"></nav>
+
+<main class="stage">
+  <div class="frame-wrap" id="frameWrap">
+    <iframe id="frame" src="" title="模型版本预览" loading="eager"></iframe>
+    <div class="loader" id="loader">加载中…</div>
+  </div>
+  <aside class="meta" id="meta"></aside>
+</main>
+
+<section class="rate">
+  <div class="rate-head">
+    <h2>我的评分</h2>
+    <span class="hint" id="rateHint">点星号给当前版本打分，记录只存在本机浏览器。</span>
+  </div>
+  <div class="rate-grid" id="rateGrid"></div>
+  <div class="rank" id="rank">
+    <div class="hint" id="rankTitle">我的榜单</div>
+    <ol id="rankList"></ol>
+  </div>
+</section>
+
+<section class="table-wrap table-hidden" id="tableWrap">
+  <table>
+    <thead>
+      <tr>
+        <th>版本</th>
+        <th>体积 / 行数</th>
+        <th>绘制技术</th>
+        <th>特性</th>
+        <th>自评</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</section>
+
+<div class="masked" id="masked">
+  当前是盲评模式，六个版本以 <strong>A–F</strong> 匿名展示，位置每次重置都是随机固定顺序，
+  避免「点第一个」的偏差。给任意版本打分后点「揭晓榜单」，即可看到模型名和完整对照表。
+</div>
+
+<footer>
+  六个页面均为各模型独立产出的单文件实现，零 CDN、零外链。体积与行数由生成时自动统计。<br>
+  切换快捷键：<code>1</code>–<code>6</code> 选版本 · <code>←</code> <code>→</code> 上下一个 · <code>F</code> 全屏
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* 六版元信息：体积、行数、技术取向与自评由生成流程自动采集后写入 */
+  var VERSIONS = [
+    {
+      key: "glm", name: "GLM", model: "magpie/group/glm", dir: "glm",
+      bytes: 44934, lines: 1108,
+      tech: "Canvas 2D 全程序化 + Web Audio",
+      features: ["昼夜切换", "坡度变化", "车铃合成", "近景视角", "CSP 锁死零外链"],
+      note: "单文件零依赖，另用 CSP meta 锁死零外链；白天/夜晚/坡度/近景均经无头 Chrome 实测。"
+    },
+    {
+      key: "kimi", name: "Kimi", model: "magpie/group/kimi", dir: "kimi",
+      bytes: 34127, lines: 789,
+      tech: "Canvas 2D 骨骼动画 + 值噪声地形",
+      features: ["程序化骨骼动画", "值噪声地形", "多层视差", "昼夜切换", "车铃合成"],
+      note: "六版里体积最小；首轮车辆朝向与地面求解有缺陷，已由 Kimi 自行修复（正坐、轮着地、镜头居中）。"
+    },
+    {
+      key: "step", name: "Step", model: "magpie/group/step", dir: "step",
+      bytes: 54933, lines: 1218,
+      tech: "纯 Canvas 2D + CSS 浮层 HUD",
+      features: ["雨雪天气", "浮动 HUD", "坡度变化", "视角切换", "24 项逐帧自测"],
+      note: "首轮 drawSunMoon 无参导致画布全黑，已由 Step 自行修复，并顺带校正太阳半径与黄昏位置。"
+    },
+    {
+      key: "minimax", name: "MiniMax", model: "magpie/group/minimax", dir: "minimax",
+      bytes: 72510, lines: 1707,
+      tech: "Canvas 2D 全场景 + HTML/CSS HUD",
+      features: ["天气切换", "视角切换", "车铃/鸟鸣/胎噪/风噪", "运动学修正", "降级遮罩"],
+      note: "自测揪出画布状态栈失衡、遮罩盖屏、单位换算三处缺陷并修复，运动学与视差实测通过。"
+    },
+    {
+      key: "deepseek", name: "DeepSeek", model: "magpie/group/deepseek", dir: "deepseek",
+      bytes: 76759, lines: 2326,
+      tech: "Canvas 2D + 内联 SVG 图标",
+      features: ["雨雪天气", "昼夜切换", "坡度变化", "车铃合成", "视角切换"],
+      note: "六版里行数最多；桌面/窄屏渲染、键盘与按钮交互、Canvas 与音频降级均经 headless 实跑。"
+    },
+    {
+      key: "gemini", name: "Gemini 3.8 Flash", model: "magpie/antigravity/gemini-3.8-flash",
+      dir: "gemini-3.8-flash", bytes: 71603, lines: 2122,
+      tech: "Canvas 2D + 解析几何 IK",
+      features: ["IK 骨骼约束", "晴空/日落/星夜/细雨", "坡度 ±8°", "加速减速", "车铃合成"],
+      note: "用解析几何 IK 骨骼约束驱动鹈鹕蹬踏，动力学真实且带喜剧张力。"
+    }
+  ];
+
+  var STORE_KEY = "pelican-bicycle:state:v1";
+  var LETTERS = "ABCDEF";
+
+  var els = {
+    tabs: document.getElementById("tabs"),
+    frame: document.getElementById("frame"),
+    frameWrap: document.getElementById("frameWrap"),
+    loader: document.getElementById("loader"),
+    meta: document.getElementById("meta"),
+    rateGrid: document.getElementById("rateGrid"),
+    rateHint: document.getElementById("rateHint"),
+    rank: document.getElementById("rank"),
+    rankList: document.getElementById("rankList"),
+    tableWrap: document.getElementById("tableWrap"),
+    tableBody: document.getElementById("tableBody"),
+    masked: document.getElementById("masked"),
+    modeBlind: document.getElementById("modeBlind"),
+    modeNamed: document.getElementById("modeNamed"),
+    deviceDesktop: document.getElementById("deviceDesktop"),
+    devicePhone: document.getElementById("devicePhone"),
+    btnOpen: document.getElementById("btnOpen"),
+    btnFull: document.getElementById("btnFull"),
+    copyPrompt: document.getElementById("copyPrompt"),
+    promptText: document.getElementById("promptText")
+  };
+
+  function loadState() {
+    var fallback = { blind: true, seed: (Date.now() % 1000000007) | 0, ratings: {}, current: null };
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return fallback;
+      var parsed = JSON.parse(raw);
+      var ratings = {};
+      if (parsed && parsed.ratings && typeof parsed.ratings === "object") {
+        Object.keys(parsed.ratings).forEach(function (k) {
+          var v = parsed.ratings[k];
+          if (typeof v === "number" && v >= 1 && v <= 5) ratings[k] = Math.round(v);
+        });
+      }
+      var seed = typeof parsed.seed === "number" && isFinite(parsed.seed) ? Math.floor(parsed.seed) : fallback.seed;
+      return {
+        blind: parsed.blind !== false,
+        seed: seed,
+        ratings: ratings,
+        current: typeof parsed.current === "string" ? parsed.current : null
+      };
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        blind: state.blind, seed: state.seed, ratings: state.ratings, current: state.current
+      }));
+    } catch (e) { /* 隐私模式或配额异常：仅内存生效 */ }
+  }
+
+  var state = loadState();
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function shuffled() {
+    var arr = VERSIONS.slice();
+    var rand = mulberry32(state.seed || 1);
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(rand() * (i + 1));
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  var order = shuffled();
+
+  function byKey(key) {
+    for (var i = 0; i < VERSIONS.length; i++) if (VERSIONS[i].key === key) return VERSIONS[i];
+    return null;
+  }
+
+  function displayName(v) {
+    if (!state.blind) return v.name;
+    return "版本 " + LETTERS[order.indexOf(v)];
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function fmtBytes(n) {
+    if (!n) return "—";
+    if (n >= 1024 * 1024) return (n / 1024 / 1024).toFixed(2) + " MB";
+    return (n / 1024).toFixed(1) + " KB";
+  }
+
+  function currentKey() {
+    var key = state.current;
+    if (!key || !byKey(key)) key = order[0].key;
+    return key;
+  }
+
+  function renderTabs() {
+    var key = currentKey();
+    var html = order.map(function (v) {
+      var rating = state.ratings[v.key];
+      return '<button class="tab' + (v.key === key ? " active" : "") + '" data-key="' + esc(v.key) + '" type="button">' +
+        esc(displayName(v)) +
+        (rating ? '<span class="star-mini">★' + rating + "</span>" : "") +
+        "</button>";
+    }).join("");
+    els.tabs.innerHTML = html;
+  }
+
+  function renderMeta() {
+    var v = byKey(currentKey());
+    var rows = [];
+    if (!state.blind) {
+      rows.push('<h3>' + esc(v.name) + "</h3>");
+      rows.push('<div class="model">' + esc(v.model) + "</div>");
+    } else {
+      rows.push("<h3>" + esc(displayName(v)) + "</h3>");
+      rows.push('<div class="model">模型身份已隐藏</div>');
+    }
+    rows.push('<div class="row"><span class="k">体积</span><span>' + fmtBytes(v.bytes) + "</span></div>");
+    rows.push('<div class="row"><span class="k">行数</span><span>' + (v.lines || "—") + "</span></div>");
+    rows.push('<div class="row"><span class="k">技术取向</span><span>' + esc(v.tech || "—") + "</span></div>");
+    if (v.features && v.features.length) {
+      rows.push('<div class="features">' + v.features.map(function (f) {
+        return "<span>" + esc(f) + "</span>";
+      }).join("") + "</div>");
+    }
+    if (!state.blind && v.note) {
+      rows.push('<div class="note">' + esc(v.note) + "</div>");
+    }
+    if (state.blind) {
+      rows.push('<div class="blind-note">盲评中：模型名与自评已隐藏。</div>');
+    }
+    els.meta.innerHTML = rows.join("");
+  }
+
+  function renderRate() {
+    els.rateGrid.innerHTML = order.map(function (v) {
+      var rating = state.ratings[v.key] || 0;
+      var stars = "";
+      for (var s = 1; s <= 5; s++) {
+        stars += '<button type="button" class="' + (s <= rating ? "on" : "") +
+          '" data-key="' + esc(v.key) + '" data-score="' + s + '" aria-label="给' +
+          esc(displayName(v)) + "打" + s + '分">★</button>';
+      }
+      return '<div class="rate-item' + (v.key === currentKey() ? " current" : "") + '">' +
+        '<span class="label">' + esc(displayName(v)) + "</span>" +
+        '<span class="stars">' + stars + "</span></div>";
+    }).join("");
+    var rated = Object.keys(state.ratings).length;
+    els.rateHint.textContent = "已评 " + rated + "/6，记录只存在本机浏览器。";
+  }
+
+  function renderRank() {
+    var rated = VERSIONS.filter(function (v) { return state.ratings[v.key]; });
+    if (!rated.length) {
+      els.rank.classList.remove("show");
+      return;
+    }
+    var sorted = rated.slice().sort(function (a, b) {
+      return state.ratings[b.key] - state.ratings[a.key];
+    });
+    els.rankList.innerHTML = sorted.map(function (v) {
+      return "<li>" + esc(displayName(v)) +
+        '<span class="score">' + state.ratings[v.key] + " / 5</span></li>";
+    }).join("");
+    els.rank.classList.add("show");
+  }
+
+  function renderTable() {
+    if (state.blind) {
+      els.tableWrap.classList.add("table-hidden");
+      els.masked.style.display = "";
+      return;
+    }
+    els.tableWrap.classList.remove("table-hidden");
+    els.masked.style.display = "none";
+    els.tableBody.innerHTML = VERSIONS.map(function (v) {
+      return "<tr>" +
+        '<td class="name">' + esc(v.name) + '<span class="m">' + esc(v.model) + "</span></td>" +
+        '<td class="num">' + fmtBytes(v.bytes) + " / " + (v.lines || "—") + "</td>" +
+        "<td>" + esc(v.tech || "—") + "</td>" +
+        "<td>" + (v.features || []).map(esc).join(" · ") + "</td>" +
+        "<td>" + esc(v.note || "—") + "</td>" +
+        "</tr>";
+    }).join("");
+  }
+
+  var loaderTimer = 0;
+  function hideLoader() {
+    if (loaderTimer) { clearTimeout(loaderTimer); loaderTimer = 0; }
+    els.loader.style.opacity = "0";
+  }
+
+  function loadVersion(key, updateHash) {
+    var v = byKey(key);
+    if (!v) return;
+    state.current = key;
+    saveState();
+    var src = "./" + v.dir + "/index.html";
+    els.loader.style.opacity = "1";
+    els.loader.textContent = "加载中…";
+    if (els.frame.getAttribute("src") !== src) els.frame.setAttribute("src", src);
+    if (loaderTimer) clearTimeout(loaderTimer);
+    loaderTimer = setTimeout(hideLoader, 2500);
+    renderTabs();
+    renderMeta();
+    renderRate();
+    if (updateHash !== false) {
+      try { history.replaceState(null, "", "#" + encodeURIComponent(key)); } catch (e) { location.hash = key; }
+    }
+  }
+
+  els.frame.addEventListener("load", hideLoader);
+
+  els.tabs.addEventListener("click", function (e) {
+    var btn = e.target.closest(".tab");
+    if (!btn) return;
+    loadVersion(btn.getAttribute("data-key"));
+  });
+
+  els.rateGrid.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-score]");
+    if (!btn) return;
+    var key = btn.getAttribute("data-key");
+    var score = parseInt(btn.getAttribute("data-score"), 10);
+    if (state.ratings[key] === score) delete state.ratings[key];
+    else state.ratings[key] = score;
+    saveState();
+    renderTabs();
+    renderRate();
+    renderRank();
+  });
+
+  function setMode(blind) {
+    state.blind = blind;
+    saveState();
+    els.modeBlind.classList.toggle("active", blind);
+    els.modeNamed.classList.toggle("active", !blind);
+    renderTabs();
+    renderMeta();
+    renderRate();
+    renderRank();
+    renderTable();
+  }
+
+  els.modeBlind.addEventListener("click", function () { setMode(true); });
+  els.modeNamed.addEventListener("click", function () { setMode(false); });
+
+  els.deviceDesktop.addEventListener("click", function () {
+    els.frameWrap.classList.remove("phone");
+    els.deviceDesktop.classList.add("active");
+    els.devicePhone.classList.remove("active");
+  });
+  els.devicePhone.addEventListener("click", function () {
+    els.frameWrap.classList.add("phone");
+    els.devicePhone.classList.add("active");
+    els.deviceDesktop.classList.remove("active");
+  });
+
+  els.btnOpen.addEventListener("click", function () {
+    var v = byKey(currentKey());
+    window.open("./" + v.dir + "/index.html", "_blank", "noopener");
+  });
+
+  els.btnFull.addEventListener("click", function () {
+    if (els.frameWrap.requestFullscreen) els.frameWrap.requestFullscreen();
+    else if (els.frameWrap.webkitRequestFullscreen) els.frameWrap.webkitRequestFullscreen();
+  });
+
+  els.copyPrompt.addEventListener("click", function () {
+    var text = els.promptText.textContent;
+    function done() {
+      var old = els.copyPrompt.textContent;
+      els.copyPrompt.textContent = "已复制";
+      setTimeout(function () { els.copyPrompt.textContent = old; }, 1400);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else {
+      fallback();
+    }
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); done(); } catch (e) { /* 复制不可用 */ }
+      document.body.removeChild(ta);
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      e.preventDefault();
+      var idx = order.findIndex(function (v) { return v.key === currentKey(); });
+      var next = e.key === "ArrowRight" ? (idx + 1) % order.length : (idx - 1 + order.length) % order.length;
+      loadVersion(order[next].key);
+      return;
+    }
+    if (e.key === "f" || e.key === "F") {
+      els.btnFull.click();
+      return;
+    }
+    var digit = parseInt(e.key, 10);
+    if (digit >= 1 && digit <= order.length) loadVersion(order[digit - 1].key);
+  });
+
+  function boot() {
+    var hashKey = "";
+    try { hashKey = decodeURIComponent((location.hash || "").replace(/^#/, "")); } catch (e) { hashKey = ""; }
+    if (!byKey(hashKey)) hashKey = state.current;
+    if (!byKey(hashKey)) hashKey = order[0].key;
+    setMode(state.blind);
+    loadVersion(hashKey, false);
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

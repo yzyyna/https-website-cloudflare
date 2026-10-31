@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>鹈鹕骑行记 · Pelican on a Bicycle</title>
+<style>
+  /* ============ 基础布局：全屏画布 + 浮层 HUD + 底部触控条 ============ */
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: #0b1020;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    color: #eef3ff;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #wrap { position: fixed; inset: 0; overflow: hidden; }
+  #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+  .panel {
+    background: rgba(10, 16, 32, .58);
+    -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 12px;
+  }
+
+  /* HUD：左上角数据面板 */
+  #hud {
+    position: absolute;
+    left: calc(12px + env(safe-area-inset-left));
+    top: calc(12px + env(safe-area-inset-top));
+    padding: 9px 12px; font-size: 13px; line-height: 1.75;
+    min-width: 196px; pointer-events: none;
+  }
+  #hud .title { font-size: 14px; font-weight: 700; letter-spacing: .5px; margin-bottom: 2px; color: #ffd98a; }
+  #hud .v { font-weight: 700; color: #ffd98a; font-variant-numeric: tabular-nums; }
+  #hud .k { display: inline-block; min-width: 3.6em; color: #a9b8d6; }
+
+  /* 顶部中央操作提示（数秒后淡出） */
+  #hint {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    top: calc(12px + env(safe-area-inset-top));
+    padding: 7px 14px; font-size: 13px; text-align: center;
+    max-width: 92vw; pointer-events: none;
+    transition: opacity 1s ease; opacity: 1;
+  }
+  #hint b { color: #ffd98a; }
+
+  /* 底部触控/鼠标按钮条：触控目标 ≥ 48px */
+  #bar {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  }
+  .btn {
+    min-height: 48px; min-width: 58px; padding: 0 13px;
+    border-radius: 12px; border: 1px solid rgba(255, 255, 255, .18);
+    background: rgba(12, 18, 36, .62);
+    -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+    color: #eef3ff; font-size: 14px; line-height: 1.1;
+    display: inline-flex; align-items: center; justify-content: center; text-align: center;
+    cursor: pointer; touch-action: none; -webkit-appearance: none; appearance: none;
+    font-family: inherit;
+  }
+  .btn small { display: block; font-size: 10px; color: #9fb0d0; margin-top: 2px; }
+  .btn:active, .btn.on { background: rgba(255, 200, 90, .88); color: #1a1206; border-color: rgba(255, 220, 140, .9); }
+  .btn:active small, .btn.on small { color: #5a4310; }
+  .btn.hold { min-width: 84px; }
+
+  /* 降级提示（Canvas 不可用时显示，绝不白屏） */
+  #fallback {
+    position: absolute; inset: 0; display: none;
+    align-items: center; justify-content: center; padding: 26px;
+    text-align: center; font-size: 15px; line-height: 2;
+    background: linear-gradient(160deg, #101a33, #060a16);
+  }
+  #fallback.show { display: flex; }
+  #fallback .box { max-width: 30em; }
+  #fallback h1 { font-size: 20px; color: #ffd98a; margin: 0 0 8px; }
+
+  @media (max-width: 620px) {
+    #hud { font-size: 12px; min-width: 158px; padding: 7px 10px; }
+    #hint { font-size: 11px; }
+    .btn { font-size: 13px; min-width: 52px; padding: 0 9px; }
+    .btn.hold { min-width: 74px; }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="scene"></canvas>
+
+  <div id="hud" class="panel">
+    <div class="title">鹈鹕骑行记</div>
+    <div><span class="k">速度</span><span class="v" id="h-speed">0.0</span> km/h</div>
+    <div><span class="k">里程</span><span class="v" id="h-dist">0</span> m（最高 <span class="v" id="h-best">0</span> m）</div>
+    <div><span class="k">档位</span><span class="v" id="h-gear">3</span>/5 · 踏频 <span class="v" id="h-rpm">0</span> rpm</div>
+    <div><span class="k">坡度</span><span class="v" id="h-slope">0.0</span>% · <span class="v" id="h-wind">顺风 1.5</span> m/s</div>
+    <div><span class="k">环境</span><span class="v" id="h-weather">晴</span> · <span class="v" id="h-time">白天</span> · <span class="v" id="h-view">全景侧视</span></div>
+  </div>
+
+  <div id="hint" class="panel">
+    <b>↑/W</b> 蹬车 &nbsp;·&nbsp; <b>↓/S</b> 刹车 &nbsp;·&nbsp; <b>←/→</b> 换挡 &nbsp;·&nbsp; <b>空格</b> 车铃 &nbsp;·&nbsp; <b>B</b> 鸟鸣 &nbsp;·&nbsp; <b>V</b> 视角 &nbsp;·&nbsp; <b>T</b> 昼夜 &nbsp;·&nbsp; <b>R</b> 天气<br>
+    也可直接点画面左半边蹬车、右半边刹车
+  </div>
+
+  <div id="bar">
+    <button class="btn hold" id="btn-go" aria-label="蹬车加速">蹬车<small>↑ / W</small></button>
+    <button class="btn hold" id="btn-brake" aria-label="刹车">刹车<small>↓ / S</small></button>
+    <button class="btn" id="btn-gear-dn" aria-label="降档">降档<small>←</small></button>
+    <button class="btn" id="btn-gear-up" aria-label="升档">升档<small>→</small></button>
+    <button class="btn" id="btn-bell" aria-label="按车铃">车铃<small>空格</small></button>
+    <button class="btn" id="btn-call" aria-label="鹈鹕鸣叫">鸟鸣<small>B</small></button>
+    <button class="btn" id="btn-view" aria-label="切换视角">视角<small>V</small></button>
+    <button class="btn" id="btn-time" aria-label="切换昼夜">昼夜<small>T</small></button>
+    <button class="btn" id="btn-weather" aria-label="切换天气">天气<small>R</small></button>
+    <button class="btn" id="btn-wind" aria-label="切换风力">风力<small>风向</small></button>
+  </div>
+
+  <div id="fallback">
+    <div class="box">
+      <h1>当前环境无法绘制画面</h1>
+      <p>浏览器未提供可用的 Canvas 2D 上下文（或已被禁用）。<br>
+         本页所有内容（自行车、鹈鹕、路面、天气）均由程序化绘制生成，没有降级为静态图片的方案。<br>
+         请更换现代版 Chrome / Edge / Safari / Firefox 后重试。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+   * 0. 工具函数
+   * ===================================================================== */
+  function $(id) { return document.getElementById(id); }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function mod(a, n) { return ((a % n) + n) % n; }
+  /** 确定性伪随机：同一索引永远得到同一结果，用于树木/草丛等景物布点 */
+  function hash01(i) { var s = Math.sin(i * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
+  function css(c) { return 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')'; }
+  function cssa(c, a) { return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + a + ')'; }
+
+  /* =====================================================================
+   * 1. 环境探测：Canvas 不可用时给出文字降级，绝不白屏
+   * ===================================================================== */
+  var canvas = $('scene');
+  var ctx = null;
+  try { ctx = canvas.getContext('2d'); } catch (e) { ctx = null; }
+  if (!ctx) {
+    $('fallback').classList.add('show');
+    $('hud').style.display = 'none';
+    $('bar').style.display = 'none';
+    $('hint').style.display = 'none';
+    return; /* 后续逻辑全部不执行 */
+  }
+
+  var cssW = 0, cssH = 0, dpr = 1;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2); /* DPR 上限 2，兼顾性能 */
+    cssW = canvas.clientWidth || window.innerWidth;
+    cssH = canvas.clientHeight || window.innerHeight;
+    canvas.width = Math.max(1, Math.round(cssW * dpr));
+    canvas.height = Math.max(1, Math.round(cssH * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', resize);
+
+  /* =====================================================================
+   * 2. 常量与状态
+   * ===================================================================== */
+  var WHEEL_R = 0.34;   /* 车轮半径（米） */
+  var MASS = 9.2;       /* 车 + 鹈鹕总质量（千克） */
+  var GRAV = 9.81;
+
+  /** 五档齿比（牙盘/飞轮）：数值越大越“慢速爬坡档”，越小越“高速档” */
+  var GEARS = [2.0, 2.6, 3.2, 4.0, 5.0];
+  /** 风力档位（正=顺风，负=逆风），单位 m/s */
+  var WINDS = [-4, -2, 0, 2, 5];
+
+  var S = {
+    x: 0,             /* 沿路里程（米） */
+    v: 4.4,           /* 速度（米/秒） */
+    dist: 0,          /* 本次累计里程（米） */
+    gear: 2,          /* 当前档位索引 */
+    windIdx: 3,       /* 风力档位索引 */
+    wheelAngle: 0,    /* 车轮转角（弧度），由里程推导，保证不打滑 */
+    crankAngle: 0,    /* 曲柄转角（弧度），与车轮按齿比同步 */
+    suspY: 0, suspV: 0,   /* 车身悬挂位移（相对理想路面）→ 颠簸感来源 */
+    timeMode: 0,      /* 0 白天 / 1 黄昏 / 2 夜晚 */
+    weather: 0,       /* 0 晴 / 1 雨 / 2 雾 */
+    view: 0,          /* 0 全景侧视 / 1 特写 / 2 鹈鹕第一人称 */
+    auto: true,       /* 开场自动巡航，用户一介入即关闭 */
+    throttle: 0.34,
+    brake: 0,
+    bellT: 0,         /* 车铃震动动画剩余时间 */
+    best: 0,
+    bestDirty: false,
+    bestTimer: 0
+  };
+
+  /* ---- 最高里程持久化（localStorage 不可用时静默降级） ---- */
+  var STORE_KEY = 'pelican-bicycle:step:v1';
+  (function loadBest() {
+    try {
+      var raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return;
+      var o = JSON.parse(raw);
+      if (o && typeof o.best === 'number' && isFinite(o.best) && o.best >= 0) S.best = o.best;
+    } catch (e) { /* 隐私模式 / 数据损坏：忽略，不影响骑行 */ }
+  })();
+  function saveBest() {
+    try { window.localStorage.setItem(STORE_KEY, JSON.stringify({ best: Math.round(S.best) })); }
+    catch (e) { /* 配额受限：放弃持久化 */ }
+  }
+
+  /* =====================================================================
+   * 3. 地形：路面高度曲线（决定坡度与颠簸）
+   * ===================================================================== */
+  function terrainY(x) {
+    return 1.5 * Math.sin(x * 0.0125 + 1.3) + 0.85 * Math.sin(x * 0.033 + 4.1) + 0.3 * Math.sin(x * 0.09 + 0.7);
+  }
+  function terrainSlope(x) {
+    return 1.5 * 0.0125 * Math.cos(x * 0.0125 + 1.3)
+         + 0.85 * 0.033 * Math.cos(x * 0.033 + 4.1)
+         + 0.3 * 0.09 * Math.cos(x * 0.09 + 0.7);
+  }
+
+  /* =====================================================================
+   * 4. 昼夜调色板（三种时段平滑过渡）
+   * ===================================================================== */
+  var PAL = {
+    day:   { skyTop:[104,186,252], skyBot:[203,236,255], hillFar:[151,177,201], hillNear:[101,141,95],
+             grass:[121,184,104], road:[73,78,86], line:[243,235,203], tree:[57,110,69],
+             cloud:[255,255,255], haze:[214,232,244], star:0 },
+    dusk:  { skyTop:[38,52,108], skyBot:[246,146,104], hillFar:[96,84,132], hillNear:[62,74,84],
+             grass:[74,100,82], road:[55,57,66], line:[236,212,168], tree:[38,56,62],
+             cloud:[255,196,166], haze:[232,176,150], star:0.3 },
+    night: { skyTop:[5,9,24], skyBot:[20,34,68], hillFar:[21,31,53], hillNear:[15,27,35],
+             grass:[21,37,31], road:[33,36,43], line:[198,208,228], tree:[11,23,25],
+             cloud:[38,52,82], haze:[26,38,70], star:1 }
+  };
+  var P = {}; /* 当前插值后的调色板 */
+  (function initPal() {
+    for (var k in PAL.day) P[k] = PAL.day[k].slice ? PAL.day[k].slice() : PAL.day[k];
+  })();
+  var palTarget = PAL.day;
+  function setTimeMode(m) { S.timeMode = mod(m, 3); palTarget = [PAL.day, PAL.dusk, PAL.night][S.timeMode]; }
+  function lerpPal(dt) {
+    var keys = Object.keys(PAL.day), t = Math.min(1, dt * 1.8), i, k, cur, tgt;
+    for (i = 0; i < keys.length; i++) {
+      k = keys[i];
+      if (k === 'star') { P[k] = lerp(P[k], palTarget[k], t); continue; }
+      cur = P[k]; tgt = palTarget[k];
+      cur[0] = lerp(cur[0], tgt[0], t);
+      cur[1] = lerp(cur[1], tgt[1], t);
+      cur[2] = lerp(cur[2], tgt[2], t);
+    }
+  }
+
+  /* =====================================================================
+   * 5. 合成音频：车铃 / 鹈鹕鸣叫 / 风噪（AudioContext 不可用时按钮提示降级）
+   * ===================================================================== */
+  var AC = window.AudioContext || window.webkitAudioContext;
+  var audio = { ctx: null, master: null, wind: null, ok: false };
+  function initAudio() {
+    if (audio.ctx || !AC) return;
+    try {
+      var c = new AC();
+      audio.ctx = c;
+      audio.master = c.createGain();
+      audio.master.gain.value = 0.85;
+      audio.master.connect(c.destination);
+      /* 风噪：循环白噪声 + 低通 */
+      var buf = c.createBuffer(1, Math.floor(c.sampleRate * 2), c.sampleRate);
+      var d = buf.getChannelData(0), i;
+      for (i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      var src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+      var lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 480;
+      audio.wind = c.createGain(); audio.wind.gain.value = 0;
+      src.connect(lp); lp.connect(audio.wind); audio.wind.connect(audio.master);
+      src.start();
+      audio.ok = true;
+    } catch (e) { audio.ok = false; }
+  }
+  function audioResume() {
+    if (!audio.ctx) initAudio();
+    if (audio.ctx && audio.ctx.state === 'suspended') { try { audio.ctx.resume(); } catch (e) {} }
+  }
+  /** 车铃：两个非协和谐音叠加，快速衰减，带一点金属感 */
+  function playBell() {
+    audioResume();
+    if (!audio.ok) return;
+    var c = audio.ctx, t = c.currentTime;
+    [[1318.5, 0.30, 1.7], [1975.5, 0.18, 1.3], [2637.0, 0.07, 0.8]].forEach(function (p) {
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(p[0], t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(p[1], t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + p[2]);
+      o.connect(g); g.connect(audio.master);
+      o.start(t); o.stop(t + p[2] + 0.05);
+    });
+  }
+  /** 鹈鹕鸣叫：三连声上挑下滑的“嘎啦” */
+  function playCall() {
+    audioResume();
+    if (!audio.ok) return;
+    var c = audio.ctx, t0 = c.currentTime + 0.02, i;
+    for (i = 0; i < 3; i++) {
+      var t = t0 + i * 0.17, f0 = 480 + Math.random() * 240;
+      var o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(f0, t);
+      o.frequency.exponentialRampToValueAtTime(f0 * 1.9, t + 0.045);
+      o.frequency.exponentialRampToValueAtTime(f0 * 0.72, t + 0.14);
+      f.type = 'bandpass'; f.frequency.value = f0 * 1.4; f.Q.value = 1.2;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.28, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+      o.connect(f); f.connect(g); g.connect(audio.master);
+      o.start(t); o.stop(t + 0.2);
+    }
+  }
+
+  /* =====================================================================
+   * 6. 输入：键盘 + 触控/鼠标按钮 + 画面左右半屏
+   * ===================================================================== */
+  var keys = { go: false, brake: false };
+
+  function userTookOver() { S.auto = false; }   /* 用户一介入，自动巡航让位 */
+
+  window.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === 'ArrowUp' || k === 'w' || k === 'W') { keys.go = true; userTookOver(); e.preventDefault(); }
+    else if (k === 'ArrowDown' || k === 's' || k === 'S') { keys.brake = true; userTookOver(); e.preventDefault(); }
+    else if (k === 'ArrowLeft' || k === 'a' || k === 'A') { shiftGear(-1); e.preventDefault(); }
+    else if (k === 'ArrowRight' || k === 'd' || k === 'D') { shiftGear(1); e.preventDefault(); }
+    else if (k === ' ') { ringBell(); e.preventDefault(); }
+    else if (k === 'b' || k === 'B') { playCall(); }
+    else if (k === 'v' || k === 'V') { cycleView(); }
+    else if (k === 't' || k === 'T') { setTimeMode(S.timeMode + 1); }
+    else if (k === 'r' || k === 'R') { cycleWeather(); }
+  });
+  window.addEventListener('keyup', function (e) {
+    var k = e.key;
+    if (k === 'ArrowUp' || k === 'w' || k === 'W') keys.go = false;
+    else if (k === 'ArrowDown' || k === 's' || k === 'S') keys.brake = false;
+  });
+  /* 失焦时清空按键，避免“卡住油门” */
+  window.addEventListener('blur', function () { keys.go = false; keys.brake = false; });
+
+  /* ---- 按住型按钮（蹬车 / 刹车） ---- */
+  function bindHold(el, on, off) {
+    el.addEventListener('pointerdown', function (e) {
+      e.preventDefault(); audioResume();
+      try { el.setPointerCapture(e.pointerId); } catch (err) {}
+      el.classList.add('on'); on();
+    });
+    var end = function (e) { el.classList.remove('on'); off(); };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+    el.addEventListener('lostpointercapture', end);
+  }
+  bindHold($('btn-go'), function () { keys.go = true; userTookOver(); }, function () { keys.go = false; });
+  bindHold($('btn-brake'), function () { keys.brake = true; userTookOver(); }, function () { keys.brake = false; });
+
+  /* ---- 单击型按钮 ---- */
+  function bindTap(el, fn) {
+    el.addEventListener('click', function (e) { e.preventDefault(); audioResume(); fn(); });
+  }
+  bindTap($('btn-bell'), ringBell);
+  bindTap($('btn-call'), function () { playCall(); });
+  bindTap($('btn-view'), cycleView);
+  bindTap($('btn-time'), function () { setTimeMode(S.timeMode + 1); });
+  bindTap($('btn-weather'), cycleWeather);
+  bindTap($('btn-gear-up'), function () { shiftGear(1); });
+  bindTap($('btn-gear-dn'), function () { shiftGear(-1); });
+  bindTap($('btn-wind'), function () { S.windIdx = mod(S.windIdx + 1, WINDS.length); });
+
+  function ringBell() { playBell(); S.bellT = 0.5; }
+  function cycleView() { S.view = mod(S.view + 1, 3); }
+  function cycleWeather() { S.weather = mod(S.weather + 1, 3); if (S.weather === 1) initRain(); }
+  function shiftGear(d) {
+    var n = clamp(S.gear + d, 0, GEARS.length - 1);
+    if (n !== S.gear) { S.gear = n; userTookOver(); }
+  }
+
+  /* ---- 画面左右半屏：左半屏蹬车、右半屏刹车（鼠标/触摸通用） ---- */
+  var canvasPtr = null;
+  canvas.addEventListener('pointerdown', function (e) {
+    e.preventDefault(); audioResume(); userTookOver();
+    canvasPtr = e.pointerId;
+    applyCanvasHold(e);
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    if (e.pointerId !== canvasPtr) return;
+    applyCanvasHold(e);
+  });
+  function applyCanvasHold(e) {
+    var r = canvas.getBoundingClientRect();
+    if ((e.clientX - r.left) < r.width * 0.5) { keys.go = true; keys.brake = false; }
+    else { keys.brake = true; keys.go = false; }
+  }
+  function releaseCanvas(e) {
+    if (e.pointerId !== canvasPtr) return;
+    canvasPtr = null; keys.go = false; keys.brake = false;
+  }
+  canvas.addEventListener('pointerup', releaseCanvas);
+  canvas.addEventListener('pointercancel', releaseCanvas);
+  canvas.addEventListener('pointerleave', releaseCanvas);
+
+  /* =====================================================================
+   * 7. 物理更新：驱动力 / 风阻 / 滚阻 / 坡度分量 / 刹车
+   * ===================================================================== */
+  var lastDt = 0;
+  function update(dt) {
+    lastDt = dt;
+    var i;
+
+    /* 油门平滑，避免速度跳变 */
+    var targetThrottle = S.auto ? 0.34 : (keys.go ? 1 : 0);
+    S.throttle += (targetThrottle - S.throttle) * Math.min(1, dt * 5);
+    S.brake += ((keys.brake ? 1 : 0) - S.brake) * Math.min(1, dt * 12);
+
+    /* 踏频 = 车速 / 每圈曲柄前进的距离；效率在 ~70rpm 达到峰值 */
+    var ratio = GEARS[S.gear];
+    var metersPerCrank = ratio * 2 * Math.PI * WHEEL_R;
+    var rpm = S.v / metersPerCrank * 60;
+    var eff = Math.exp(-Math.pow((rpm - 70) / 45, 2));
+    if (rpm < 6) eff *= 0.35;        /* 几乎踩不动：起步要降档 */
+    if (rpm > 140) eff *= 0.5;       /* 空踏：踏频过高掉功率 */
+
+    var power = 240 * S.throttle * eff;             /* 有效功率 W */
+    var F = power / Math.max(S.v, 1.2);             /* 牵引力 N */
+    if (F > 700) F = 700;
+
+    var slope = terrainSlope(S.x), th = Math.atan(slope);
+    var rho = 1.225, kDrag = 0.5 * rho * 0.36;      /* 风阻系数 × 迎风面积 */
+    var rel = S.v - WINDS[S.windIdx];               /* 相对风速（顺风为负） */
+    var Fd = -kDrag * rel * Math.abs(rel);
+    var Fr = -0.006 * MASS * GRAV * Math.cos(th);   /* 滚动阻力 */
+    var Fg = -MASS * GRAV * Math.sin(th);           /* 坡度分量 */
+    var Fb = -150 * S.brake;                        /* 刹车力 */
+
+    var a = (F + Fd + Fr + Fg + Fb) / MASS;
+    S.v += a * dt;
+    if (S.v < 0) S.v = 0;
+    if (S.v > 20) S.v = 20;
+
+    var dx = S.v * dt;
+    S.x += dx;
+    S.dist += dx;
+    /* 车轮与曲柄严格按里程/齿比转动 → 视觉与物理一致 */
+    S.wheelAngle += dx / WHEEL_R;
+    S.crankAngle += dx / metersPerCrank * 2 * Math.PI;
+
+    /* 悬挂：车身滞后跟随路面，天然产生上下颠簸 */
+    var targetY = terrainY(S.x) + WHEEL_R;
+    var k2 = 150, c2 = 19;
+    S.suspV += ((targetY - S.suspY) * k2 - S.suspV * c2) * dt;
+    S.suspY += S.suspV * dt;
+
+    /* 车铃震动衰减 */
+    if (S.bellT > 0) S.bellT = Math.max(0, S.bellT - dt);
+
+    /* 最高里程（节流写入） */
+    if (S.dist > S.best) { S.best = S.dist; S.bestDirty = true; }
+    S.bestTimer += dt;
+    if (S.bestDirty && S.bestTimer > 2) { saveBest(); S.bestDirty = false; S.bestTimer = 0; }
+
+    /* 云飘、雨粒子、水花 */
+    for (i = 0; i < clouds.length; i++) clouds[i].x += (WINDS[S.windIdx] * 0.4 + 0.7) * dt;
+    if (S.weather === 1) updateRain(dt);
+    for (i = splashes.length - 1; i >= 0; i--) {
+      splashes[i].t -= dt;
+      if (splashes[i].t <= 0) splashes.splice(i, 1);
+    }
+
+    /* 风噪随速度与雨势起伏 */
+    if (audio.ok) {
+      var target = S.weather === 1 ? Math.min(0.22, 0.02 + S.v * 0.014) : Math.min(0.05, S.v * 0.0025);
+      audio.wind.gain.value += (target - audio.wind.gain.value) * Math.min(1, dt * 3);
+    }
+
+    lerpPal(dt);
+    hudTimer += dt;
+    if (hudTimer > 0.1) { hudTimer = 0; updateHud(); }
+  }
+
+  /* =====================================================================
+   * 8. 侧视/特写：世界坐标 → 屏幕坐标
+   * ===================================================================== */
+  var view = { ax: 0, hy: 0, ppm: 100 };
+  function setupViewMap() {
+    if (S.view === 1) {                       /* 特写：放大鹈鹕与车 */
+      view.ppm = Math.min(cssH * 0.62, cssW * 0.52) / 3.0 * 2.0;
+      view.ax = cssW * 0.42; view.hy = cssH * 0.68;
+    } else {                                  /* 全景侧视 */
+      view.ppm = Math.min(cssH * 0.60, cssW * 0.46) / 3.0;
+      view.ax = cssW * 0.34; view.hy = cssH * 0.72;
+    }
+  }
+  function sx(wx) { return view.ax + (wx - S.x) * view.ppm; }
+  function sy(wy) { return view.hy - wy * view.ppm; }
+
+  /* ---- 画布内快捷绘制 ---- */
+  function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); }
+  function seg(x1, y1, x2, y2, w, col) {
+    ctx.strokeStyle = col; ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  /* ---- 星空 / 日月 / 云 ---- */
+  var stars = [], clouds = [];
+  (function initSky() {
+    var i;
+    for (i = 0; i < 90; i++) stars.push({ x: hash01(i * 3.1), y: hash01(i * 7.7) * 0.55, r: 0.5 + hash01(i * 5.3) * 1.3, tw: hash01(i * 11.9) * 6.28 });
+    for (i = 0; i < 7; i++) clouds.push({ x: i * 240 + hash01(i * 2.2) * 180, y: 0.05 + hash01(i * 4.4) * 0.3, s: 0.6 + hash01(i * 6.6) * 0.8 });
+  })();
+  var clock = 0;
+
+  function drawStars() {
+    if (P.star < 0.02) return;
+    var t = clock, i, s, alpha, ox = mod(S.x * 0.02, cssW);
+    ctx.fillStyle = '#fff';
+    for (i = 0; i < stars.length; i++) {
+      s = stars[i];
+      alpha = P.star * (0.45 + 0.55 * Math.sin(t * 2 + s.tw));
+      if (alpha <= 0.02) continue;
+      ctx.globalAlpha = alpha;
+      var px = mod(s.x * cssW - ox, cssW), py = s.y * cssH;
+      ctx.fillRect(px, py, s.r, s.r);
+    }
+    ctx.globalAlpha = 1;
+  }
+  function drawSunMoon(r) {
+    /* 半径缺省（无参调用）时按画布短边推导：本体约 5% 短边且不小于 14px，光晕取 4.2 倍 */
+    if (!(typeof r === 'number' && isFinite(r) && r > 0)) r = Math.max(14, Math.min(cssW, cssH) * 0.05);
+    if (!(r > 0)) r = 18;   /* cssW/cssH 异常时兜底，绝不放非有限值进 createRadialGradient */
+    /* 日/月位置随时段插值：白天高悬、黄昏低垂（抬到近山山脊线之上，避免整圆被山体挡住）、夜晚换成月亮 */
+    var dayP = [cssW * 0.78, cssH * 0.17], duskP = [cssW * 0.84, view.hy - 0.95 * view.ppm], nightP = [cssW * 0.74, cssH * 0.19];
+    var p = dayP, m = S.timeMode;
+    if (m === 1) p = [lerp(dayP[0], duskP[0], 1), lerp(dayP[1], duskP[1], 1)];
+    else if (m === 2) p = nightP;
+    var isNight = m === 2;
+    /* 光晕 */
+    var g = ctx.createRadialGradient(p[0], p[1], r * 0.3, p[0], p[1], r * 4.2);
+    g.addColorStop(0, cssa(isNight ? [200, 214, 240] : [255, 238, 190], 0.55));
+    g.addColorStop(1, 'rgba(255,240,200,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(p[0], p[1], r * 4.2, 0, Math.PI * 2); ctx.fill();
+    /* 本体 */
+    ctx.fillStyle = css(isNight ? [222, 230, 244] : [255, 247, 208]);
+    ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, Math.PI * 2); ctx.fill();
+    if (isNight) { /* 月海 */
+      ctx.fillStyle = 'rgba(180,192,214,0.55)';
+      ctx.beginPath(); ctx.arc(p[0] - r * 0.3, p[1] - r * 0.2, r * 0.22, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(p[0] + r * 0.25, p[1] + r * 0.3, r * 0.15, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  function drawClouds() {
+    var i, c, pxs, s;
+    for (i = 0; i < clouds.length; i++) {
+      c = clouds[i];
+      pxs = mod(c.x - S.x * 0.06, cssW + 700) - 350;
+      if (pxs < -260 || pxs > cssW + 260) continue;
+      s = c.s * view.ppm * 0.42;
+      ctx.fillStyle = cssa(P.cloud, S.weather === 2 ? 0.95 : 0.82);
+      ctx.beginPath();
+      ctx.arc(pxs, c.y * cssH, s * 0.6, 0, Math.PI * 2);
+      ctx.arc(pxs + s * 0.6, c.y * cssH + s * 0.1, s * 0.45, 0, Math.PI * 2);
+      ctx.arc(pxs - s * 0.6, c.y * cssH + s * 0.14, s * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  /* ---- 远近山峦（视差核心：不同层以不同速度移动） ---- */
+  function drawHills(f, ys, col) {
+    ctx.fillStyle = css(col);
+    ctx.beginPath();
+    ctx.moveTo(-6, cssH + 6);
+    var step = 12, sxp;
+    for (sxp = -6; sxp <= cssW + step; sxp += step) {
+      var wx = S.x * f + (sxp - view.ax) / view.ppm;
+      var wy = (1.1 * Math.sin(wx * 0.0065 + 2.0) + 0.65 * Math.sin(wx * 0.017 + 0.5) + 0.35 * Math.sin(wx * 0.043 + 1.2)) * ys - 0.2;
+      ctx.lineTo(sxp, sy(wy));
+    }
+    ctx.lineTo(cssW + 6, cssH + 6);
+    ctx.closePath(); ctx.fill();
+  }
+  /* ---- 树带 ---- */
+  function treeRow(f, spacing, scale, col, trunk) {
+    var i0 = Math.floor((S.x * f - 3) / spacing);
+    var count = Math.ceil((cssW / view.ppm + 10) / spacing) + 2, i, r1, r2, tx, sxp, h, tw, base;
+    for (i = i0; i <= i0 + count; i++) {
+      r1 = hash01(i * 3.7 + f * 97); r2 = hash01(i * 9.1 + f * 53);
+      tx = i * spacing + r1 * spacing;
+      sxp = view.ax + (tx - S.x * f) * view.ppm;
+      if (sxp < -80 || sxp > cssW + 80) continue;
+      h = (1.9 + r2 * 1.5) * scale;
+      tw = h * 0.36;
+      base = sy(terrainY(tx) - 0.1);
+      ctx.fillStyle = trunk;
+      ctx.fillRect(sxp - tw * 0.13, base - h * 0.34, tw * 0.26, h * 0.35);
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.moveTo(sxp, base - h);
+      ctx.lineTo(sxp + tw * 0.52, base - h * 0.4);
+      ctx.lineTo(sxp - tw * 0.52, base - h * 0.4);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(sxp, base - h * 1.14);
+      ctx.lineTo(sxp + tw * 0.4, base - h * 0.62);
+      ctx.lineTo(sxp - tw * 0.4, base - h * 0.62);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+  /* ---- 路面 + 中线 ---- */
+  function drawGround() {
+    var pts = [], sxp, wx, step = 8;
+    for (sxp = -8; sxp <= cssW + step; sxp += step) {
+      wx = S.x + (sxp - view.ax) / view.ppm;
+      pts.push([sxp, sy(terrainY(wx))]);
+    }
+    /* 草地（路面以下整块） */
+    ctx.fillStyle = css(P.grass);
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], cssH + 6);
+    for (sxp = 0; sxp < pts.length; sxp++) ctx.lineTo(pts[sxp][0], pts[sxp][1]);
+    ctx.lineTo(cssW + 8, cssH + 6);
+    ctx.closePath(); ctx.fill();
+    /* 路面 */
+    ctx.strokeStyle = css(P.road);
+    ctx.lineWidth = 0.66 * view.ppm;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (sxp = 1; sxp < pts.length; sxp++) ctx.lineTo(pts[sxp][0], pts[sxp][1]);
+    ctx.stroke();
+    /* 中线虚线（随世界坐标滚动，天然产生速度感） */
+    ctx.strokeStyle = css(P.line);
+    ctx.lineWidth = 0.08 * view.ppm;
+    ctx.setLineDash([1.2 * view.ppm, 1.7 * view.ppm]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  /* ---- 路边草丛/碎石/小花（近景视差层） ---- */
+  function drawRoadside() {
+    var spacing = 2.3;
+    var i0 = Math.floor((S.x - 3) / spacing);
+    var count = Math.ceil((cssW / view.ppm + 8) / spacing), i, r, tx, sxp, base, side, off, px, j;
+    for (i = i0; i <= i0 + count; i++) {
+      r = hash01(i * 5.13);
+      tx = i * spacing + r * spacing;
+      sxp = view.ax + (tx - S.x) * view.ppm;
+      if (sxp < -30 || sxp > cssW + 30) continue;
+      base = sy(terrainY(tx));
+      side = hash01(i * 7.77) < 0.5 ? -1 : 1;
+      off = side * (0.46 + hash01(i * 3.31) * 0.55);
+      px = sxp + off * view.ppm;
+      var k = hash01(i * 13.7);
+      if (k < 0.62) { /* 草丛 */
+        ctx.strokeStyle = cssa(P.tree, 0.85);
+        ctx.lineWidth = Math.max(1, 0.018 * view.ppm);
+        ctx.beginPath();
+        for (j = -1; j <= 1; j++) {
+          ctx.moveTo(px + j * 0.03 * view.ppm, base);
+          ctx.lineTo(px + j * 0.05 * view.ppm + (j * 0.02 * view.ppm), base - (0.09 + 0.05 * hash01(i + j)) * view.ppm);
+        }
+        ctx.stroke();
+      } else if (k < 0.85) { /* 碎石 */
+        ctx.fillStyle = 'rgba(150,158,170,0.75)';
+        ctx.beginPath();
+        ctx.ellipse(px, base - 0.02 * view.ppm, 0.035 * view.ppm, 0.022 * view.ppm, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else { /* 小花 */
+        ctx.fillStyle = hash01(i * 21.1) < 0.5 ? 'rgba(255,214,120,0.9)' : 'rgba(246,150,170,0.9)';
+        ctx.beginPath(); ctx.arc(px, base - 0.07 * view.ppm, 0.022 * view.ppm, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+  }
+
+  /* =====================================================================
+   * 9. 自行车 + 鹈鹕（局部坐标：后轮轴为原点，y 轴向上，单位米）
+   * ===================================================================== */
+  var GEO = {
+    R: WHEEL_R,
+    REAR: [0, 0], FRONT: [1.06, 0],
+    BB: [0.45, -0.10],      /* 五通（曲柄中心） */
+    SEAT: [0.27, 0.54],     /* 座管顶 */
+    HT: [0.88, 0.50],       /* 头管顶 */
+    HB: [0.99, 0.24],       /* 头管底 */
+    GRIP: [0.79, 0.61],     /* 车把握点 */
+    CRANK: 0.17             /* 曲柄长 */
+  };
+
+  function drawWheel(cx, cy, ang) {
+    var R = GEO.R;
+    ctx.strokeStyle = '#191c22'; ctx.lineWidth = 0.062; circle(cx, cy, R); ctx.stroke();
+    ctx.strokeStyle = '#9aa4b4'; ctx.lineWidth = 0.026; circle(cx, cy, R - 0.07); ctx.stroke();
+    /* 高速转动时叠加半透明盘，削弱辐条频闪 */
+    var rpm = S.v / (2 * Math.PI * GEO.R) * 60;
+    if (rpm > 45) {
+      ctx.fillStyle = 'rgba(28,32,40,' + Math.min(0.32, (rpm - 45) / 320) + ')';
+      circle(cx, cy, R - 0.075); ctx.fill();
+    }
+    ctx.strokeStyle = 'rgba(214,222,235,0.8)'; ctx.lineWidth = 0.009;
+    ctx.beginPath();
+    for (var i = 0; i < 12; i++) {
+      var a = ang + i * Math.PI / 6;
+      ctx.moveTo(cx + Math.cos(a) * 0.05, cy + Math.sin(a) * 0.05);
+      ctx.lineTo(cx + Math.cos(a) * (R - 0.085), cy + Math.sin(a) * (R - 0.085));
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#c8d2e2'; circle(cx, cy, 0.038); ctx.fill();
+  }
+  function pedal(x, y) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = '#22262e'; roundRect(-0.062, -0.018, 0.124, 0.036, 0.012); ctx.fill();
+    ctx.restore();
+  }
+  function drawBike() {
+    drawWheel(GEO.REAR[0], GEO.REAR[1], S.wheelAngle);
+    drawWheel(GEO.FRONT[0], GEO.FRONT[1], S.wheelAngle);
+    var frame = '#17a08c';
+    seg(GEO.REAR[0], GEO.REAR[1], GEO.BB[0], GEO.BB[1], 0.042, frame);        /* 后下叉 */
+    seg(GEO.BB[0], GEO.BB[1], GEO.SEAT[0], GEO.SEAT[1], 0.042, frame);        /* 座管 */
+    seg(GEO.SEAT[0], GEO.SEAT[1], GEO.HT[0], GEO.HT[1], 0.042, frame);        /* 上管 */
+    seg(GEO.BB[0], GEO.BB[1], GEO.HB[0], GEO.HB[1], 0.042, frame);            /* 下管 */
+    seg(GEO.HB[0], GEO.HB[1], GEO.HT[0], GEO.HT[1], 0.046, frame);            /* 头管 */
+    seg(GEO.SEAT[0], GEO.SEAT[1], GEO.REAR[0], GEO.REAR[1], 0.026, frame);    /* 后上叉 */
+    seg(GEO.HB[0], GEO.HB[1], GEO.FRONT[0], GEO.FRONT[1], 0.034, '#8f98a8');  /* 前叉 */
+    seg(GEO.HT[0], GEO.HT[1], GEO.GRIP[0], GEO.GRIP[1], 0.032, '#8f98a8');    /* 车把 */
+    seg(GEO.GRIP[0], GEO.GRIP[1], GEO.GRIP[0] - 0.10, GEO.GRIP[1] + 0.025, 0.052, '#2b2f38'); /* 握把 */
+    /* 坐垫 */
+    ctx.save(); ctx.translate(GEO.SEAT[0], GEO.SEAT[1] + 0.035); ctx.rotate(-0.13);
+    ctx.fillStyle = '#3a2a22'; roundRect(-0.115, -0.032, 0.23, 0.064, 0.032); ctx.fill();
+    ctx.restore();
+    /* 牙盘 / 飞轮 / 链条 */
+    ctx.strokeStyle = '#4b515c'; ctx.lineWidth = 0.02; circle(GEO.BB[0], GEO.BB[1], 0.10); ctx.stroke();
+    ctx.fillStyle = '#8f98a8'; circle(GEO.REAR[0], GEO.REAR[1], 0.055); ctx.fill();
+    ctx.strokeStyle = '#6e7683'; ctx.lineWidth = 0.013;
+    ctx.beginPath();
+    ctx.moveTo(GEO.BB[0], GEO.BB[1] + 0.10); ctx.lineTo(GEO.REAR[0], GEO.REAR[1] + 0.055);
+    ctx.moveTo(GEO.BB[0], GEO.BB[1] - 0.10); ctx.lineTo(GEO.REAR[0], GEO.REAR[1] - 0.055);
+    ctx.stroke();
+    /* 曲柄 + 踏板（与蹬腿严格同步） */
+    var ca = S.crankAngle, px = Math.cos(ca) * GEO.CRANK, py = Math.sin(ca) * GEO.CRANK;
+    seg(GEO.BB[0], GEO.BB[1], GEO.BB[0] + px, GEO.BB[1] + py, 0.028, '#5b626e');
+    seg(GEO.BB[0], GEO.BB[1], GEO.BB[0] - px, GEO.BB[1] - py, 0.028, '#5b626e');
+    pedal(GEO.BB[0] + px, GEO.BB[1] + py);
+    pedal(GEO.BB[0] - px, GEO.BB[1] - py);
+    ctx.fillStyle = '#c8d2e2'; circle(GEO.BB[0], GEO.BB[1], 0.03); ctx.fill();
+    /* 车铃（按铃时抖动） */
+    ctx.save();
+    ctx.translate(0.87, 0.645);
+    if (S.bellT > 0) ctx.rotate(Math.sin(S.bellT * 46) * 0.22 * S.bellT);
+    ctx.fillStyle = '#e8c15a'; circle(0, 0, 0.035); ctx.fill();
+    ctx.fillStyle = '#fff3c4'; circle(-0.01, 0.012, 0.012); ctx.fill();
+    ctx.restore();
+  }
+
+  /** 两段式 IK：由髋点与脚（踏板）位置反解膝盖，保证脚始终踩在踏板上 */
+  function ikKnee(hx, hy, fx, fy, l1, l2) {
+    var dx = fx - hx, dy = fy - hy, d0 = Math.sqrt(dx * dx + dy * dy);
+    if (d0 < 1e-5) return null;
+    var d = clamp(d0, Math.abs(l1 - l2) + 0.004, l1 + l2 - 0.004);
+    var ux = dx / d0, uy = dy / d0;
+    var a = (l1 * l1 - l2 * l2 + d * d) / (2 * d);
+    var h = Math.sqrt(Math.max(0, l1 * l1 - a * a));
+    var nx = -uy, ny = ux;
+    if (nx < 0) { nx = -nx; ny = -ny; }   /* 膝盖朝前顶 */
+    return [hx + ux * a + nx * h, hy + uy * a + ny * h];
+  }
+  /** 蹬踏的腿：大腿覆羽 + 橙色小腿 + 蹼足 */
+  function drawLeg(hx, hy, foot, l1, l2, near) {
+    var k = ikKnee(hx, hy, foot[0], foot[1], l1, l2);
+    if (!k) return;
+    var col = near ? '#e8834a' : '#c4693a';
+    seg(hx, hy, k[0], k[1], 0.088, near ? '#f4f1e6' : '#ded9c9');   /* 大腿 */
+    seg(k[0], k[1], foot[0], foot[1], 0.052, col);                  /* 小腿 */
+    ctx.save();
+    ctx.translate(foot[0], foot[1]);
+    ctx.rotate(Math.atan2(foot[1] - k[1], foot[0] - k[0]));
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.moveTo(-0.025, -0.032); ctx.lineTo(0.115, 0); ctx.lineTo(-0.025, 0.032);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawRider() {
+    var bob = 0.02 * Math.sin(S.crankAngle * 2);          /* 身体随踩踏起伏 */
+    var bob2 = 0.03 * Math.sin(S.crankAngle * 2 + 1.3);   /* 头部二次起伏 */
+    var ca = S.crankAngle;
+    var p1 = [GEO.BB[0] + Math.cos(ca) * GEO.CRANK, GEO.BB[1] + Math.sin(ca) * GEO.CRANK];
+    var p2 = [GEO.BB[0] - Math.cos(ca) * GEO.CRANK, GEO.BB[1] - Math.sin(ca) * GEO.CRANK];
+
+    /* 远侧腿先画（颜色压暗，形成层次） */
+    drawLeg(0.26, 0.58, p2, 0.30, 0.34, false);
+    /* 尾羽 */
+    ctx.strokeStyle = '#e6e2d4'; ctx.lineWidth = 0.05; ctx.lineCap = 'round';
+    for (var i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(-0.12, 0.92 + bob);
+      ctx.quadraticCurveTo(-0.27, 1.00 + bob + i * 0.02, -0.42 - i * 0.04, 1.10 - i * 0.035 + bob);
+      ctx.stroke();
+    }
+    /* 身体 */
+    ctx.save();
+    ctx.translate(0.16, 0.86 + bob); ctx.rotate(-0.16);
+    ctx.fillStyle = '#f4f1e6';
+    ctx.beginPath(); ctx.ellipse(0, 0, 0.33, 0.25, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(184,192,208,0.45)';
+    ctx.beginPath(); ctx.ellipse(0.02, -0.11, 0.27, 0.11, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    /* 围巾（速度越快飘得越厉害） */
+    var amp = 0.02 + Math.min(0.06, S.v * 0.006);
+    ctx.strokeStyle = '#e2453c'; ctx.lineWidth = 0.058; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (i = 0; i <= 5; i++) {
+      var f = i / 5;
+      var cxp = 0.50 - f * 0.44;
+      var cyp = 1.20 + Math.sin(clock * 9 + i * 1.1) * amp * f - f * 0.05;
+      if (i === 0) ctx.moveTo(cxp, cyp); else ctx.lineTo(cxp, cyp);
+    }
+    ctx.stroke();
+    /* 翅膀扶把：肩→肘→握点，两段 IK */
+    var shoulder = [0.24, 0.92 + bob], grip = [GEO.GRIP[0], GEO.GRIP[1] + 0.02];
+    var ek = ikKnee(shoulder[0], shoulder[1], grip[0], grip[1], 0.30, 0.30);
+    if (ek) {
+      seg(shoulder[0], shoulder[1], ek[0], ek[1], 0.17, '#eceadf');
+      seg(ek[0], ek[1], grip[0], grip[1], 0.115, '#eceadf');
+      /* 初级飞羽（深色羽尖） */
+      ctx.strokeStyle = '#3d4350'; ctx.lineWidth = 0.035;
+      ctx.beginPath();
+      for (i = 0; i < 4; i++) {
+        ctx.moveTo(grip[0] - 0.02 + i * 0.015, grip[1] + 0.03 - i * 0.012);
+        ctx.lineTo(grip[0] + 0.10 - i * 0.01, grip[1] - 0.04 + i * 0.014);
+      }
+      ctx.stroke();
+    }
+    /* 脖子 + 头 */
+    ctx.strokeStyle = '#f7f3e6'; ctx.lineWidth = 0.19; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0.34, 0.96 + bob);
+    ctx.quadraticCurveTo(0.50, 1.16 + bob2, 0.60, 1.40 + bob2);
+    ctx.stroke();
+    ctx.fillStyle = '#faf6e8'; circle(0.62, 1.44 + bob2, 0.115); ctx.fill();
+    /* 羽冠 */
+    ctx.fillStyle = '#e9e4d2';
+    ctx.beginPath();
+    ctx.moveTo(0.55, 1.53 + bob2); ctx.lineTo(0.46, 1.68 + bob2); ctx.lineTo(0.61, 1.56 + bob2);
+    ctx.closePath(); ctx.fill();
+    /* 眼睛 */
+    ctx.fillStyle = '#fff'; circle(0.685, 1.49 + bob2, 0.031); ctx.fill();
+    ctx.fillStyle = '#1a1c22'; circle(0.695, 1.49 + bob2, 0.016); ctx.fill();
+    /* 喙（上喙 + 喉囊，随颠簸轻晃） */
+    var hy2 = 1.40 + bob2 + Math.sin(clock * 6) * 0.006;
+    ctx.fillStyle = '#f5a03c';
+    ctx.beginPath();
+    ctx.moveTo(0.60, hy2 + 0.055);
+    ctx.quadraticCurveTo(0.95, hy2 + 0.095, 1.24, hy2 + 0.005);
+    ctx.quadraticCurveTo(0.95, hy2 - 0.02, 0.60, hy2 - 0.012);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#e4762a';
+    ctx.beginPath();
+    ctx.moveTo(0.62, hy2 - 0.012);
+    ctx.quadraticCurveTo(0.84, hy2 - 0.21, 1.08, hy2 - 0.062);
+    ctx.quadraticCurveTo(0.90, hy2 - 0.018, 0.645, hy2 + 0.018);
+    ctx.closePath(); ctx.fill();
+    /* 近侧腿最后画 */
+    drawLeg(0.33, 0.60, p1, 0.30, 0.34, true);
+  }
+
+  function drawBikeRider() {
+    var bx = view.ax, by = sy(S.suspY);
+    var th = Math.atan(terrainSlope(S.x));
+    /* 地面投影 */
+    ctx.save();
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(bx + 0.5 * view.ppm, sy(terrainY(S.x)) - 0.02 * view.ppm, 0.72 * view.ppm, 0.075 * view.ppm, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    /* 车身：先做米制缩放并翻转 y 轴向上，再按坡度旋转 */
+    ctx.save();
+    ctx.translate(bx, by);
+    ctx.scale(view.ppm, -view.ppm);
+    ctx.rotate(th);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    drawBike();
+    drawRider();
+    ctx.restore();
+  }
+
+  /* =====================================================================
+   * 10. 第一人称（鹈鹕视角）
+   * ===================================================================== */
+  function fpProj(z, lat, th, cy, f, camH) {
+    var rel = terrainY(S.x + z) - terrainY(S.x);
+    return [cssW / 2 + f * lat / z, cy + f * (camH - rel) / z + f * Math.sin(th)];
+  }
+  function renderFirstPerson() {
+    var W = cssW, H = cssH, f = W * 1.15, cy = H * 0.52, camH = 1.55;
+    var th = Math.atan(terrainSlope(S.x));
+    var horizon = cy + f * Math.sin(th);
+    /* 天空 */
+    var g = ctx.createLinearGradient(0, 0, 0, Math.max(1, horizon));
+    g.addColorStop(0, css(P.skyTop)); g.addColorStop(1, css(P.skyBot));
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, Math.max(0, horizon));
+    drawStars();
+    var p = [W * 0.78, horizon - Math.min(H * 0.42, H * 0.3 + (S.timeMode === 1 ? -H * 0.1 : 0))];
+    var isNight = S.timeMode === 2;
+    var rg = ctx.createRadialGradient(p[0], p[1], 8, p[0], p[1], 120);
+    rg.addColorStop(0, cssa(isNight ? [200, 214, 240] : [255, 240, 200], 0.5));
+    rg.addColorStop(1, 'rgba(255,240,200,0)');
+    ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(p[0], p[1], 120, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = css(isNight ? [222, 230, 244] : [255, 247, 208]);
+    ctx.beginPath(); ctx.arc(p[0], p[1], 22, 0, Math.PI * 2); ctx.fill();
+    drawClouds();
+    /* 地面 */
+    ctx.fillStyle = css(P.grass);
+    ctx.fillRect(0, horizon, W, H - horizon);
+    /* 道路：按深度非线性采样，近处密、远处疏 */
+    var N = 46, zNear = 1.7, zFar = 150, k, t, z, left = [], right = [];
+    for (k = 0; k <= N; k++) {
+      t = k / N;
+      z = zNear * Math.pow(zFar / zNear, t);
+      left.push(fpProj(z, -0.34, th, cy, f, camH));
+      right.push(fpProj(z, 0.34, th, cy, f, camH));
+    }
+    ctx.fillStyle = css(P.road);
+    ctx.beginPath();
+    ctx.moveTo(left[0][0], left[0][1]);
+    for (k = 1; k <= N; k++) ctx.lineTo(left[k][0], left[k][1]);
+    for (k = N; k >= 0; k--) ctx.lineTo(right[k][0], right[k][1]);
+    ctx.closePath(); ctx.fill();
+    /* 中线虚线（世界坐标 → 向前推进） */
+    ctx.fillStyle = css(P.line);
+    var period = 3.6, j0 = Math.floor((S.x - 4) / period), j1 = Math.ceil((S.x + zFar) / period), j, zs, ze, a1, a2, b1, b2;
+    for (j = j0; j <= j1; j++) {
+      zs = j * period - S.x;
+      if (zs > zFar) continue;
+      ze = zs + 1.8;
+      if (ze < zNear) continue;
+      zs = Math.max(zs, zNear); ze = Math.min(ze, zFar);
+      a1 = fpProj(zs, -0.05, th, cy, f, camH); b1 = fpProj(zs, 0.05, th, cy, f, camH);
+      a2 = fpProj(ze, -0.05, th, cy, f, camH); b2 = fpProj(ze, 0.05, th, cy, f, camH);
+      ctx.beginPath();
+      ctx.moveTo(a1[0], a1[1]); ctx.lineTo(b1[0], b1[1]);
+      ctx.lineTo(b2[0], b2[1]); ctx.lineTo(a2[0], a2[1]);
+      ctx.closePath(); ctx.fill();
+    }
+    /* 路边标杆 */
+    ctx.strokeStyle = 'rgba(230,230,235,0.8)'; ctx.lineWidth = 3;
+    var polePeriod = 16, p0 = Math.floor((S.x - 6) / polePeriod), p1i = Math.ceil((S.x + zFar) / polePeriod), m, zp, qa, qb;
+    for (m = p0; m <= p1i; m++) {
+      zp = m * polePeriod - S.x;
+      if (zp < zNear || zp > zFar) continue;
+      qa = fpProj(zp, -0.9, th, cy, f, camH); qb = fpProj(zp, 0.9, th, cy, f, camH);
+      ctx.beginPath(); ctx.moveTo(qa[0], qa[1]); ctx.lineTo(qa[0], qa[1] - 90 / zp); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(qb[0], qb[1]); ctx.lineTo(qb[0], qb[1] - 90 / zp); ctx.stroke();
+    }
+    /* 速度线 */
+    if (S.v > 8) {
+      ctx.strokeStyle = 'rgba(255,255,255,' + Math.min(0.22, (S.v - 8) * 0.02) + ')';
+      ctx.lineWidth = 2;
+      for (k = 0; k < 10; k++) {
+        var ang = k / 10 * Math.PI * 2 + clock;
+        var r1 = W * 0.32, r2 = r1 + 60 + S.v * 6;
+        ctx.beginPath();
+        ctx.moveTo(W / 2 + Math.cos(ang) * r1, cy + Math.sin(ang) * r1 * 0.7);
+        ctx.lineTo(W / 2 + Math.cos(ang) * r2, cy + Math.sin(ang) * r2 * 0.7);
+        ctx.stroke();
+      }
+    }
+    drawFPRider(horizon);
+  }
+  function drawFPRider(horizon) {
+    var W = cssW, H = cssH, f = W * 1.15;
+    var bobPx = (S.suspY - (terrainY(S.x) + WHEEL_R)) * f;      /* 悬挂位移 → 画面晃动 */
+    var pedalBob = Math.sin(S.crankAngle * 2) * 5;
+    var by = H * 0.92 + bobPx * 0.7;
+    var barY = by - H * 0.055 + pedalBob * 0.3;
+    /* 车把 */
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#2b3038'; ctx.lineWidth = 16;
+    ctx.beginPath(); ctx.moveTo(W * 0.13, barY + 10); ctx.lineTo(W * 0.87, barY - 10); ctx.stroke();
+    ctx.strokeStyle = '#8f98a8'; ctx.lineWidth = 11;
+    ctx.beginPath(); ctx.moveTo(W * 0.15, barY + 12); ctx.lineTo(W * 0.25, barY + 7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W * 0.85, barY - 12); ctx.lineTo(W * 0.75, barY - 7); ctx.stroke();
+    ctx.strokeStyle = '#8f98a8'; ctx.lineWidth = 13;
+    ctx.beginPath(); ctx.moveTo(W * 0.5, barY); ctx.lineTo(W * 0.5, barY + H * 0.1); ctx.stroke();
+    /* 前轮（底部露出一段） */
+    ctx.strokeStyle = '#191c22'; ctx.lineWidth = 24;
+    ctx.beginPath(); ctx.ellipse(W * 0.5, H * 1.24, W * 0.46, H * 0.42, 0, Math.PI * 1.06, Math.PI * 1.94); ctx.stroke();
+    ctx.strokeStyle = 'rgba(214,222,235,0.5)'; ctx.lineWidth = 3;
+    for (var i = 0; i < 8; i++) {
+      var a = S.wheelAngle + i * Math.PI / 4;
+      if (Math.sin(a) > 0) continue;   /* 只画上半可见辐条 */
+      ctx.beginPath();
+      ctx.moveTo(W * 0.5 + Math.cos(a) * W * 0.2, H * 1.24 + Math.sin(a) * H * 0.18);
+      ctx.lineTo(W * 0.5 + Math.cos(a) * W * 0.43, H * 1.24 + Math.sin(a) * H * 0.39);
+      ctx.stroke();
+    }
+    /* 鹈鹕：脖子、头、长喙、喉囊（在画面中央偏下） */
+    var cx = W * 0.5, hy = H * 0.50 + bobPx * 0.45 + pedalBob;
+    ctx.strokeStyle = '#f4f1e6'; ctx.lineWidth = W * 0.08;
+    ctx.beginPath();
+    ctx.moveTo(cx, H * 1.0);
+    ctx.quadraticCurveTo(cx - W * 0.025, H * 0.80, cx + W * 0.012, hy);
+    ctx.stroke();
+    ctx.fillStyle = '#faf6e8';
+    ctx.beginPath(); ctx.ellipse(cx + W * 0.025, hy - H * 0.028, W * 0.058, H * 0.05, -0.1, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#f5a03c';
+    ctx.beginPath();
+    ctx.moveTo(cx - W * 0.01, hy - H * 0.045);
+    ctx.quadraticCurveTo(cx + W * 0.11, hy - H * 0.105, cx + W * 0.215, hy - H * 0.055);
+    ctx.quadraticCurveTo(cx + W * 0.115, hy - H * 0.03, cx - W * 0.01, hy - H * 0.008);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#e4762a';
+    ctx.beginPath();
+    ctx.moveTo(cx - W * 0.008, hy - H * 0.008);
+    ctx.quadraticCurveTo(cx + W * 0.11, hy + H * 0.05, cx + W * 0.18, hy - H * 0.02);
+    ctx.quadraticCurveTo(cx + W * 0.095, hy + H * 0.012, cx - W * 0.005, hy + H * 0.022);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#1a1c22';
+    ctx.beginPath(); ctx.ellipse(cx + W * 0.038, hy - H * 0.042, W * 0.008, H * 0.008, 0, 0, Math.PI * 2); ctx.fill();
+    /* 双翅扶把（左右两侧伸向把手） */
+    ctx.fillStyle = '#eceadf';
+    ctx.beginPath();
+    ctx.moveTo(cx - W * 0.02, H * 0.98);
+    ctx.quadraticCurveTo(W * 0.24, H * 0.9, W * 0.2, barY + 12);
+    ctx.quadraticCurveTo(W * 0.33, H * 0.88, cx + W * 0.03, H * 0.98);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx + W * 0.03, H * 0.98);
+    ctx.quadraticCurveTo(W * 0.76, H * 0.9, W * 0.8, barY - 12);
+    ctx.quadraticCurveTo(W * 0.67, H * 0.88, cx - W * 0.02, H * 0.98);
+    ctx.closePath(); ctx.fill();
+  }
+
+  /* =====================================================================
+   * 11. 天气：雨 / 雾 / 水花
+   * ===================================================================== */
+  var rain = [], splashes = [];
+  function initRain() {
+    rain.length = 0;
+    for (var i = 0; i < 240; i++) {
+      rain.push({ x: Math.random() * cssW, y: Math.random() * cssH, l: 10 + Math.random() * 22, s: 0.6 + Math.random() * 0.8 });
+    }
+  }
+  function updateRain(dt) {
+    var i, p, vx = -(S.v * 7 + Math.max(0, WINDS[S.windIdx]) * 26), vy = 1150;
+    var groundAt = function (px) {
+      if (S.view === 2) return cssH * 0.8;
+      var wx = S.x + (px - view.ax) / view.ppm;
+      return sy(terrainY(wx));
+    };
+    for (i = 0; i < rain.length; i++) {
+      p = rain[i];
+      p.x += vx * p.s * dt;
+      p.y += vy * p.s * dt;
+      var gy = groundAt(p.x);
+      if (p.y >= gy || p.y > cssH + 40 || p.x < -60) {
+        if (p.y >= gy && p.y < cssH + 10 && splashes.length < 70) {
+          splashes.push({ x: p.x, y: gy, t: 0.32, r: 0.6 + Math.random() });
+        }
+        p.y = -20 - Math.random() * 80;
+        p.x = Math.random() * (cssW + 160) - 80;
+      }
+    }
+  }
+  function drawRain() {
+    var i, p, vx = -(S.v * 7 + Math.max(0, WINDS[S.windIdx]) * 26);
+    ctx.strokeStyle = 'rgba(186,212,240,0.5)';
+    ctx.lineWidth = 1.4; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (i = 0; i < rain.length; i++) {
+      p = rain[i];
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - vx * 0.02, p.y - p.l);
+    }
+    ctx.stroke();
+    /* 水花 */
+    ctx.strokeStyle = 'rgba(200,224,255,0.6)';
+    ctx.lineWidth = 1.2;
+    for (i = 0; i < splashes.length; i++) {
+      var s = splashes[i], rr = s.r * 10 * (1 - s.t / 0.32);
+      ctx.globalAlpha = s.t / 0.32;
+      ctx.beginPath(); ctx.arc(s.x, s.y, Math.max(0.5, rr), Math.PI * 1.15, Math.PI * 1.85);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function drawFog() {
+    var g = ctx.createLinearGradient(0, 0, 0, cssH);
+    g.addColorStop(0, cssa(P.haze, 0.62));
+    g.addColorStop(0.55, cssa(P.haze, 0.4));
+    g.addColorStop(1, cssa(P.haze, 0.55));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, cssW, cssH);
+  }
+  function drawVignette() {
+    var g = ctx.createRadialGradient(cssW * 0.5, cssH * 0.48, Math.min(cssW, cssH) * 0.32,
+                                     cssW * 0.5, cssH * 0.5, Math.max(cssW, cssH) * 0.78);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, 'rgba(4,8,18,0.42)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, cssW, cssH);
+  }
+
+  /* =====================================================================
+   * 12. 渲染总入口
+   * ===================================================================== */
+  function render() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+    if (S.view === 2) {
+      renderFirstPerson();
+    } else {
+      setupViewMap();
+      var g = ctx.createLinearGradient(0, 0, 0, cssH);
+      g.addColorStop(0, css(P.skyTop)); g.addColorStop(1, css(P.skyBot));
+      ctx.fillStyle = g; ctx.fillRect(0, 0, cssW, cssH);
+      drawStars();
+      drawSunMoon();
+      drawClouds();
+      drawHills(0.10, 0.55, P.hillFar);
+      drawHills(0.22, 0.35, P.hillNear);
+      treeRow(0.20, 9.0, 0.7, cssa(P.tree, 0.75), 'rgba(60,48,40,0.6)');
+      treeRow(0.45, 7.0, 1.0, css(P.tree), '#5b4636');
+      drawGround();
+      drawRoadside();
+      drawBikeRider();
+    }
+    if (S.weather === 1) drawRain();
+    if (S.weather === 2) drawFog();
+    drawVignette();
+  }
+
+  /* =====================================================================
+   * 13. HUD 刷新
+   * ===================================================================== */
+  var hudTimer = 0;
+  function fmtDist(m) { return m >= 1000 ? (m / 1000).toFixed(2) + ' km' : Math.round(m) + ' m'; }
+  function updateHud() {
+    var ratio = GEARS[S.gear];
+    var rpm = S.v / (ratio * 2 * Math.PI * WHEEL_R) * 60;
+    var slopePct = terrainSlope(S.x) * 100;
+    $('h-speed').textContent = (S.v * 3.6).toFixed(1);
+    $('h-dist').textContent = fmtDist(S.dist);
+    $('h-best').textContent = fmtDist(S.best);
+    $('h-gear').textContent = String(S.gear + 1);
+    $('h-rpm').textContent = String(Math.round(rpm));
+    $('h-slope').textContent = (slopePct >= 0 ? '+' : '') + slopePct.toFixed(1);
+    var w = WINDS[S.windIdx];
+    $('h-wind').textContent = (w > 0 ? '顺风 ' : (w < 0 ? '逆风 ' : '无风 ')) + Math.abs(w);
+    $('h-weather').textContent = ['晴', '雨', '雾'][S.weather];
+    $('h-time').textContent = ['白天', '黄昏', '夜晚'][S.timeMode];
+    $('h-view').textContent = ['全景侧视', '特写', '鹈鹕视角'][S.view];
+  }
+
+  /* =====================================================================
+   * 14. 主循环（rAF 驱动；隐藏页面/异常帧做时间钳制）
+   * ===================================================================== */
+  var last = 0, running = true;
+  function frame(ts) {
+    if (!running) return;
+    if (!last) last = ts;
+    var dt = (ts - last) / 1000;
+    last = ts;
+    if (!(dt > 0)) dt = 0;
+    if (dt > 0.05) dt = 0.05;   /* 后台掉帧/断点恢复时避免物理炸开 */
+    clock += dt;
+    update(dt);
+    render();
+    requestAnimationFrame(frame);
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { running = false; }
+    else if (!running) { running = true; last = 0; requestAnimationFrame(frame); }
+  });
+
+  /* ---- 提示条 7 秒后淡出 ---- */
+  setTimeout(function () { $('hint').style.opacity = '0'; }, 7000);
+
+  /* ---- 启动 ---- */
+  resize();
+  S.suspY = terrainY(0) + WHEEL_R;
+  initAudio();      /* 现代浏览器允许创建，处于 suspended 也无妨，手势时再 resume */
+  requestAnimationFrame(frame);
+
+  /* 只读调试句柄（不含敏感信息） */
+  window.__pelican = { state: S, gears: GEARS, winds: WINDS };
+})();
+</script>
+</body>
+</html>
