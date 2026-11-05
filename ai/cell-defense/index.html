@@ -65,6 +65,7 @@
           <div class="val val-wave" id="hud-wave">W1 / 10</div>
         </div>
       </div>
+      <a href="../" class="btn-control" title="返回项目集主页" aria-label="返回项目集主页" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center">🏠</a>
       <button class="btn-control" id="btn-speed" title="调节战局速率" aria-label="调节战局速率">⚡ 1x</button>
       <button class="btn-control" id="btn-sound" title="开关声效" aria-label="开关声效">🔊</button>
       <button class="btn-control" id="btn-pause" title="暂停/继续" aria-label="暂停或继续">⏸️</button>
@@ -183,8 +184,9 @@
     <div class="modal-content modal-content-compact">
       <div class="modal-title">⏸️ 防线已暂停</div>
       <div class="modal-subtitle">宿主微循环已静止，免疫细胞进入待命状态。<br>按空格 / Esc 或点击下方按钮继续作战。</div>
-      <div style="display:flex; justify-content:center; gap:12px;">
+      <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
         <button class="btn-large" id="btn-resume">▶️ 继续作战</button>
+        <button class="btn-large btn-ghost" onclick="location.href='../'">🏠 退出到首页</button>
       </div>
       <div class="shortcut-hint">
         <span><kbd>1</kbd>–<kbd>5</kbd> 选择细胞</span>

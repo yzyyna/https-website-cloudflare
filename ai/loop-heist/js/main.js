@@ -11,11 +11,11 @@
   var ALARM_MS = 1000;
   var MSG_MS = 1800;
   var KEY_ACTIONS = {
-    ArrowUp: 'U', KeyW: 'U',
-    ArrowDown: 'D', KeyS: 'D',
-    ArrowLeft: 'L', KeyA: 'L',
-    ArrowRight: 'R', KeyD: 'R',
-    Space: 'W'
+    ArrowUp: 'U', KeyW: 'U', KeyK: 'U', Numpad8: 'U',
+    ArrowDown: 'D', KeyS: 'D', KeyJ: 'D', Numpad2: 'D',
+    ArrowLeft: 'L', KeyA: 'L', KeyH: 'L', Numpad4: 'L',
+    ArrowRight: 'R', KeyD: 'R', KeyL: 'R', Numpad6: 'R',
+    Space: 'W', KeyZ: 'W', Numpad5: 'W'
   };
 
   var state = {

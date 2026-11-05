@@ -402,6 +402,28 @@ class VirtualList{
     this.onResize=debounce(this.onResize.bind(this),100);
     this.vp.addEventListener('scroll',this.onScroll);
     window.addEventListener('resize',this.onResize);
+    // 事件委托：避免在每次滚动重建 DOM 时为每行重复绑定闭包监听器
+    this.onClick = (e) => {
+      const row = e.target.closest('.row');
+      if (!row) return;
+      const id = row.dataset.id;
+      if (!id) return;
+      if (e.target.type === 'checkbox') {
+        toggleSelection(id, e);
+      } else {
+        handleRowClick(id, e);
+      }
+    };
+    this.onDragStart = (e) => {
+      const row = e.target.closest('.row');
+      if (!row) return;
+      const id = row.dataset.id;
+      if (!id) return;
+      e.dataTransfer.setData('text/plain', id);
+      e.dataTransfer.effectAllowed = 'move';
+    };
+    this.ct.addEventListener('click', this.onClick);
+    this.ct.addEventListener('dragstart', this.onDragStart);
     this.renderCount=0;
     this.avgMs=0;
   }
@@ -460,8 +482,6 @@ class VirtualList{
       row.title=`${d.id} ${d.name} ${d.region}${d.city} · ${d.status}`;
       row.draggable=true;
       row.innerHTML=`<div><input type="checkbox" ${sel.has(d.id)?'checked':''}></div><div class="id">${escapeHTML(d.id)}</div><div>${escapeHTML(d.name)}</div><div>${escapeHTML(String(d.cpu))}%<div class="meter"><i style="width:${clamp(Number(d.cpu)||0,0,100)}%"></i></div></div><div>${fmt(d.temperature)}°C</div><div>${fmt(d.power)}W</div><div>${escapeHTML(String(d.latency))}ms</div><div>${escapeHTML(String(d.battery))}%</div><div><span class="tag">${escapeHTML(d.region)}</span> ${escapeHTML(d.city)}</div><div><span class="status ${escapeHTML(d.status)}">${escapeHTML(d.status)}</span></div>`;
-      row.addEventListener('click',(e)=>{ if(e.target.type==='checkbox'){toggleSelection(d.id,e)} else {handleRowClick(d.id,e)} });
-      row.addEventListener('dragstart',(e)=>{e.dataTransfer.setData('text/plain',d.id);e.dataTransfer.effectAllowed='move'});
       frag.appendChild(row);
     }
     this.ct.appendChild(frag);
@@ -473,6 +493,8 @@ class VirtualList{
   destroy(){
     this.vp.removeEventListener('scroll',this.onScroll);
     window.removeEventListener('resize',this.onResize);
+    this.ct.removeEventListener('click',this.onClick);
+    this.ct.removeEventListener('dragstart',this.onDragStart);
     if(this.rafId) cancelAnimationFrame(this.rafId);
   }
 }

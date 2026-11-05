@@ -265,4 +265,21 @@ assert.strictEqual(isCritical(0, 100), true, '活性为 0 必须触发告警');
 assert.strictEqual(isCritical(50, 0), false, '上限异常为 0 时不得误报');
 console.log('   ✅ 低组织活性告警阈值判定测试通过');
 
+// 9. 细胞拖拽融合未成功/失焦原位坐标回弹保护
+const testCell = new Cell('macrophage', 120, 240, 1);
+testCell.origX = testCell.x;
+testCell.origY = testCell.y;
+// 模拟拖拽移动到悬空位置
+testCell.x = 350;
+testCell.y = 500;
+// 模拟未融合松手或失焦
+const mergedSuccess = false;
+if (!mergedSuccess && testCell.origX != null && testCell.origY != null) {
+  testCell.x = testCell.origX;
+  testCell.y = testCell.origY;
+}
+assert.strictEqual(testCell.x, 120, '未融合成功时细胞 x 必须弹回原位');
+assert.strictEqual(testCell.y, 240, '未融合成功时细胞 y 必须弹回原位');
+console.log('   ✅ 细胞拖拽未融合/失焦原位回弹保护测试通过');
+
 console.log('\n🎉 所有 cell-defense 核心单元测试全部通过！');

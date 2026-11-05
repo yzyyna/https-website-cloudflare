@@ -181,7 +181,7 @@ h1 .thin { color: var(--dim); font-weight: 300; }
   transition: max-width .2s;
 }
 .frame-wrap.phone {
-  max-width: 400px;
+  max-width: min(400px, 100%);
   height: min(74vh, 760px);
   margin: 0 auto;
   border-radius: 26px;
@@ -351,6 +351,12 @@ footer code { font-family: var(--mono); color: #b9c9e4; }
 <body>
 
 <header>
+  <div class="header-nav" style="display:flex;justify-content:center;margin-bottom:12px;">
+    <a href="../" class="btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 14px;border-radius:999px;">
+      <span>🏠</span>
+      <span>返回项目集首页</span>
+    </a>
+  </div>
   <div class="badge">AI BENCHMARK · 同题六版</div>
   <h1>鹈鹕踩单车 <span class="thin">/ Pelican on a Bicycle</span></h1>
   <p class="sub">
@@ -790,11 +796,17 @@ footer code { font-family: var(--mono); color: #b9c9e4; }
   });
 
   document.addEventListener("keydown", function (e) {
+    if (e.target && ["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) return;
     if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
       e.preventDefault();
       var idx = order.findIndex(function (v) { return v.key === currentKey(); });
       var next = e.key === "ArrowRight" ? (idx + 1) % order.length : (idx - 1 + order.length) % order.length;
       loadVersion(order[next].key);
+      return;
+    }
+    if (e.key === "b" || e.key === "B") {
+      e.preventDefault();
+      setMode(!state.blind);
       return;
     }
     if (e.key === "f" || e.key === "F") {

@@ -962,9 +962,14 @@
     window.addEventListener('blur', function() {
       self.mouse.down = false;
       if (self.draggingCell) {
+        if (self.draggingCell.origX != null) {
+          self.draggingCell.x = self.draggingCell.origX;
+          self.draggingCell.y = self.draggingCell.origY;
+        }
         self.draggingCell.isDragging = false;
         self.draggingCell = null;
       }
+      self.mergeTarget = null;
     });
 
     // 切到后台/最小化自动暂停：塔防挂机等于白给，回来后手动继续
@@ -1027,6 +1032,8 @@
 
           self.draggingCell = cell;
           cell.isDragging = true;
+          cell.origX = cell.x;
+          cell.origY = cell.y;
           self.dragOffset.x = cell.x - pos.x;
           self.dragOffset.y = cell.y - pos.y;
           break;
@@ -1113,8 +1120,12 @@
 
         self.mergeTarget = null;
 
-        // 未融合成功：说明规则，避免玩家反复试错
+        // 未融合成功：细胞平滑弹回原槽位/原坐标，避免脱离基座悬空
         if (!merged) {
+          if (dragged.origX != null && dragged.origY != null) {
+            dragged.x = dragged.origX;
+            dragged.y = dragged.origY;
+          }
           if (dragged.tier >= 3) {
             self.createFloatingText('已是最高阶，无法继续融合', dragged.x, dragged.y - 20, '#fbbf24');
           } else {

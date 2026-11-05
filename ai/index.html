@@ -541,7 +541,7 @@
       <button class="filter-btn" data-filter="webgl" aria-pressed="false">3D & WebGL</button>
       <button class="filter-btn" data-filter="interactive" aria-pressed="false">趣味交互</button>
       <button class="filter-btn" data-filter="productivity" aria-pressed="false">数据与效率</button>
-      <input class="search-input" id="portalSearch" type="search" placeholder="搜索应用名称 / 标签…" aria-label="搜索应用">
+      <input class="search-input" id="portalSearch" type="search" placeholder="搜索应用名称 / 标签 (按 / 聚焦)…" aria-label="搜索应用">
     </div>
 
     <!-- Projects Grid -->
@@ -936,6 +936,21 @@
       });
 
       searchInput.addEventListener('input', applyFilter);
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+          if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+          e.preventDefault();
+          searchInput.focus();
+        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          searchInput.focus();
+        } else if (e.key === 'Escape' && document.activeElement === searchInput) {
+          searchInput.value = '';
+          applyFilter();
+          searchInput.blur();
+        }
+      });
     })();
   </script>
 
