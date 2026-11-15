@@ -3814,6 +3814,16 @@
 
         const isMobile = (this.scene.aspect || 1.0) < 1.05 || window.innerWidth <= 768;
 
+        // 竖屏/窄视口专用：按「希望看到的战场宽度」反推垂直 FOV。
+        // 否则宽高比 < 1 时水平视野被放大数倍，地图只占屏幕一半、右侧露出黑色虚空。
+        const fitFov = (distance, targetWidth, maxFov) => {
+          const aspect = this.scene.aspect || 1;
+          const hHalf = Math.atan((targetWidth / 2) / Math.max(1, distance));
+          const vHalf = Math.atan(Math.tan(hHalf) * aspect);
+          return Math.max(22, Math.min(maxFov, 2 * vHalf * 180 / Math.PI));
+        };
+        const narrowView = (this.scene.aspect || 1) < 1.05;
+
         if (this.state === 'START') {
           // Smooth 3D Panoramic Orbit during Title Screen
           const t = performance.now() * 0.0004;
@@ -3821,14 +3831,18 @@
           const mc = MAP_SIZE / 2;
           const eye = [mc + Math.cos(t) * orbitR, isMobile ? 14.0 : 18.0, mc + Math.sin(t) * orbitR];
           const center = [mc, 0.5, mc];
-          sc.setCamera(eye, center, [0, 1, 0], isMobile ? 58 : 50);
+          const orbitDist = Math.hypot((isMobile ? 14.0 : 18.0) - 0.5, orbitR);
+          const orbitFov = narrowView ? fitFov(orbitDist, MAP_SIZE + 3, 60) : (isMobile ? 58 : 50);
+          sc.setCamera(eye, center, [0, 1, 0], orbitFov);
         } else if (this.viewMode === 0) {
           // Isometric 3D (Classic Elevated Angled View - Dynamically Scaled for Mobile)
-          const camDist = isMobile ? 11.0 : 15.0;
-          const camHeight = isMobile ? 15.5 : 21.0;
-          const fov = isMobile ? 56 : 48;
+          // 相机适度贴近：坦克与掩体更高大，战场更有压迫感
+          const camDist = isMobile ? 10.2 : 13.6;
+          const camHeight = isMobile ? 14.2 : 18.6;
           const eye = [targetX + sx, camHeight + sy, targetZ + camDist + sz];
-          const center = [targetX + sx, 0.3 + sy, targetZ + (isMobile ? 0.0 : 1.0) + sz];
+          const center = [targetX + sx, 0.5 + sy, targetZ + (isMobile ? 0.0 : 1.0) + sz];
+          const camDistance = Math.hypot(camHeight - 0.5, camDist);
+          const fov = narrowView ? fitFov(camDistance, MAP_SIZE + 2.5, 62) : (isMobile ? 56 : 48);
           sc.setCamera(eye, center, [0, 1, 0], fov);
         } else if (this.viewMode === 1) {
           // Third-Person Chase Cam
@@ -3840,14 +3854,17 @@
             targetZ - Math.cos(heading) * dist + sz
           ];
           const center = [targetX + sx, 0.8 + sy, targetZ + sz];
-          sc.setCamera(eye, center, [0, 1, 0], 55);
+          const chaseDist = Math.hypot(height - 0.8, dist);
+          const chaseFov = narrowView ? fitFov(chaseDist, 13, 62) : 55;
+          sc.setCamera(eye, center, [0, 1, 0], chaseFov);
         } else {
           // TopDown 3D View (whole-arena tactical framing)
           const topHeight = isMobile ? 22.0 : 29.0;
           const mc2 = MAP_SIZE / 2;
           const eye = [mc2 + sx, topHeight + sy, mc2 + 0.001 + sz];
           const center = [mc2 + sx, 0.0 + sy, mc2 + sz];
-          sc.setCamera(eye, center, [0, 0, -1], isMobile ? 54 : 44);
+          const topFov = narrowView ? fitFov(topHeight, MAP_SIZE + 2, 60) : (isMobile ? 54 : 44);
+          sc.setCamera(eye, center, [0, 0, -1], topFov);
         }
 
         const mat = M4.create();
@@ -4017,10 +4034,10 @@
           const glassColor  = [0.35, 0.78, 0.95, 1.0];
           const trimColor   = [bodyColor[0]*1.25, bodyColor[1]*1.25, bodyColor[2]*1.25, 1.0];
 
-          const hullH   = 0.30;
-          const hullY   = 0.30;
-          const trackW  = S * 0.24;
-          const trackOff = S * 0.48;
+          const hullH   = 0.40;
+          const hullY   = 0.34;
+          const trackW  = S * 0.26;
+          const trackOff = S * 0.50;
 
           // ---- Ground contact shadow (cheap fake AO: one flattened dark slab) ----
           M4.identity(mat);
