@@ -347,8 +347,8 @@
 
     /* Radar / MiniMap */
     .radar-box {
-      width: 118px;
-      height: 118px;
+      width: 148px;
+      height: 148px;
       background:
         linear-gradient(180deg, rgba(6, 20, 14, 0.92), rgba(4, 10, 12, 0.92)),
         repeating-linear-gradient(0deg, transparent, transparent 11px, rgba(34, 197, 94, 0.09) 11px, rgba(34, 197, 94, 0.09) 12px),
@@ -802,75 +802,109 @@
         display: block;
       }
       #hud {
-        padding: 6px 8px;
+        padding: 5px 7px;
       }
       .hud-controls-hint {
         display: none;
       }
-      /* Small screens: stack the two HUD cards vertically so no stat is clipped */
+      /* Merge both HUD cards into one compact row: left stats, right actions */
       .hud-top {
-        gap: 6px;
-        flex-direction: column;
-        align-items: stretch;
+        gap: 5px;
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
         flex-wrap: nowrap;
       }
       .hud-top .hud-card {
-        width: 100%;
+        width: auto;
         min-width: 0;
+        flex: 0 1 auto;
       }
       .hud-card {
-        padding: 5px 8px;
-        border-radius: 10px;
+        padding: 4px 7px;
+        border-radius: 9px;
+        backdrop-filter: blur(10px) saturate(130%);
+        -webkit-backdrop-filter: blur(10px) saturate(130%);
       }
       .stat-row {
-        gap: 6px 10px;
-        font-size: 11px;
-        flex-wrap: wrap;
+        gap: 5px 8px;
+        font-size: 10.5px;
+        flex-wrap: nowrap;
       }
+      /* Labels are redundant on touch: the numbers/colours already read clearly */
       .stat-label {
         display: none;
       }
-      .hud-top .stat-item {
-        flex-wrap: wrap;
+      .stat-val {
+        font-size: 11.5px;
+        letter-spacing: 0;
       }
       .health-bar-wrap {
-        width: 56px;
+        width: 44px;
+        height: 7px;
+        border-radius: 4px;
+      }
+      .health-bar-fill {
+        border-radius: 4px;
       }
       #hud-buff-bar {
-        margin-top: 4px !important;
+        margin-top: 3px !important;
+        gap: 4px !important;
       }
       #hud-buff-bar span {
-        font-size: 10px !important;
+        font-size: 9px !important;
+        padding: 1px 5px !important;
+        border-radius: 5px !important;
       }
+      /* Icon-only HUD buttons to reclaim horizontal space */
       .btn-hud {
-        min-height: 44px;
-        padding: 6px 9px;
-        font-size: 12px;
+        min-height: 34px;
+        min-width: 34px;
+        padding: 4px 7px;
+        font-size: 13px;
+        border-radius: 8px;
+      }
+      .btn-hud span,
+      .btn-hud .btn-text {
+        display: none;
+      }
+      #btn-view-toggle {
+        font-size: 11px;
       }
       .boss-bar-wrap {
-        top: 200px;
-        padding: 6px 10px;
+        top: 62px;
+        padding: 5px 9px;
+        border-radius: 9px;
       }
+      .boss-title-row {
+        font-size: 10.5px;
+      }
+      .boss-bar {
+        height: 9px;
+      }
+      /* Toast becomes a small pill above the joystick, never covering the action */
       #toast-msg {
         top: auto;
-        bottom: 168px;
-        font-size: 11px;
-        padding: 6px 12px;
-        max-width: 86vw;
+        bottom: 150px;
+        left: 50%;
+        font-size: 10.5px;
+        padding: 5px 11px;
+        border-radius: 20px;
+        max-width: 78vw;
         white-space: normal;
         text-align: center;
       }
       .modal-box {
-        padding: 22px 16px 18px;
-        gap: 14px;
-        max-height: 88vh;
+        padding: 20px 14px 16px;
+        gap: 12px;
+        max-height: 86vh;
         overflow-y: auto;
       }
       .modal-title {
-        font-size: 22px;
+        font-size: 21px;
       }
       .modal-desc {
-        font-size: 12.5px;
+        font-size: 12px;
       }
       .radar-box {
         display: none;
@@ -878,28 +912,28 @@
       .touch-joystick-zone {
         bottom: max(14px, env(safe-area-inset-bottom, 14px));
         left: max(14px, env(safe-area-inset-left, 14px));
-        width: 118px;
-        height: 118px;
-        opacity: 0.92;
+        width: 116px;
+        height: 116px;
+        opacity: 0.88;
       }
       .touch-joystick-thumb {
-        width: 48px;
-        height: 48px;
+        width: 46px;
+        height: 46px;
       }
       .touch-action-group {
         bottom: max(14px, env(safe-area-inset-bottom, 14px));
         right: max(14px, env(safe-area-inset-right, 14px));
-        gap: 10px;
+        gap: 9px;
       }
       .btn-touch-action {
-        width: 66px;
-        height: 66px;
+        width: 68px;
+        height: 68px;
         font-size: 26px;
       }
       .btn-touch-sub {
-        width: 50px;
-        height: 50px;
-        font-size: 18px;
+        width: 52px;
+        height: 52px;
+        font-size: 19px;
       }
     }
   </style>
@@ -953,7 +987,7 @@
           <div class="stat-item">
             <a href="../" class="btn-hud" title="返回项目集主页">🏠 首页</a>
             <button class="btn-hud" id="btn-sound-toggle" title="音效开关">🔊</button>
-            <button class="btn-hud" id="btn-view-toggle" title="切换视角 (V)">🎥 3D俯视</button>
+            <button class="btn-hud" id="btn-view-toggle" title="切换视角 (V)">🎥<span class="btn-text"> 3D俯视</span></button>
             <button class="btn-hud" id="btn-pause-toggle" title="暂停 (P)">⏸️</button>
           </div>
         </div>
@@ -983,7 +1017,7 @@
       </div>
 
       <div class="radar-box">
-        <canvas id="radar-canvas" class="radar-canvas" width="110" height="110"></canvas>
+        <canvas id="radar-canvas" class="radar-canvas" width="140" height="140"></canvas>
         <span class="radar-corner tl"></span>
         <span class="radar-corner tr"></span>
         <span class="radar-corner bl"></span>
@@ -1441,6 +1475,24 @@
         out[11] = a03 * s + a23 * c;
         return out;
       },
+      rotateX(out, a, rad) {
+        const s = Math.sin(rad), c = Math.cos(rad);
+        const a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
+        const a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
+        if (a !== out) {
+          out[0] = a[0]; out[1] = a[1]; out[2] = a[2]; out[3] = a[3];
+          out[12] = a[12]; out[13] = a[13]; out[14] = a[14]; out[15] = a[15];
+        }
+        out[4] = a10 * c + a20 * s;
+        out[5] = a11 * c + a21 * s;
+        out[6] = a12 * c + a22 * s;
+        out[7] = a13 * c + a23 * s;
+        out[8] = a20 * c - a10 * s;
+        out[9] = a21 * c - a11 * s;
+        out[10] = a22 * c - a12 * s;
+        out[11] = a23 * c - a13 * s;
+        return out;
+      },
       scale(out, a, v) {
         const x = v[0], y = v[1], z = v[2];
         out[0] = a[0] * x; out[1] = a[1] * x; out[2] = a[2] * x; out[3] = a[3] * x;
@@ -1789,7 +1841,8 @@
     /* ========================================================
        5. Game Map & Levels Definition
        ======================================================== */
-    const MAP_SIZE = 15; // 15x15 Grid (0 to 14)
+    const MAP_SIZE = 21; // 21x21 Grid (0 to 20)
+    const BOUND_MARGIN = 0.16; // single source of truth for arena edge margin
     const TILE_EMPTY = 0;
     const TILE_BRICK = 1;
     const TILE_STEEL = 2;
@@ -1807,21 +1860,27 @@
         spawnInterval: 3.2,
         enemyTypes: ['scout', 'speed'],
         layout: [
-          '000000000000000',
-          '000101000101000',
-          '010101010101010',
-          '010101020101010',
-          '010101000101010',
-          '000000000000000',
-          '010100333001010',
-          '020100333001020',
-          '010100000001010',
-          '000000000000000',
-          '010101000101010',
-          '010101000101010',
-          '000000111000000',
-          '010000191000010',
-          '000000000000000'
+          '000000000000000000000',
+          '000000000000000000000',
+          '000101000000000101000',
+          '010101010101010101010',
+          '010101000000000101010',
+          '000000010101010000000',
+          '010100000000000001010',
+          '020100333333331001020',
+          '010100300000003001010',
+          '000000300000003000000',
+          '010101000000000101010',
+          '010101010101010101010',
+          '000101000000000101000',
+          '000000000000000000000',
+          '000000000000000000000',
+          '000000000111000000000',
+          '000000000000000000000',
+          '000000000111000000000',
+          '010000000000000000010',
+          '010100000191000001010',
+          '000000000111000000000',
         ]
       },
       {
@@ -1832,21 +1891,27 @@
         spawnInterval: 2.8,
         enemyTypes: ['scout', 'speed', 'heavy'],
         layout: [
-          '000000000000000',
-          '001033303330100',
-          '011033303330110',
-          '000044404440000',
-          '010044404440010',
-          '010100020001010',
-          '033330111033330',
-          '000000121000000',
-          '033330111033330',
-          '010100000001010',
-          '010044404440010',
-          '000044404440000',
-          '010000111000010',
-          '000000191000000',
-          '000000000000000'
+          '000000000000000000000',
+          '000000000000000000000',
+          '001033303330100000100',
+          '011033303330110001010',
+          '000044404440000101010',
+          '010044404440010000010',
+          '010100020001010101010',
+          '033330111033330000010',
+          '000000121000000101000',
+          '033330111033330010100',
+          '010100000001010000000',
+          '010044404440010101010',
+          '000044404440000001010',
+          '010000111000010101010',
+          '001000000000100000010',
+          '000000000000000101000',
+          '000000000000000000000',
+          '000000000111000000000',
+          '010000000000000000010',
+          '010100000191000001010',
+          '000000000111000000000',
         ]
       },
       {
@@ -1857,21 +1922,27 @@
         spawnInterval: 2.5,
         enemyTypes: ['speed', 'heavy', 'sniper'],
         layout: [
-          '000000000000000',
-          '000202000202000',
-          '055555000555550',
-          '020102010201020',
-          '055555000555550',
-          '000000222000000',
-          '021200555002120',
-          '021200555002120',
-          '000000222000000',
-          '055555000555550',
-          '020102010201020',
-          '055555000555550',
-          '020200111002020',
-          '000000191000000',
-          '000000000000000'
+          '000000000000000000000',
+          '000000000000000000000',
+          '000202000000000202000',
+          '055555000111000555550',
+          '020102010101010201020',
+          '055555000101000555550',
+          '000000222000222000000',
+          '021200555000555002120',
+          '021200555121055002120',
+          '021200555000555002120',
+          '000000222000222000000',
+          '055555000101000555550',
+          '020102010101010201020',
+          '055555000111000555550',
+          '000000000000000000000',
+          '000000000000000000000',
+          '000000000000000000000',
+          '000000000111000000000',
+          '010000000000000000010',
+          '010100000191000001010',
+          '000000000111000000000',
         ]
       },
       {
@@ -1879,24 +1950,30 @@
         title: '第 4 关 · 熔岩前线',
         subtitle: '敌军全装甲兵团发动总反扑，全面围剿！',
         totalEnemies: 24,
-        spawnInterval: 2.0,
+        spawnInterval: 2,
         enemyTypes: ['scout', 'speed', 'heavy', 'sniper'],
         layout: [
-          '000000000000000',
-          '002101200121002',
-          '012101210121012',
-          '000000000000000',
-          '022033020330220',
-          '022033000330220',
-          '000000444000000',
-          '011022444220110',
-          '000000444000000',
-          '022033000330220',
-          '022033020330220',
-          '000000000000000',
-          '012100111001210',
-          '012100191001210',
-          '000000000000000'
+          '000000000000000000000',
+          '000000000000000000000',
+          '002101200121002001020',
+          '012101210121012010010',
+          '000000000000000101000',
+          '022033020330220000010',
+          '022033000330220101010',
+          '000000444000000001010',
+          '011022444220110100000',
+          '000000444000000010100',
+          '022033000330220000000',
+          '022033020330220101010',
+          '000000000000000001010',
+          '012100111001210101010',
+          '012100191001210000010',
+          '000000000000000000000',
+          '000000000000000000000',
+          '000000000111000000000',
+          '010000000000000000010',
+          '010100000191000001010',
+          '000000000111000000000',
         ]
       },
       {
@@ -1904,25 +1981,31 @@
         title: '第 5 关 · 决战泰坦要塞 (BOSS 战)',
         subtitle: '摧毁护卫队，正面决战终极泰坦重装巨兽！',
         totalEnemies: 25,
-        isBossStage: true,
         spawnInterval: 2.2,
+        isBossStage: true,
         enemyTypes: ['speed', 'heavy', 'sniper'],
         layout: [
-          '000000000000000',
-          '000102000201000',
-          '000000000000000',
-          '011022000220110',
-          '011022000220110',
-          '000000000000000',
-          '020330111033020',
-          '020330121033020',
-          '020330111033020',
-          '000000000000000',
-          '011022000220110',
-          '011022000220110',
-          '000000111000000',
-          '020000191000020',
-          '000000000000000'
+          '000000000000000000000',
+          '000000000000000000000',
+          '000102000000000201000',
+          '000000000000000000000',
+          '011022000111000220110',
+          '011022000111000220110',
+          '000000000000000000000',
+          '020330111121111033020',
+          '020330121000121033020',
+          '020330111111111033020',
+          '000000000000000000000',
+          '011022000000000220110',
+          '011022000000000220110',
+          '000000000111000000000',
+          '000000000000000000000',
+          '000000000111000000000',
+          '000000000000000000000',
+          '011022000000000220110',
+          '020330111111111033020',
+          '020000000191000000020',
+          '000000000111000000000',
         ]
       }
     ];
@@ -2096,6 +2179,8 @@
 
         this.dead = false;
         this.recoil = 0;
+        this.muzzleFlash = 0;   // 炮口火光计时器
+        this.smokeTimer = 0;    // 残血冒烟计时器
 
         // Boss specific
         this.isBoss = (type === 'boss');
@@ -2103,14 +2188,17 @@
           this.maxHp = 60;
           this.hp = 60;
           this.speed = 2.2;
-          this.size = 2.2;
+          this.size = 2.7;
         } else {
-          this.size = 0.9;
+          this.size = 1.15;
         }
 
         // AI behavior
         this.changeDirTimer = 0;
         this.stuckTimer = 0;
+        this.trackPhase = 0;      // 履带滚动相位（由移动距离驱动）
+        this.hitFlash = 0;        // 受击白闪计时器
+        this.engineGlow = 0;      // 引擎推进亮度
         this.targetDir = 0;
         this.isFlashing = false; // drops powerup
       }
@@ -2125,6 +2213,9 @@
         if (this.droneTime > 0) this.droneTime -= dt;
         if (this.cooldown > 0) this.cooldown -= dt;
         if (this.recoil > 0) this.recoil -= dt * 6;
+        if (this.muzzleFlash > 0) this.muzzleFlash -= dt * 8;
+        if (this.hitFlash > 0) this.hitFlash -= dt * 5.0;
+        if (this.engineGlow > 0) this.engineGlow -= dt * 2.5;
       }
     }
 
@@ -2183,8 +2274,8 @@
         this.mousePos = { x: 0, y: 0 };
         this.isMouseDown = false;
 
-        this.baseX = 7.5;
-        this.baseZ = 13.5;
+        this.baseX = 10.5;
+        this.baseZ = 19.5;
         this.baseDestroyed = false;
 
         window.gameApp = this;
@@ -2209,7 +2300,7 @@
             this.map[r][c] = parseInt(rowStr[c] || '0', 10);
           }
         }
-        this.player = new Tank(7.5, 11.5, true, 'player');
+        this.player = new Tank(10.5, 16.5, true, 'player');
         this.player.level = 1;
         this.player.angle = Math.PI;
         this.player.turretAngle = Math.PI;
@@ -2217,9 +2308,9 @@
 
         // Sample showcase enemies
         this.enemies = [
-          new Tank(1.5, 1.5, false, 'scout'),
-          new Tank(7.5, 1.5, false, 'speed'),
-          new Tank(13.5, 1.5, false, 'heavy')
+          new Tank(2.5, 1.5, false, 'scout'),
+          new Tank(10.5, 1.5, false, 'speed'),
+          new Tank(18.5, 1.5, false, 'heavy')
         ];
         this.enemies.forEach(e => { e.angle = Math.PI; e.turretAngle = Math.PI; });
       }
@@ -2378,22 +2469,22 @@
           const dy = clientY - originZ;
           const dist = Math.hypot(dx, dy);
           const maxDist = 48;
-          const deadzone = 8;
-          if (dist < deadzone) {
-            thumb.style.transform = 'translate(0, 0)';
-            this.joystickVector.active = false;
-            return;
-          }
-          const clampedDist = Math.min(dist, maxDist);
-          const angle = Math.atan2(dy, dx);
-
-          const thumbX = Math.cos(angle) * clampedDist;
-          const thumbY = Math.sin(angle) * clampedDist;
+          const deadzone = 13;
+          const thumbX = Math.cos(Math.atan2(dy, dx)) * Math.min(dist, maxDist);
+          const thumbY = Math.sin(Math.atan2(dy, dx)) * Math.min(dist, maxDist);
           thumb.style.transform = `translate(${thumbX}px, ${thumbY}px)`;
 
-          const norm = clampedDist / maxDist;
-          this.joystickVector.x = (dx / dist) * norm;
-          this.joystickVector.z = (dy / dist) * norm;
+          if (dist < deadzone) {
+            this.joystickVector.active = false;
+            this.joystickVector.x = 0;
+            this.joystickVector.z = 0;
+            return;
+          }
+          // Smooth ramp from the deadzone edge instead of an instant jump to full tilt
+          const t = Math.min(1, (dist - deadzone) / (maxDist - deadzone));
+          const mag = t * t * (3 - 2 * t);
+          this.joystickVector.x = (dx / dist) * mag;
+          this.joystickVector.z = (dy / dist) * mag;
           this.joystickVector.active = true;
         };
 
@@ -2481,9 +2572,13 @@
 
       toggleViewMode() {
         this.viewMode = (this.viewMode + 1) % 3;
-        const names = ['🎥 3D俯视', '🏎️ 追尾视角', '📐 战术沙盘'];
-        this.dom.btnViewToggle.textContent = names[this.viewMode];
-        this.showToast(`视角切换: ${names[this.viewMode].slice(3)}`);
+        const icons = ['🎥', '🏎️', '📐'];
+        const names = ['3D俯视', '追尾视角', '战术沙盘'];
+        // Update only the label span so the icon keeps its CSS-hidden sibling structure
+        const label = this.dom.btnViewToggle.querySelector('.btn-text');
+        if (label) label.textContent = ' ' + names[this.viewMode];
+        else this.dom.btnViewToggle.textContent = icons[this.viewMode] + ' ' + names[this.viewMode];
+        this.showToast(`视角切换: ${names[this.viewMode]}`);
       }
 
       togglePause() {
@@ -2555,7 +2650,7 @@
 
         // Spawn Player Tank at bottom center
         const preservedLevel = this.player ? this.player.level : 1;
-        this.player = new Tank(7.5, 11.5, true, 'player');
+        this.player = new Tank(10.5, 16.5, true, 'player');
         this.player.level = preservedLevel;
         this.player.angle = Math.PI;
         this.player.turretAngle = Math.PI;
@@ -2600,7 +2695,7 @@
         if (this.enemiesRemainingToSpawn <= 0) return false;
 
         // 3 Safe Spawn Points at Top (x=1.5, x=7.5, x=13.5, z=1.5)
-        const spawnCols = [1.5, 7.5, 13.5];
+        const spawnCols = [2.5, 10.5, 18.5];
         for (let i = spawnCols.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [spawnCols[i], spawnCols[j]] = [spawnCols[j], spawnCols[i]];
@@ -2674,9 +2769,10 @@
         this.shotsFired++;
 
         const rad = p.turretAngle;
-        const barrelLen = 0.8;
+        const barrelLen = p.size * 0.89;
         const bx = p.x + Math.sin(rad) * barrelLen;
         const bz = p.z + Math.cos(rad) * barrelLen;
+        p.muzzleFlash = 1.0;
 
         if (p.missileAmmo && p.missileAmmo > 0) {
           // Homing Missile Shoot
@@ -2715,6 +2811,16 @@
 
         // Muzzle Flash Particle (Lightweight)
         this.particles.push(new Particle(bx, 0.45, bz, [1, 0.8, 0.2, 1], 0.18, 2));
+        // Muzzle fire bloom at the barrel tip
+        const flashDist = 0.75;
+        this.particles.push(new Particle(
+          p.x + Math.sin(rad) * flashDist,
+          0.42,
+          p.z + Math.cos(rad) * flashDist,
+          [1.0, 0.75, 0.25, 0.95], 0.26, 1.2
+        ));
+        this.scene.pointLight.pos = [p.x + Math.sin(rad) * flashDist, 0.6, p.z + Math.cos(rad) * flashDist];
+        this.scene.pointLight.intensity = Math.max(this.scene.pointLight.intensity, 1.0);
         haptic(12);
       }
 
@@ -2759,6 +2865,7 @@
       onEnemyHit(enemy, bullet) {
         this.shotsHit++;
         enemy.hp -= bullet.damage;
+        enemy.hitFlash = 1.0;
         sound.playHit(false);
 
         // Sparks
@@ -2790,6 +2897,7 @@
         if (!this.player || this.player.dead || this.player.shieldTime > 0) return;
 
         this.player.hp -= bullet.damage;
+        this.player.hitFlash = 1.0;
         sound.playHit(false);
 
         if (this.player.hp <= 0) {
@@ -2806,7 +2914,7 @@
       onBaseHit() {
         if (this.baseDestroyed) return;
         this.baseDestroyed = true;
-        this.map[13][7] = TILE_EMPTY; // Eagle destroyed
+        this.map[19][10] = TILE_EMPTY; // Eagle destroyed
 
         this.spawnExplosion(this.baseX, 0.6, this.baseZ, true, [1, 0.2, 0.1, 1]);
         this.triggerGameOver('最高司令部老鹰雕像已被摧毁！');
@@ -2885,8 +2993,8 @@
       }
 
       setBaseArmor(tileType) {
-        // Enclose Eagle at (7, 13)
-        const coords = [[12,6], [12,7], [12,8], [13,6], [13,8]];
+        // Enclose Eagle at (19, 10)
+        const coords = [[18,9], [18,10], [18,11], [19,9], [19,11]];
         coords.forEach(([r, c]) => {
           if (this.map[r]) this.map[r][c] = tileType;
         });
@@ -3074,7 +3182,7 @@
         this.enemies.forEach(e => {
           if (!e.dead) {
             ctx.beginPath();
-            ctx.arc(e.x * scale, e.z * scale, e.isBoss ? 4 : 2.5, 0, Math.PI * 2);
+            ctx.arc(e.x * scale, e.z * scale, e.isBoss ? 5 : 3.2, 0, Math.PI * 2);
             ctx.fill();
           }
         });
@@ -3083,7 +3191,7 @@
         if (this.player && !this.player.dead) {
           ctx.fillStyle = '#22c55e';
           ctx.beginPath();
-          ctx.arc(this.player.x * scale, this.player.z * scale, 3.5, 0, Math.PI * 2);
+          ctx.arc(this.player.x * scale, this.player.z * scale, 4.2, 0, Math.PI * 2);
           ctx.fill();
         }
       }
@@ -3092,8 +3200,9 @@
          8. Physics & Collision Handling (Circle-AABB Precision)
          ======================================================== */
       checkTileCollision(x, z, radius) {
-        // Map Bound Check with small margin (corner-forgiving)
-        if (x - radius < 0.08 || x + radius > MAP_SIZE - 0.08 || z - radius < 0.08 || z + radius > MAP_SIZE - 0.08) {
+        // Map Bound Check — must stay in lockstep with BOUND_MARGIN used by the hard clamp
+        if (x - radius < BOUND_MARGIN || x + radius > MAP_SIZE - BOUND_MARGIN ||
+            z - radius < BOUND_MARGIN || z + radius > MAP_SIZE - BOUND_MARGIN) {
           return true;
         }
 
@@ -3131,7 +3240,7 @@
         if (!this.checkTileCollision(entity.x + dx * 0.5, entity.z + dz * 0.5, r)) {
           entity.x += dx * 0.5; entity.z += dz * 0.5;
         }
-        const minB = r + 0.12, maxB = MAP_SIZE - r - 0.12;
+        const minB = r + BOUND_MARGIN, maxB = MAP_SIZE - r - BOUND_MARGIN;
         entity.x = Math.max(minB, Math.min(maxB, entity.x));
         entity.z = Math.max(minB, Math.min(maxB, entity.z));
       }
@@ -3189,9 +3298,9 @@
           }
         }
 
-        // 5. Hard boundary clamp (aligned with collision margin)
-        const minBound = radius + 0.12;
-        const maxBound = MAP_SIZE - radius - 0.12;
+        // 5. Hard boundary clamp (uses the SAME margin as the collision bound check)
+        const minBound = radius + BOUND_MARGIN;
+        const maxBound = MAP_SIZE - radius - BOUND_MARGIN;
         entity.x = Math.max(minBound, Math.min(maxBound, entity.x));
         entity.z = Math.max(minBound, Math.min(maxBound, entity.z));
       }
@@ -3309,6 +3418,22 @@
         const dirZ = Math.cos(enemy.angle);
         const prevX = enemy.x, prevZ = enemy.z;
         this.moveEntityWithCollision(enemy, dirX, dirZ, enemy.speed, dt);
+        const movedDist = Math.hypot(enemy.x - prevX, enemy.z - prevZ);
+        enemy.trackPhase += movedDist * 2.4;
+
+        // 履带扬尘 + 残血冒烟：让坦克在场上「有重量、有状态」
+        if (movedDist > 0.002 && this.particles.length < 200 && Math.random() < dt * 14) {
+          this.particles.push(new Particle(
+            enemy.x - dirX * enemy.size * 0.5, 0.1, enemy.z - dirZ * enemy.size * 0.5,
+            [0.42, 0.40, 0.38, 0.5], 0.12, 0.6, 0.0
+          ));
+        }
+        if (enemy.hp <= Math.ceil(enemy.maxHp * 0.34) && this.particles.length < 200 && Math.random() < dt * 5) {
+          this.particles.push(new Particle(
+            enemy.x + (Math.random() - 0.5) * enemy.size * 0.5, 0.7, enemy.z + (Math.random() - 0.5) * enemy.size * 0.5,
+            [0.16, 0.16, 0.18, 0.55], 0.2, 1.1, 0.0
+          ));
+        }
 
         // Stuck Detection & Obstacle Breaker
         if (Math.hypot(enemy.x - prevX, enemy.z - prevZ) < 0.008 * enemy.speed * dt * 60) {
@@ -3335,8 +3460,10 @@
         if (enemy.cooldown <= 0) {
           enemy.cooldown = enemy.isBoss ? 0.6 : (1.4 + Math.random() * 1.6);
           const rad = enemy.turretAngle;
-          const bx = enemy.x + Math.sin(rad) * 0.8;
-          const bz = enemy.z + Math.cos(rad) * 0.8;
+          const barrelLen = enemy.size * 0.89;
+          const bx = enemy.x + Math.sin(rad) * barrelLen;
+          const bz = enemy.z + Math.cos(rad) * barrelLen;
+          enemy.muzzleFlash = 1.0;
 
           if (enemy.isBoss) {
             // Boss 3-way spread
@@ -3496,6 +3623,18 @@
             } else {
               this.player.stuckTimer = 0;
             }
+            // Drive track roll phase by real distance travelled + dust kick-up
+            this.player.trackPhase += moved * 2.8;
+            if (curSpd > 2.2 && Math.random() < dt * 12) {
+              this.particles.push(new Particle(this.player.x, 0.14, this.player.z, [0.46, 0.43, 0.38, 0.5], 0.13, 1.0));
+            }
+            // 残血冒烟：提示玩家及时拾取补给
+            if (this.player.hp <= 1 && this.particles.length < 200 && Math.random() < dt * 6) {
+              this.particles.push(new Particle(
+                this.player.x + (Math.random() - 0.5) * 0.4, 0.75, this.player.z + (Math.random() - 0.5) * 0.4,
+                [0.16, 0.16, 0.18, 0.55], 0.2, 1.1, 0.0
+              ));
+            }
           }
 
           // Alloy Drill Frontal Ramming Check
@@ -3647,6 +3786,12 @@
         if (this.particles.length > 240) {
           this.particles.splice(0, this.particles.length - 240);
         }
+
+        // Fallback stage-progress sweep: catches kill paths that bypassed the per-hit
+        // check (drill ram, tactical nuke, etc.) so a stage can never stall un-clearable.
+        if (this.state === 'PLAYING' && this.enemiesRemainingToSpawn === 0 && this.enemies.length === 0) {
+          this.checkStageProgress();
+        }
       }
 
       /* ========================================================
@@ -3672,14 +3817,15 @@
         if (this.state === 'START') {
           // Smooth 3D Panoramic Orbit during Title Screen
           const t = performance.now() * 0.0004;
-          const orbitR = isMobile ? 12.0 : 15.0;
-          const eye = [7.5 + Math.cos(t) * orbitR, isMobile ? 10.5 : 14.0, 7.5 + Math.sin(t) * orbitR];
-          const center = [7.5, 0.5, 7.5];
+          const orbitR = isMobile ? 16.0 : 20.0;
+          const mc = MAP_SIZE / 2;
+          const eye = [mc + Math.cos(t) * orbitR, isMobile ? 14.0 : 18.0, mc + Math.sin(t) * orbitR];
+          const center = [mc, 0.5, mc];
           sc.setCamera(eye, center, [0, 1, 0], isMobile ? 58 : 50);
         } else if (this.viewMode === 0) {
           // Isometric 3D (Classic Elevated Angled View - Dynamically Scaled for Mobile)
-          const camDist = isMobile ? 8.2 : 11.5;
-          const camHeight = isMobile ? 11.8 : 16.0;
+          const camDist = isMobile ? 11.0 : 15.0;
+          const camHeight = isMobile ? 15.5 : 21.0;
           const fov = isMobile ? 56 : 48;
           const eye = [targetX + sx, camHeight + sy, targetZ + camDist + sz];
           const center = [targetX + sx, 0.3 + sy, targetZ + (isMobile ? 0.0 : 1.0) + sz];
@@ -3696,10 +3842,11 @@
           const center = [targetX + sx, 0.8 + sy, targetZ + sz];
           sc.setCamera(eye, center, [0, 1, 0], 55);
         } else {
-          // TopDown 3D View
-          const topHeight = isMobile ? 16.5 : 22.0;
-          const eye = [7.5 + sx, topHeight + sy, 7.501 + sz];
-          const center = [7.5 + sx, 0.0 + sy, 7.5 + sz];
+          // TopDown 3D View (whole-arena tactical framing)
+          const topHeight = isMobile ? 22.0 : 29.0;
+          const mc2 = MAP_SIZE / 2;
+          const eye = [mc2 + sx, topHeight + sy, mc2 + 0.001 + sz];
+          const center = [mc2 + sx, 0.0 + sy, mc2 + sz];
           sc.setCamera(eye, center, [0, 0, -1], isMobile ? 54 : 44);
         }
 
@@ -3708,44 +3855,46 @@
         // 2. Draw Ground Arena Base with High-contrast Grid Tiles
         M4.identity(mat);
         M4.translate(mat, mat, [7.5, -0.25, 7.5]);
-        M4.scale(mat, mat, [MAP_SIZE + 0.8, 0.4, MAP_SIZE + 0.8]);
+        M4.scale(mat, mat, [MAP_SIZE + 1.2, 0.4, MAP_SIZE + 1.2]);
         sc.drawMesh(sc.cube, mat, [0.08, 0.11, 0.18, 1.0]);
 
-        // Checkerboard Ground Tiles
-        for (let r = 0; r < MAP_SIZE; r++) {
-          for (let c = 0; c < MAP_SIZE; c++) {
+        // Checkerboard Ground Tiles — merged into 2x2 blocks (halves draw calls, same look)
+        for (let r = 0; r < MAP_SIZE; r += 2) {
+          for (let c = 0; c < MAP_SIZE; c += 2) {
+            const rows = Math.min(2, MAP_SIZE - r);
+            const cols = Math.min(2, MAP_SIZE - c);
             M4.identity(mat);
-            M4.translate(mat, mat, [c + 0.5, -0.04, r + 0.5]);
-            M4.scale(mat, mat, [0.98, 0.06, 0.98]);
-            const isDark = (r + c) % 2 === 0;
+            M4.translate(mat, mat, [c + cols / 2, -0.04, r + rows / 2]);
+            M4.scale(mat, mat, [cols * 0.99, 0.06, rows * 0.99]);
+            const isDark = ((r / 2) + (c / 2)) % 2 === 0;
             const tileColor = isDark ? [0.12, 0.16, 0.24, 1.0] : [0.15, 0.20, 0.30, 1.0];
             sc.drawMesh(sc.cube, mat, tileColor);
           }
         }
 
-        // Glowing Arena Border Rails
+        // Glowing Arena Border Rails — thicker and taller so the arena feels walled-in
         const borderMat = M4.create();
         M4.identity(borderMat);
-        M4.translate(borderMat, borderMat, [7.5, 0.15, 0]);
-        M4.scale(borderMat, borderMat, [MAP_SIZE, 0.3, 0.15]);
+        M4.translate(borderMat, borderMat, [MAP_SIZE / 2, 0.22, 0]);
+        M4.scale(borderMat, borderMat, [MAP_SIZE + 0.6, 0.44, 0.24]);
         sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
 
         M4.identity(borderMat);
-        M4.translate(borderMat, borderMat, [7.5, 0.15, MAP_SIZE]);
-        M4.scale(borderMat, borderMat, [MAP_SIZE, 0.3, 0.15]);
+        M4.translate(borderMat, borderMat, [MAP_SIZE / 2, 0.22, MAP_SIZE]);
+        M4.scale(borderMat, borderMat, [MAP_SIZE + 0.6, 0.44, 0.24]);
         sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
 
         M4.identity(borderMat);
-        M4.translate(borderMat, borderMat, [0, 0.15, 7.5]);
-        M4.scale(borderMat, borderMat, [0.15, 0.3, MAP_SIZE]);
+        M4.translate(borderMat, borderMat, [0, 0.22, MAP_SIZE / 2]);
+        M4.scale(borderMat, borderMat, [0.24, 0.44, MAP_SIZE + 0.6]);
         sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
 
         M4.identity(borderMat);
-        M4.translate(borderMat, borderMat, [MAP_SIZE, 0.15, 7.5]);
-        M4.scale(borderMat, borderMat, [0.15, 0.3, MAP_SIZE]);
+        M4.translate(borderMat, borderMat, [MAP_SIZE, 0.22, MAP_SIZE / 2]);
+        M4.scale(borderMat, borderMat, [0.24, 0.44, MAP_SIZE + 0.6]);
         sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
 
-        // 3. Draw Map Tiles
+        // 3. Draw Map Tiles — larger, chunkier blocks so the arena reads as a real battlefield
         for (let r = 0; r < MAP_SIZE; r++) {
           for (let c = 0; c < MAP_SIZE; c++) {
             const tile = this.map[r][c];
@@ -3758,25 +3907,40 @@
             M4.translate(mat, mat, [posX, 0.5, posZ]);
 
             if (tile === TILE_BRICK) {
-              M4.scale(mat, mat, [0.96, 0.96, 0.96]);
-              sc.drawMesh(sc.cube, mat, [0.72, 0.32, 0.16, 1.0]);
+              // 砖墙：加高加厚，顶面亮一个层级让体积感更强
+              M4.scale(mat, mat, [1.0, 1.16, 1.0]);
+              sc.drawMesh(sc.cube, mat, [0.70, 0.30, 0.15, 1.0]);
+              M4.identity(mat);
+              M4.translate(mat, mat, [posX, 1.09, posZ]);
+              M4.scale(mat, mat, [0.86, 0.09, 0.86]);
+              sc.drawMesh(sc.cube, mat, [0.86, 0.44, 0.24, 1.0], 0.06);
             } else if (tile === TILE_STEEL) {
-              M4.scale(mat, mat, [0.98, 0.98, 0.98]);
-              sc.drawMesh(sc.cube, mat, [0.65, 0.72, 0.82, 1.0], 0.1);
+              M4.scale(mat, mat, [1.02, 1.18, 1.02]);
+              sc.drawMesh(sc.cube, mat, [0.62, 0.70, 0.82, 1.0], 0.12);
             } else if (tile === TILE_WATER) {
               M4.scale(mat, mat, [1.0, 0.15, 1.0]);
               const wPulse = 0.25 + Math.sin(performance.now() * 0.003 + (r + c) * 0.6) * 0.12;
               sc.drawMesh(sc.cube, mat, [0.06, 0.45, 0.85, 0.85], wPulse);
             } else if (tile === TILE_TREES) {
-              // 3D Tree Canopy
-              M4.scale(mat, mat, [0.9, 1.2, 0.9]);
-              sc.drawMesh(sc.pyramid, mat, [0.15, 0.65, 0.25, 0.8]);
+              // 3D Tree Canopy (bigger, two-tier for silhouette)
+              M4.scale(mat, mat, [1.08, 1.5, 1.08]);
+              sc.drawMesh(sc.pyramid, mat, [0.14, 0.60, 0.24, 0.85]);
+              M4.identity(mat);
+              M4.translate(mat, mat, [posX, 1.16, posZ]);
+              M4.scale(mat, mat, [0.72, 0.85, 0.72]);
+              sc.drawMesh(sc.pyramid, mat, [0.20, 0.72, 0.32, 0.9]);
             } else if (tile === TILE_ICE) {
               M4.scale(mat, mat, [1.0, 0.05, 1.0]);
               sc.drawMesh(sc.cube, mat, [0.65, 0.88, 0.98, 0.9], 0.3);
             } else if (tile === TILE_BASE) {
-              // Base Eagle Monument
-              M4.scale(mat, mat, [1.3, 1.5, 1.3]);
+              // Base Eagle Monument: plinth + taller spire so the HQ reads as a landmark
+              M4.identity(mat);
+              M4.translate(mat, mat, [posX, 0.42, posZ]);
+              M4.scale(mat, mat, [1.7, 0.84, 1.7]);
+              sc.drawMesh(sc.cube, mat, [0.36, 0.30, 0.22, 1.0]);
+              M4.identity(mat);
+              M4.translate(mat, mat, [posX, 1.05, posZ]);
+              M4.scale(mat, mat, [1.45, 1.5, 1.45]);
               sc.drawMesh(sc.pyramid, mat, [0.95, 0.75, 0.12, 1.0], 0.4);
             }
           }
@@ -3814,76 +3978,267 @@
           }
         });
 
-        // 5. Draw Tanks (Player & Enemies)
+        // 5. Draw Tanks (Player & Enemies) — multi-part detailed hulls
         const renderTank = (tank) => {
           if (tank.dead) return;
 
-          // Chassis Base
-          M4.identity(mat);
-          M4.translate(mat, mat, [tank.x, 0.25, tank.z]);
-          M4.rotateY(mat, mat, tank.angle);
-          M4.scale(mat, mat, [tank.size * 0.9, 0.32, tank.size * 0.9]);
+          const S = tank.size;                 // hull half-width scale
+          const now = performance.now();
+          const isBoss = tank.isBoss;
+          const isHeavy = tank.type === 'heavy';
 
-          let bodyColor = tank.isPlayer ? [0.15, 0.75, 0.35, 1.0] : [0.85, 0.25, 0.22, 1.0];
+          // ---- Palette ----
+          let bodyColor = tank.isPlayer ? [0.16, 0.72, 0.34, 1.0] : [0.82, 0.24, 0.22, 1.0];
           if (!tank.isPlayer) {
-            if (tank.type === 'scout') bodyColor = [0.96, 0.45, 0.25, 1.0];
-            if (tank.type === 'speed') bodyColor = [0.92, 0.72, 0.15, 1.0];
-            if (tank.type === 'heavy') bodyColor = [0.85, 0.18, 0.22, 1.0];
-            if (tank.type === 'sniper') bodyColor = [0.65, 0.25, 0.85, 1.0];
-            if (tank.isBoss) bodyColor = [0.55, 0.08, 0.12, 1.0];
-            if (tank.isFlashing && (performance.now() % 200 < 100)) {
-              bodyColor = [1.0, 1.0, 1.0, 1.0];
-            }
-          } else if (tank.shieldTime > 0 && (performance.now() % 160 < 80)) {
-            bodyColor = [0.4, 0.9, 1.0, 1.0]; // Shield Glow
-          } else if (tank.drillTime > 0) {
-            bodyColor = [0.95, 0.8, 0.2, 1.0]; // Gold Drill Armored
+            if (tank.type === 'scout') bodyColor = [0.95, 0.44, 0.24, 1.0];
+            else if (tank.type === 'speed') bodyColor = [0.92, 0.72, 0.15, 1.0];
+            else if (tank.type === 'heavy') bodyColor = [0.85, 0.18, 0.22, 1.0];
+            else if (tank.type === 'sniper') bodyColor = [0.65, 0.25, 0.85, 1.0];
+            else if (isBoss) bodyColor = [0.52, 0.08, 0.12, 1.0];
+          }
+          // Flashing bonus tank / shield / drill overrides
+          if (tank.isFlashing && (now % 200 < 100)) bodyColor = [1.0, 1.0, 1.0, 1.0];
+          else if (tank.isPlayer && tank.drillTime > 0) bodyColor = [0.95, 0.78, 0.2, 1.0];
+          else if (tank.shieldTime > 0 && (now % 160 < 80)) bodyColor = [0.4, 0.9, 1.0, 1.0];
+          else if (tank.hitFlash > 0) {
+            // White damage flash fading back to the base livery
+            const f = Math.max(0, Math.min(1, tank.hitFlash));
+            bodyColor = [
+              bodyColor[0] + (1.0 - bodyColor[0]) * f,
+              bodyColor[1] + (1.0 - bodyColor[1]) * f,
+              bodyColor[2] + (1.0 - bodyColor[2]) * f,
+              1.0
+            ];
           }
 
+          const trackColor  = [0.10, 0.12, 0.16, 1.0];
+          const wheelColor  = [0.22, 0.24, 0.28, 1.0];
+          const barrelColor = [0.16, 0.19, 0.24, 1.0];
+          const glassColor  = [0.35, 0.78, 0.95, 1.0];
+          const trimColor   = [bodyColor[0]*1.25, bodyColor[1]*1.25, bodyColor[2]*1.25, 1.0];
+
+          const hullH   = 0.30;
+          const hullY   = 0.30;
+          const trackW  = S * 0.24;
+          const trackOff = S * 0.48;
+
+          // ---- Ground contact shadow (cheap fake AO: one flattened dark slab) ----
+          M4.identity(mat);
+          M4.translate(mat, mat, [tank.x, 0.022, tank.z]);
+          M4.rotateY(mat, mat, tank.angle);
+          M4.scale(mat, mat, [S * 1.55, 0.03, S * 1.75]);
+          sc.drawMesh(sc.cube, mat, [0.01, 0.02, 0.05, 0.42]);
+
+          // ---- Tracks (two side rails with rolling road wheels) ----
+          for (let side = -1; side <= 1; side += 2) {
+            // rail body
+            M4.identity(mat);
+            M4.translate(mat, mat, [tank.x, 0.14, tank.z]);
+            M4.rotateY(mat, mat, tank.angle);
+            M4.translate(mat, mat, [side * trackOff, 0, 0]);
+            M4.scale(mat, mat, [trackW, 0.26, S * 1.02]);
+            sc.drawMesh(sc.cube, mat, trackColor);
+
+            // road wheels (roll around X axis; phase driven by travel distance)
+            const wheelSpin = tank.trackPhase;
+            for (let i = -1; i <= 1; i++) {
+              M4.identity(mat);
+              M4.translate(mat, mat, [tank.x, 0.14, tank.z]);
+              M4.rotateY(mat, mat, tank.angle);
+              M4.translate(mat, mat, [side * (trackOff + trackW * 0.55), 0, i * S * 0.36]);
+              M4.rotateX(mat, mat, wheelSpin);
+              M4.scale(mat, mat, [trackW * 0.85, trackW * 0.85, trackW * 0.85]);
+              sc.drawMesh(sc.cylinder, mat, wheelColor, 0.06);
+            }
+
+            // track links — animated stripes scrolling along Z to read as motion
+            for (let i = 0; i < 5; i++) {
+              const t = (tank.trackPhase * 0.5 + i * (S * 0.26)) % (S * 1.02);
+              const lz = t - S * 0.5;
+              M4.identity(mat);
+              M4.translate(mat, mat, [tank.x, 0.255, tank.z]);
+              M4.rotateY(mat, mat, tank.angle);
+              M4.translate(mat, mat, [side * trackOff, 0, lz]);
+              M4.scale(mat, mat, [trackW * 1.05, 0.09, 0.10]);
+              sc.drawMesh(sc.cube, mat, [0.34, 0.36, 0.40, 1.0], 0.08);
+            }
+          }
+
+          // ---- Main hull ----
+          M4.identity(mat);
+          M4.translate(mat, mat, [tank.x, hullY, tank.z]);
+          M4.rotateY(mat, mat, tank.angle);
+          M4.scale(mat, mat, [S * 0.94, hullH, S * 0.86]);
           sc.drawMesh(sc.cube, mat, bodyColor);
 
-          // Turret
+          // sloped frontal glacis plate
           M4.identity(mat);
-          M4.translate(mat, mat, [tank.x, 0.48, tank.z]);
-          M4.rotateY(mat, mat, tank.turretAngle);
-          M4.scale(mat, mat, [tank.size * 0.55, 0.28, tank.size * 0.55]);
-          sc.drawMesh(sc.cube, mat, [bodyColor[0]*1.2, bodyColor[1]*1.2, bodyColor[2]*1.2, 1.0]);
+          M4.translate(mat, mat, [tank.x, hullY - 0.02, tank.z]);
+          M4.rotateY(mat, mat, tank.angle);
+          M4.translate(mat, mat, [0, 0.02, S * 0.44]);
+          M4.scale(mat, mat, [S * 0.86, hullH * 0.8, S * 0.22]);
+          sc.drawMesh(sc.pyramid, mat, trimColor);
 
-          // Barrel
+          // side skirt plates (read as armour depth, cheap 2 draws)
+          for (let side = -1; side <= 1; side += 2) {
+            M4.identity(mat);
+            M4.translate(mat, mat, [tank.x, hullY - 0.06, tank.z]);
+            M4.rotateY(mat, mat, tank.angle);
+            M4.translate(mat, mat, [side * S * 0.47, 0, 0]);
+            M4.scale(mat, mat, [0.07, 0.2, S * 0.94]);
+            sc.drawMesh(sc.cube, mat, [bodyColor[0]*0.55, bodyColor[1]*0.55, bodyColor[2]*0.55, 1.0]);
+          }
+
+          // livery stripe along the hull flank (team readability at a glance)
+          for (let side = -1; side <= 1; side += 2) {
+            M4.identity(mat);
+            M4.translate(mat, mat, [tank.x, hullY + 0.05, tank.z]);
+            M4.rotateY(mat, mat, tank.angle);
+            M4.translate(mat, mat, [side * S * 0.485, 0, 0]);
+            M4.scale(mat, mat, [0.03, 0.07, S * 0.7]);
+            sc.drawMesh(sc.cube, mat, [1.0, 0.95, 0.75, 1.0], 0.15);
+          }
+
+          // rear engine deck + exhaust stack
           M4.identity(mat);
+          M4.translate(mat, mat, [tank.x, hullY + hullH * 0.5, tank.z]);
+          M4.rotateY(mat, mat, tank.angle);
+          M4.translate(mat, mat, [0, 0, -S * 0.42]);
+          M4.scale(mat, mat, [S * 0.6, 0.1, S * 0.22]);
+          sc.drawMesh(sc.cube, mat, trimColor);
+
+          if (isHeavy || isBoss) {
+            // spare track links stowed on the rear
+            for (let side = -1; side <= 1; side += 2) {
+              M4.identity(mat);
+              M4.translate(mat, mat, [tank.x, hullY + 0.02, tank.z]);
+              M4.rotateY(mat, mat, tank.angle);
+              M4.translate(mat, mat, [side * S * 0.3, 0, -S * 0.46]);
+              M4.scale(mat, mat, [0.12, 0.16, S * 0.3]);
+              sc.drawMesh(sc.cube, mat, trackColor);
+            }
+          }
+
+          // ---- Turret ----
+          const turretY = hullY + hullH * 0.5 + 0.11;
+          const turretR = S * (isBoss ? 0.42 : (isHeavy ? 0.36 : 0.30));
+          M4.identity(mat);
+          M4.translate(mat, mat, [tank.x, turretY, tank.z]);
+          M4.rotateY(mat, mat, tank.turretAngle);
+          M4.scale(mat, mat, [turretR * 2, 0.24, turretR * 2]);
+          sc.drawMesh(sc.cylinder, mat, trimColor);
+
+          // turret top hatch
+          M4.identity(mat);
+          M4.translate(mat, mat, [tank.x, turretY + 0.12, tank.z]);
+          M4.rotateY(mat, mat, tank.turretAngle);
+          M4.scale(mat, mat, [turretR * 0.8, 0.08, turretR * 0.8]);
+          sc.drawMesh(sc.cylinder, mat, [bodyColor[0]*0.7, bodyColor[1]*0.7, bodyColor[2]*0.7, 1.0]);
+
+          // commander cupola (small offset dome, only for player/heavy/boss)
+          if (tank.isPlayer || isHeavy || isBoss) {
+            M4.identity(mat);
+            M4.translate(mat, mat, [tank.x, turretY + 0.16, tank.z]);
+            M4.rotateY(mat, mat, tank.turretAngle);
+            M4.translate(mat, mat, [turretR * 0.5, 0, -turretR * 0.3]);
+            M4.scale(mat, mat, [0.12, 0.1, 0.12]);
+            sc.drawMesh(sc.cylinder, mat, glassColor, 0.25);
+          }
+
+          // ---- Main gun ----
           const barrelRecoil = Math.max(0, tank.recoil || 0);
-          M4.translate(mat, mat, [tank.x, 0.48, tank.z]);
+          const barrelLen = S * (isBoss ? 1.05 : (isHeavy ? 0.85 : 0.7));
+          M4.identity(mat);
+          M4.translate(mat, mat, [tank.x, turretY + 0.04, tank.z]);
           M4.rotateY(mat, mat, tank.turretAngle);
-          M4.translate(mat, mat, [0, 0, tank.size * 0.45 - barrelRecoil]);
-          M4.scale(mat, mat, [0.14, 0.14, tank.size * 0.65]);
-          sc.drawMesh(sc.cylinder, mat, [0.18, 0.22, 0.28, 1.0]);
+          M4.translate(mat, mat, [0, 0, turretR * 0.6 - barrelRecoil]);
+          M4.scale(mat, mat, [0.13, 0.13, barrelLen]);
+          sc.drawMesh(sc.cylinder, mat, barrelColor);
 
-          // Render Active 3D Rotating Drill on Player Front
+          // muzzle brake
+          M4.identity(mat);
+          M4.translate(mat, mat, [tank.x, turretY + 0.04, tank.z]);
+          M4.rotateY(mat, mat, tank.turretAngle);
+          M4.translate(mat, mat, [0, 0, turretR * 0.6 + barrelLen * 0.85 - barrelRecoil]);
+          M4.scale(mat, mat, [0.19, 0.19, 0.16]);
+          sc.drawMesh(sc.cylinder, mat, [0.28, 0.30, 0.34, 1.0]);
+
+          // coaxial machine gun for heavy/boss
+          if (isHeavy || isBoss) {
+            M4.identity(mat);
+            M4.translate(mat, mat, [tank.x, turretY + 0.14, tank.z]);
+            M4.rotateY(mat, mat, tank.turretAngle);
+            M4.translate(mat, mat, [turretR * 0.55, 0, turretR * 0.5 + barrelLen * 0.7]);
+            M4.scale(mat, mat, [0.07, 0.07, 0.4]);
+            sc.drawMesh(sc.cylinder, mat, barrelColor);
+          }
+
+          // ---- Muzzle flash (one emissive puff right after firing) ----
+          if (tank.muzzleFlash > 0) {
+            const mf = Math.max(0, Math.min(1, tank.muzzleFlash));
+            M4.identity(mat);
+            M4.translate(mat, mat, [tank.x, turretY + 0.04, tank.z]);
+            M4.rotateY(mat, mat, tank.turretAngle);
+            M4.translate(mat, mat, [0, 0, turretR * 0.6 + barrelLen * 0.95 - barrelRecoil]);
+            M4.scale(mat, mat, [0.3 * mf, 0.3 * mf, 0.34 * mf]);
+            sc.drawMesh(sc.pyramid, mat, [1.0, 0.86, 0.42, 1.0], 1.0 * mf);
+          }
+
+          // ---- Boss extra armour: reactive blocks + glowing reactor core ----
+          if (isBoss) {
+            for (let side = -1; side <= 1; side += 2) {
+              M4.identity(mat);
+              M4.translate(mat, mat, [tank.x, hullY + 0.1, tank.z]);
+              M4.rotateY(mat, mat, tank.angle);
+              M4.translate(mat, mat, [side * S * 0.42, 0, -S * 0.1]);
+              M4.scale(mat, mat, [0.16, 0.3, S * 0.5]);
+              sc.drawMesh(sc.cube, mat, [0.32, 0.33, 0.38, 1.0], 0.05);
+            }
+            // reactor core glow on the turret rear
+            M4.identity(mat);
+            M4.translate(mat, mat, [tank.x, turretY + 0.1, tank.z]);
+            M4.rotateY(mat, mat, tank.turretAngle);
+            M4.translate(mat, mat, [0, 0, -turretR * 0.7]);
+            M4.scale(mat, mat, [0.26, 0.26, 0.12]);
+            sc.drawMesh(sc.cylinder, mat, [1.0, 0.35, 0.2, 1.0], 0.9);
+          }
+
+          // ---- Headlamps ----
+          for (let side = -1; side <= 1; side += 2) {
+            M4.identity(mat);
+            M4.translate(mat, mat, [tank.x, hullY + 0.04, tank.z]);
+            M4.rotateY(mat, mat, tank.angle);
+            M4.translate(mat, mat, [side * S * 0.3, 0, S * 0.44]);
+            M4.scale(mat, mat, [0.1, 0.1, 0.06]);
+            sc.drawMesh(sc.cube, mat, [1.0, 0.95, 0.7, 1.0], 0.85);
+          }
+
+          // ---- Active drill on player front ----
           if (tank.isPlayer && tank.drillTime > 0) {
             M4.identity(mat);
-            M4.translate(mat, mat, [tank.x, 0.32, tank.z]);
+            M4.translate(mat, mat, [tank.x, hullY, tank.z]);
             M4.rotateY(mat, mat, tank.angle);
-            M4.translate(mat, mat, [0, 0, tank.size * 0.6]);
-            M4.rotateY(mat, mat, performance.now() * 0.03); // Rapid spinning
-            M4.scale(mat, mat, [0.35, 0.45, 0.35]);
-            sc.drawMesh(sc.pyramid, mat, [0.95, 0.85, 0.2, 1.0], 0.7);
+            M4.translate(mat, mat, [0, 0.02, S * 0.58]);
+            M4.rotateY(mat, mat, now * 0.03);
+            M4.scale(mat, mat, [0.34, 0.5, 0.34]);
+            sc.drawMesh(sc.pyramid, mat, [0.98, 0.86, 0.24, 1.0], 0.75);
           }
 
-          // Shield bubble (translucent shell when invincible)
+          // ---- Shield bubble ----
           if (tank.shieldTime > 0) {
-            const pulse = 1.0 + Math.sin(performance.now() * 0.012) * 0.06;
+            const pulse = 1.0 + Math.sin(now * 0.012) * 0.06;
             M4.identity(mat);
             M4.translate(mat, mat, [tank.x, 0.45, tank.z]);
-            M4.scale(mat, mat, [tank.size * 1.35 * pulse, tank.size * 1.0, tank.size * 1.35 * pulse]);
-            sc.drawMesh(sc.cube, mat, [0.3, 0.85, 1.0, 0.28], 0.9);
+            M4.scale(mat, mat, [tank.size * 1.4 * pulse, tank.size * 1.05, tank.size * 1.4 * pulse]);
+            sc.drawMesh(sc.cube, mat, [0.3, 0.85, 1.0, 0.26], 0.9);
           }
 
-          // Speed-boost engine glow
+          // ---- Speed-boost exhaust ----
           if (tank.isPlayer && tank.speedBoostTime > 0) {
             M4.identity(mat);
-            M4.translate(mat, mat, [tank.x - Math.sin(tank.angle) * tank.size * 0.5, 0.22, tank.z - Math.cos(tank.angle) * tank.size * 0.5]);
-            M4.scale(mat, mat, [0.3, 0.14, 0.3]);
-            sc.drawMesh(sc.cylinder, mat, [0.2, 1.0, 0.5, 0.9], 0.9);
+            M4.translate(mat, mat, [tank.x - Math.sin(tank.angle) * S * 0.5, 0.24, tank.z - Math.cos(tank.angle) * S * 0.5]);
+            M4.scale(mat, mat, [0.34, 0.16, 0.34]);
+            sc.drawMesh(sc.cylinder, mat, [0.25, 1.0, 0.55, 0.9], 0.95);
           }
         };
 
