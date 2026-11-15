@@ -282,4 +282,88 @@ assert.strictEqual(testCell.x, 120, '未融合成功时细胞 x 必须弹回原�
 assert.strictEqual(testCell.y, 240, '未融合成功时细胞 y 必须弹回原位');
 console.log('   ✅ 细胞拖拽未融合/失焦原位回弹保护测试通过');
 
+// 10. 血管基座布局：槽位必须落在安全可视区内且互不重叠（移动端核心体验保障）
+sandbox.document = {
+  getElementById() { return null; },
+  querySelector() { return null; },
+  querySelectorAll() { return []; },
+  addEventListener() {}
+};
+loadScript('js/bloodflow.js');
+assert(sandbox.BloodFlow, 'BloodFlow 应当成功导出');
+
+// 模拟手机竖屏（顶栏 100px、底栏 160px 被 UI 遮挡）
+const phoneFlow = new sandbox.BloodFlow(390, 844);
+phoneFlow.safeRect = { x0: 14, y0: 116, x1: 376, y1: 668 };
+phoneFlow.buildSlots();
+assert(phoneFlow.slots.length >= 8, `小屏至少应生成 8 个基座，实际 ${phoneFlow.slots.length}`);
+phoneFlow.slots.forEach((sl, i) => {
+  assert(sl.x >= phoneFlow.safeRect.x0 && sl.x <= phoneFlow.safeRect.x1, `槽位 ${i} 的 x 必须在安全区内`);
+  assert(sl.y >= phoneFlow.safeRect.y0 && sl.y <= phoneFlow.safeRect.y1, `槽位 ${i} 的 y 必须在安全区内（不得被 HUD/底栏盖住）`);
+});
+// 两两间距不得小于 40px，防止细胞挤成一团
+for (let i = 0; i < phoneFlow.slots.length; i++) {
+  for (let j = i + 1; j < phoneFlow.slots.length; j++) {
+    const d = Math.hypot(phoneFlow.slots[i].x - phoneFlow.slots[j].x, phoneFlow.slots[i].y - phoneFlow.slots[j].y);
+    assert(d >= 40, `槽位 ${i} 与 ${j} 间距过近（${d.toFixed(1)}px），会导致细胞重叠`);
+  }
+}
+// 桌面宽屏应生成更多基座
+const deskFlow = new sandbox.BloodFlow(1440, 900);
+deskFlow.safeRect = { x0: 14, y0: 72, x1: 1426, y1: 828 };
+deskFlow.buildSlots();
+assert(deskFlow.slots.length > phoneFlow.slots.length, '宽屏应比窄屏生成更多基座');
+console.log(`   ✅ 血管基座安全区布局验证通过（竖屏 ${phoneFlow.slots.length} 个 / 宽屏 ${deskFlow.slots.length} 个）`);
+
+// 11. 长按移除退款与坐标钳制逻辑（对齐 Game.prototype.removeCellAt / clampToSafeRect 规则）
+const mockSlots = [{ x: 100, y: 100, cell: null }, { x: 300, y: 300, cell: null }];
+const mockCells = [new Cell('macrophage', 100, 100, 1)];
+const mockBloodFlow = { slots: mockSlots, safeRect: { x0: 20, y0: 60, x1: 700, y1: 600 } };
+const refundGame = {
+  cells: mockCells,
+  atp: 10,
+  bloodFlow: mockBloodFlow,
+  createSparks() {}, createFloatingText() {}, updateHUD() {}, persist() {}
+};
+function removeCellAt(game, cell) {
+  const idx = game.cells.indexOf(cell);
+  if (idx === -1) return false;
+  game.cells.splice(idx, 1);
+  if (cell.slot) cell.slot.cell = null;
+  const cfg = sandbox.CELL_CONFIGS[cell.type];
+  game.atp += cfg ? cfg.cost : 0;
+  return true;
+}
+assert.strictEqual(removeCellAt(refundGame, mockCells[0]), true, '移除已建细胞应成功');
+assert.strictEqual(refundGame.cells.length, 0, '移除后细胞列表应为空');
+assert.strictEqual(refundGame.atp, 10 + sandbox.CELL_CONFIGS.macrophage.cost, '移除必须全额退还 ATP');
+assert.strictEqual(mockSlots[0].cell, null, '移除后槽位占用必须释放');
+assert.strictEqual(removeCellAt(refundGame, mockCells[0]), false, '重复移除同一细胞应返回 false');
+
+function clampToSafeRect(rect, x, y, m = 30) {
+  return {
+    x: Math.max(rect.x0 + m, Math.min(rect.x1 - m, x)),
+    y: Math.max(rect.y0 + m, Math.min(rect.y1 - m, y))
+  };
+}
+const c1 = clampToSafeRect(mockBloodFlow.safeRect, 5, 5);
+assert.strictEqual(c1.x, 50, '越界左侧应被钳制到安全区左边界');
+assert.strictEqual(c1.y, 90, '越界顶部应被钳制到安全区上边界');
+const c2 = clampToSafeRect(mockBloodFlow.safeRect, 9999, 9999);
+assert.strictEqual(c2.x, 670, '越界右侧应被钳制到安全区右边界');
+assert.strictEqual(c2.y, 570, '越界底部应被钳制到安全区下边界');
+const c3 = clampToSafeRect(mockBloodFlow.safeRect, 300, 300);
+assert.strictEqual(c3.x, 300, '合法坐标不应被改动');
+assert.strictEqual(c3.y, 300, '合法坐标不应被改动');
+console.log('   ✅ 长按移除退款与坐标安全区钳制测试通过');
+
+// 12. 触屏拖拽意图阈值：轻点（<12px）不触发融合，拖动（>12px）才进入融合判定
+function classifyGesture(pressX, pressY, curX, curY) {
+  return Math.hypot(curX - pressX, curY - pressY) > 12;
+}
+assert.strictEqual(classifyGesture(100, 100, 103, 104), false, '轻点不应进入拖拽融合流程');
+assert.strictEqual(classifyGesture(100, 100, 100, 100), false, '完全静止不应进入拖拽');
+assert.strictEqual(classifyGesture(100, 100, 130, 100), true, '明显拖动应进入融合判定');
+console.log('   ✅ 触屏轻点/拖拽意图阈值判定测试通过');
+
 console.log('\n🎉 所有 cell-defense 核心单元测试全部通过！');

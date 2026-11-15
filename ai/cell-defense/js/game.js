@@ -74,6 +74,10 @@
     this.draggingCell = null;
     this.dragOffset = { x: 0, y: 0 };
     this.mouse = { x: 0, y: 0, down: false };
+    this.dragMoved = false;
+    this.longPressTimer = null;
+    this.longPressStart = 0;
+    this._touchMode = undefined;
 
     // 首次对局引导（每步只提示一次）
     this.onboardSeen = {};
@@ -91,6 +95,28 @@
     this.updateHUD();
     this.refreshResumeEntry();
 
+    // 视口变化监听：ResizeObserver 不依赖 rAF，嵌入面板/移动端地址栏场景都能可靠收到；
+    // 但部分内嵌面板既不派发 resize 也不驱动 rAF，因此再用定时器主动比对视口尺寸兜底
+    var selfLayout = this;
+    if (typeof ResizeObserver === 'function' && document.documentElement) {
+      this._resizeObserver = new ResizeObserver(function() {
+        selfLayout.initCanvas();
+      });
+      this._resizeObserver.observe(document.documentElement);
+    }
+    window.addEventListener('load', function() { selfLayout.initCanvas(); });
+    window.addEventListener('focus', function() { selfLayout.initCanvas(); });
+    window.addEventListener('pageshow', function() { selfLayout.initCanvas(); });
+
+    // 定时器兜底轮询：加载瞬间视口可能还是 0/中间态，稳定后立刻按真实尺寸重排基座。
+    // 用自调度 setTimeout 而非 setInterval：部分内嵌面板会冻结 setInterval，
+    // 而 setTimeout 链稳定可用；initCanvas 在尺寸未变时会立即返回，开销可忽略。
+    this._layoutPoll = null;
+    (function pollLayout() {
+      selfLayout.initCanvas();
+      selfLayout._layoutPoll = setTimeout(pollLayout, 250);
+    })();
+
     // 启动帧循环
     this.lastTime = performance.now();
     var self = this;
@@ -99,17 +125,25 @@
 
   /**
    * 画布全屏自适应与 DPR 设置
+   * 用 setTransform 而非 scale，避免重复调用时变换累积；尺寸未变化时直接跳过重排
    */
   Game.prototype.initCanvas = function() {
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var newW = window.innerWidth;
+    var newH = window.innerHeight;
+    var changed = (newW !== this.width) || (newH !== this.height) || (dpr !== this.dpr);
+
     this.dpr = dpr;
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-    this.canvas.width = this.width * dpr;
-    this.canvas.height = this.height * dpr;
-    this.ctx.scale(dpr, dpr);
-    if (this.bloodFlow) {
-      this.bloodFlow.resize(this.width, this.height);
+    this.width = newW;
+    this.height = newH;
+
+    if (changed) {
+      this.canvas.width = Math.max(1, Math.floor(newW * dpr));
+      this.canvas.height = Math.max(1, Math.floor(newH * dpr));
+      this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    if (changed && this.bloodFlow) {
+      this.bloodFlow.resize(newW, newH);
     }
   };
 
@@ -450,18 +484,80 @@
       ctx.restore();
     }
 
-    // 7. 正在拖拽放置的预览细胞虚影
-    if (this.selectedCellType && this.mouse.down) {
+    // 6.6 长按移除进度环：按住细胞 420ms 进入移除退款，用环形进度明确预告
+    if (this.draggingCell && !this.dragMoved && this.longPressTimer) {
+      var lp = this.draggingCell;
+      var held = performance.now() - this.longPressStart;
+      var prog = Math.max(0, Math.min(1, held / 420));
       ctx.save();
-      ctx.globalAlpha = 0.55;
-      var conf = window.CELL_CONFIGS[this.selectedCellType];
       ctx.beginPath();
-      ctx.arc(this.mouse.x, this.mouse.y, conf.radius, 0, Math.PI * 2);
-      ctx.fillStyle = conf.color;
+      ctx.arc(lp.x, lp.y, lp.radius + 9, -Math.PI / 2, -Math.PI / 2 + prog * Math.PI * 2);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = prog >= 1 ? '#f87171' : '#fca5a5';
+      ctx.shadowColor = '#f87171';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 7. 选中细胞后的安放预览：虚线圆跟随指针，并预告吸附目标
+    if (this.selectedCellType && !this.isOver) {
+      var conf2 = window.CELL_CONFIGS[this.selectedCellType];
+      var previewX = this.mouse.x;
+      var previewY = this.mouse.y;
+      var previewValid = true;
+
+      // 预测吸附点，让「松手/点击后落在哪」完全可预见
+      if (this.bloodFlow && this.bloodFlow.slots) {
+        var magnet = this.isTouchInput() ? 62 : 45;
+        var bestSlot = null;
+        var bestD = magnet;
+        for (var s2 = 0; s2 < this.bloodFlow.slots.length; s2++) {
+          var sl2 = this.bloodFlow.slots[s2];
+          if (sl2.cell) continue;
+          var d2 = Math.hypot(sl2.x - previewX, sl2.y - previewY);
+          if (d2 < bestD) {
+            bestD = d2;
+            bestSlot = sl2;
+          }
+        }
+        if (bestSlot) {
+          previewX = bestSlot.x;
+          previewY = bestSlot.y;
+        } else {
+          var clamped = this.clampToSafeRect(previewX, previewY);
+          previewX = clamped.x;
+          previewY = clamped.y;
+        }
+        // 与已有细胞过近时预览变红，提前告知放不下
+        for (var c2 = 0; c2 < this.cells.length; c2++) {
+          if (Math.hypot(this.cells[c2].x - previewX, this.cells[c2].y - previewY) < 28) {
+            previewValid = false;
+            break;
+          }
+        }
+      }
+
+      var affordable = this.atp >= conf2.cost;
+      ctx.save();
+      ctx.globalAlpha = affordable ? 0.5 : 0.25;
+      ctx.beginPath();
+      ctx.arc(previewX, previewY, conf2.radius, 0, Math.PI * 2);
+      ctx.fillStyle = conf2.color;
       ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
+      ctx.setLineDash([5, 4]);
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = !affordable ? '#f87171' : (previewValid ? '#ffffff' : '#f87171');
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // 中心十字准星，触屏对准更直观
+      ctx.beginPath();
+      ctx.moveTo(previewX - 7, previewY);
+      ctx.lineTo(previewX + 7, previewY);
+      ctx.moveTo(previewX, previewY - 7);
+      ctx.lineTo(previewX, previewY + 7);
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = ctx.strokeStyle;
       ctx.stroke();
       ctx.restore();
     }
@@ -474,6 +570,17 @@
     var dt = (now - this.lastTime) / 1000;
     this.lastTime = now;
     if (dt > 0.1) dt = 0.1; // 页面失焦防掉帧爆炸
+
+    // 视口尺寸兜底轮询：部分嵌入环境（应用面板、移动端地址栏收起）不派发 resize 事件，
+    // 只靠事件监听会导致基座与血管按旧尺寸排布。每约 0.3s 比对一次，变化才重算。
+    this._layoutTick = (this._layoutTick || 0) + 1;
+    if (this._layoutTick % 18 === 0) {
+      var vw = window.innerWidth;
+      var vh = window.innerHeight;
+      if (vw !== this.width || vh !== this.height) {
+        this.initCanvas();
+      }
+    }
 
     this.update(dt);
     this.draw();
@@ -533,11 +640,11 @@
 
     // 首次对局引导推进
     if (this.cells.length === 0) {
-      this.showOnboardHint('place', '先选中底栏细胞，点击血管旁的虚线基座安放', 7000);
+      this.showOnboardHint('place', '选中底栏细胞，点击发光的虚线基座安放；长按细胞可移除退还', 8000);
     } else if (this.cells.length < 3) {
-      this.showOnboardHint('merge', '把两只同类型同阶的细胞拖拽重叠，即可融合升阶', 7000);
+      this.showOnboardHint('merge', '把两只同类型同阶的细胞拖到重叠即可融合升阶', 8000);
     } else {
-      this.showOnboardHint('skill', '神谕技能可扭转战局，注意各自冷却时间', 7000);
+      this.showOnboardHint('skill', '神谕技能可扭转战局，注意各自冷却时间', 8000);
     }
 
     // 刷新卡片可造状态灰显
@@ -766,8 +873,31 @@
     var self = this;
 
     // 窗口尺寸
-    window.addEventListener('resize', function() {
-      self.initCanvas();
+    var resizeRaf = null;
+    function scheduleLayoutRefresh() {
+      if (resizeRaf) cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(function() {
+        resizeRaf = null;
+        self.initCanvas();
+      });
+    }
+    window.addEventListener('resize', scheduleLayoutRefresh);
+    window.addEventListener('orientationchange', function() {
+      // 横竖屏切换后地址栏高度变化有延迟，稍等再重算更稳
+      setTimeout(scheduleLayoutRefresh, 120);
+      setTimeout(scheduleLayoutRefresh, 400);
+    });
+
+    // 页面卸载时清理布局轮询定时器，避免句柄泄漏
+    window.addEventListener('pagehide', function() {
+      if (self._layoutPoll) {
+        clearTimeout(self._layoutPoll);
+        self._layoutPoll = null;
+      }
+      if (self._resizeObserver) {
+        self._resizeObserver.disconnect();
+        self._resizeObserver = null;
+      }
     });
 
     // 启动新防线（同时清除旧快照，避免残留状态干扰）
@@ -960,7 +1090,12 @@
 
     // 页面失焦自动重置交互状态
     window.addEventListener('blur', function() {
+      if (self.longPressTimer) {
+        clearTimeout(self.longPressTimer);
+        self.longPressTimer = null;
+      }
       self.mouse.down = false;
+      self.dragMoved = false;
       if (self.draggingCell) {
         if (self.draggingCell.origX != null) {
           self.draggingCell.x = self.draggingCell.origX;
@@ -974,6 +1109,23 @@
 
     // 切到后台/最小化自动暂停：塔防挂机等于白给，回来后手动继续
     document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        if (self.longPressTimer) {
+          clearTimeout(self.longPressTimer);
+          self.longPressTimer = null;
+        }
+        self.mouse.down = false;
+        self.dragMoved = false;
+        if (self.draggingCell) {
+          if (self.draggingCell.origX != null) {
+            self.draggingCell.x = self.draggingCell.origX;
+            self.draggingCell.y = self.draggingCell.origY;
+          }
+          self.draggingCell.isDragging = false;
+          self.draggingCell = null;
+        }
+        self.mergeTarget = null;
+      }
       if (document.hidden && !self.isOver && !self.isPaused) {
         self.setPaused(true);
       }
@@ -992,10 +1144,20 @@
       if (self.isOver) return;
       if (window.CellAudio) window.CellAudio.init();
 
+      // 交互瞬间强制校正一次布局：视口此时必然已稳定，保证「点哪儿放哪儿」
+      // （尺寸未变化时 initCanvas 会自动跳过，无额外开销）
+      self.initCanvas();
+
+      // 记录输入类型：触屏与鼠标的磁吸/融合/拖拽手感分别调优
+      if (e.pointerType) self._touchMode = (e.pointerType === 'touch');
+      var isTouch = self.isTouchInput();
+
       var pos = getPointerPos(e);
       self.mouse.x = pos.x;
       self.mouse.y = pos.y;
       self.mouse.down = true;
+      self.dragMoved = false;
+      self.mergeTarget = null;
 
       // 1. 如果已有选中细胞卡，则尝试在点击位置放置
       if (self.selectedCellType) {
@@ -1006,7 +1168,7 @@
             self.atp -= conf.cost;
             self.updateHUD();
             if (window.CellAudio) window.CellAudio.playPlace();
-            if (navigator.vibrate) navigator.vibrate(20);
+            if (navigator.vibrate) navigator.vibrate(18);
           }
         } else {
           // ATP 不足时给出明确反馈，避免误以为点击失灵
@@ -1016,29 +1178,46 @@
         return;
       }
 
-      // 2. 检测点击已有细胞（巨噬细胞点击加速消化，或开始拖拽二合一融合）
+      // 2. 命中已有细胞：可能是「长按移除」，也可能是「拖拽融合」
+      var hitCell = null;
       for (var i = self.cells.length - 1; i >= 0; i--) {
         var cell = self.cells[i];
-        if (Math.hypot(cell.x - pos.x, cell.y - pos.y) <= cell.radius) {
-          // 点击反馈：若为巨噬细胞且体内有消化泡，加速消化
-          if (cell.type === 'macrophage' && cell.digestingViruses.length > 0) {
-            for (var v = 0; v < cell.digestingViruses.length; v++) {
-              cell.digestingViruses[v].timer -= 0.75;
-            }
-            self.createSparks(cell.x, cell.y, 8, '#34d399');
-            if (window.CellAudio) window.CellAudio.playDigest();
-            self.createFloatingText('⚡ 消化加速', cell.x, cell.y - 20, '#34d399');
-          }
-
-          self.draggingCell = cell;
-          cell.isDragging = true;
-          cell.origX = cell.x;
-          cell.origY = cell.y;
-          self.dragOffset.x = cell.x - pos.x;
-          self.dragOffset.y = cell.y - pos.y;
+        // 触屏命中判定放宽：手指落点偏离细胞中心也能抓住
+        var hitR = cell.radius * (isTouch ? 1.35 : 1.0);
+        if (Math.hypot(cell.x - pos.x, cell.y - pos.y) <= hitR) {
+          hitCell = cell;
           break;
         }
       }
+      if (!hitCell) return;
+
+      self.draggingCell = hitCell;
+      hitCell.isDragging = true;
+      hitCell.origX = hitCell.x;
+      hitCell.origY = hitCell.y;
+      hitCell.pressX = pos.x;
+      hitCell.pressY = pos.y;
+      hitCell.longPressFired = false;
+      // 触屏拖拽时细胞跟随手指中心，避免「按住边缘 → 细胞飞出去」的失控感
+      if (isTouch) {
+        self.dragOffset.x = 0;
+        self.dragOffset.y = 0;
+      } else {
+        self.dragOffset.x = hitCell.x - pos.x;
+        self.dragOffset.y = hitCell.y - pos.y;
+      }
+
+      // 长按计时：超过 420ms 且未移动 → 移除并退款
+      self.longPressStart = performance.now();
+      self.longPressTimer = setTimeout(function() {
+        if (!self.draggingCell || self.draggingCell !== hitCell) return;
+        if (self.dragMoved) return;
+        hitCell.longPressFired = true;
+        self.draggingCell = null;
+        hitCell.isDragging = false;
+        self.removeCellAt(hitCell);
+        if (navigator.vibrate) navigator.vibrate([12, 30, 12]);
+      }, 420);
     }
 
     function onPointerMove(e) {
@@ -1047,8 +1226,21 @@
       self.mouse.y = pos.y;
 
       if (self.draggingCell) {
-        self.draggingCell.x = pos.x + self.dragOffset.x;
-        self.draggingCell.y = pos.y + self.dragOffset.y;
+        // 移动超过 12px 视为拖拽意图，取消长按移除
+        var pressDx = pos.x - (self.draggingCell.pressX || pos.x);
+        var pressDy = pos.y - (self.draggingCell.pressY || pos.y);
+        if (!self.dragMoved && Math.hypot(pressDx, pressDy) > 12) {
+          self.dragMoved = true;
+          if (self.longPressTimer) {
+            clearTimeout(self.longPressTimer);
+            self.longPressTimer = null;
+          }
+          if (navigator.vibrate) navigator.vibrate(8);
+        }
+        if (self.dragMoved) {
+          self.draggingCell.x = pos.x + self.dragOffset.x;
+          self.draggingCell.y = pos.y + self.dragOffset.y;
+        }
       }
 
       // 悬停判定
@@ -1058,16 +1250,26 @@
       }
 
       // 拖拽中实时高亮可融合目标，让玩家看得见「该叠到谁身上」
-      if (self.draggingCell) {
+      if (self.draggingCell && self.dragMoved) {
+        var mergeR = self.isTouchInput() ? 1.5 : 1.1;
         var next = null;
+        var nextD = Infinity;
         for (var j = 0; j < self.cells.length; j++) {
           var cand = self.cells[j];
-          if (cand !== self.draggingCell && cand.type === self.draggingCell.type &&
-              cand.tier === self.draggingCell.tier && cand.tier < 3 &&
-              Math.hypot(cand.x - self.draggingCell.x, cand.y - self.draggingCell.y) <= (cand.radius + self.draggingCell.radius) * 1.1) {
+          if (cand === self.draggingCell || cand.type !== self.draggingCell.type ||
+              cand.tier !== self.draggingCell.tier || cand.tier >= 3) continue;
+          var d = Math.hypot(cand.x - self.draggingCell.x, cand.y - self.draggingCell.y);
+          var threshold = (cand.radius + self.draggingCell.radius) * mergeR;
+          if (d <= threshold && d < nextD) {
+            nextD = d;
             next = cand;
-            break;
           }
+        }
+        // 触屏磁吸辅助：靠近同类时轻轻把细胞拉过去，重叠松手不再靠抖
+        if (next && self.isTouchInput() && nextD > 6) {
+          var pull = 0.22;
+          self.draggingCell.x += (next.x - self.draggingCell.x) * pull;
+          self.draggingCell.y += (next.y - self.draggingCell.y) * pull;
         }
         if (self.mergeTarget !== next) {
           self.mergeTarget = next;
@@ -1077,44 +1279,67 @@
     }
 
     function onPointerUp(e) {
+      if (self.longPressTimer) {
+        clearTimeout(self.longPressTimer);
+        self.longPressTimer = null;
+      }
       self.mouse.down = false;
       if (self.draggingCell) {
         var dragged = self.draggingCell;
         dragged.isDragging = false;
         self.draggingCell = null;
 
+        // 未产生拖拽意图（轻点）：不算融合失败，静默复位即可
+        if (!self.dragMoved) {
+          dragged.x = dragged.origX != null ? dragged.origX : dragged.x;
+          dragged.y = dragged.origY != null ? dragged.origY : dragged.y;
+          self.mergeTarget = null;
+
+          // 轻点巨噬细胞：手动加速体内消化（移动端最顺手的微操）
+          if (dragged.type === 'macrophage' && dragged.digestingViruses.length > 0) {
+            for (var v = 0; v < dragged.digestingViruses.length; v++) {
+              dragged.digestingViruses[v].timer -= 0.75;
+            }
+            self.createSparks(dragged.x, dragged.y, 8, '#34d399');
+            if (window.CellAudio) window.CellAudio.playDigest();
+            self.createFloatingText('⚡ 消化加速', dragged.x, dragged.y - 20, '#34d399');
+          }
+          return;
+        }
+
         // 检测是否拖拽到另一只相同类型的细胞上进行融合突变 (Merge & Morph)
+        var mergeR = self.isTouchInput() ? 1.5 : 1.1;
         var merged = false;
         for (var i = 0; i < self.cells.length; i++) {
           var target = self.cells[i];
-          if (target !== dragged && target.type === dragged.type && target.tier === dragged.tier && target.tier < 3) {
-            var dist = Math.hypot(target.x - dragged.x, target.y - dragged.y);
-            if (dist <= (target.radius + dragged.radius) * 1.1) {
-              // 成功融合！升阶！
-              merged = true;
-              target.tier++;
-              var newConf = window.CELL_CONFIGS[target.type];
-              target.baseRadius = newConf.radius * (1 + (target.tier - 1) * 0.28);
-              target.range = newConf.range * (1 + (target.tier - 1) * 0.2);
-              target.maxHp = 100 * target.tier;
-              target.hp = target.maxHp;
+          if (target === dragged || target.type !== dragged.type ||
+              target.tier !== dragged.tier || target.tier >= 3) continue;
+          var dist = Math.hypot(target.x - dragged.x, target.y - dragged.y);
+          if (dist <= (target.radius + dragged.radius) * mergeR) {
+            // 成功融合！升阶！
+            merged = true;
+            target.tier++;
+            var newConf = window.CELL_CONFIGS[target.type];
+            target.baseRadius = newConf.radius * (1 + (target.tier - 1) * 0.28);
+            target.range = newConf.range * (1 + (target.tier - 1) * 0.2);
+            target.maxHp = 100 * target.tier;
+            target.hp = target.maxHp;
 
-              // 释放被融并细胞所占槽位
-              if (dragged.slot) dragged.slot.cell = null;
+            // 释放被融并细胞所占槽位
+            if (dragged.slot) dragged.slot.cell = null;
 
-              // 移除被吞并的细胞
-              var removeIdx = self.cells.indexOf(dragged);
-              if (removeIdx !== -1) self.cells.splice(removeIdx, 1);
+            // 移除被吞并的细胞
+            var removeIdx = self.cells.indexOf(dragged);
+            if (removeIdx !== -1) self.cells.splice(removeIdx, 1);
 
-              self.createShockwave(target.x, target.y, 80, '#38bdf8');
-              self.createSparks(target.x, target.y, 30, '#fbbf24');
-              self.createFloatingText('★ 融合升阶 T' + target.tier, target.x, target.y - 30, '#fbbf24');
-              self.hideOnboardHint();
-              if (window.CellAudio) window.CellAudio.playFuse();
-              if (navigator.vibrate) navigator.vibrate([25, 40, 30]);
-              self.persist();
-              break;
-            }
+            self.createShockwave(target.x, target.y, 80, '#38bdf8');
+            self.createSparks(target.x, target.y, 30, '#fbbf24');
+            self.createFloatingText('★ 融合升阶 T' + target.tier, target.x, target.y - 30, '#fbbf24');
+            self.hideOnboardHint();
+            if (window.CellAudio) window.CellAudio.playFuse();
+            if (navigator.vibrate) navigator.vibrate([25, 40, 30]);
+            self.persist();
+            break;
           }
         }
 
@@ -1153,6 +1378,30 @@
   };
 
   /**
+   * 计算当前交互是否偏向触屏（磁吸半径、融合阈值、拖拽手感按此分化）
+   */
+  Game.prototype.isTouchInput = function() {
+    if (this._touchMode !== undefined) return this._touchMode;
+    if (window.matchMedia) {
+      return !!(window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 820);
+    }
+    return false;
+  };
+
+  /**
+   * 把坐标约束进安全可视区，避免细胞被 HUD / 底栏盖住导致点不到
+   */
+  Game.prototype.clampToSafeRect = function(x, y) {
+    var rect = this.bloodFlow && this.bloodFlow.safeRect;
+    if (!rect) return { x: x, y: y };
+    var m = 30;
+    return {
+      x: Math.max(rect.x0 + m, Math.min(rect.x1 - m, x)),
+      y: Math.max(rect.y0 + m, Math.min(rect.y1 - m, y))
+    };
+  };
+
+  /**
    * 放置新细胞 (智能吸附槽位与防重叠)
    */
   Game.prototype.placeCell = function(type, x, y) {
@@ -1160,9 +1409,10 @@
     var posY = y;
     var matchedSlot = null;
 
-    // 查找最近的空槽位吸附 (45px 磁吸半径)
+    // 查找最近的空槽位吸附（触屏磁吸更宽容，手指点不准也能落到基座上）
     if (this.bloodFlow && this.bloodFlow.slots) {
-      var minD = 45;
+      var magnet = this.isTouchInput() ? 62 : 45;
+      var minD = magnet;
       for (var s = 0; s < this.bloodFlow.slots.length; s++) {
         var sl = this.bloodFlow.slots[s];
         if (!sl.cell) {
@@ -1179,11 +1429,16 @@
       }
     }
 
-    // 防重叠检测：若点击处已有细胞太近（< 32px 且非同一槽位），不允许叠放建造
+    // 未命中槽位时也约束进安全可视区，杜绝细胞落到 HUD 底下变成「点了没反应」
+    var clamped = this.clampToSafeRect(posX, posY);
+    posX = clamped.x;
+    posY = clamped.y;
+
+    // 防重叠检测：与已有细胞过近则拒绝，并保留选中态让玩家换个位置再点
     for (var i = 0; i < this.cells.length; i++) {
       var c = this.cells[i];
       if (Math.hypot(c.x - posX, c.y - posY) < 28) {
-        this.createFloatingText('位置重叠', posX, posY - 20, '#f87171');
+        this.createFloatingText('位置重叠，换个基座试试', posX, posY - 20, '#f87171');
         return false;
       }
     }
@@ -1196,6 +1451,26 @@
     this.cells.push(cell);
     this.createShockwave(posX, posY, 40, cell.color);
     this.createSparks(posX, posY, 14, cell.color);
+    this.persist();
+    return true;
+  };
+
+  /**
+   * 长按移除细胞并全额退还 ATP（移动端放错位置的救命稻草）
+   */
+  Game.prototype.removeCellAt = function(cell) {
+    var idx = this.cells.indexOf(cell);
+    if (idx === -1) return false;
+    this.cells.splice(idx, 1);
+    if (cell.slot) cell.slot.cell = null;
+
+    var cfg = window.CELL_CONFIGS[cell.type];
+    var refund = cfg ? cfg.cost : 0;
+    this.atp += refund;
+    this.updateHUD();
+    this.createSparks(cell.x, cell.y, 16, '#fca5a5');
+    this.createFloatingText('已移除 · 退还 ⚡' + refund, cell.x, cell.y - 24, '#fca5a5');
+    if (window.CellAudio) window.CellAudio.playHurt();
     this.persist();
     return true;
   };
@@ -1280,6 +1555,10 @@
    * 重置游戏
    */
   Game.prototype.resetGame = function() {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
     this.atp = 150;
     this.dna = 0;
     this.health = 100;
@@ -1287,6 +1566,9 @@
     this.wave = 1;
     this.isOver = false;
     this.isPaused = false;
+    this.selectedCellType = null;
+    this.draggingCell = null;
+    this.dragMoved = false;
     this.cells = [];
     this.enemies = [];
     this.enemiesToSpawn = [];
@@ -1302,6 +1584,10 @@
     this.hideOnboardHint();
     this.mergeTarget = null;
     this.awaitingMutation = false;
+
+    // 取消卡片选中态，避免重开后仍处于「放置模式」
+    var cards = document.querySelectorAll('.cell-card');
+    for (var ci = 0; ci < cards.length; ci++) cards[ci].classList.remove('active');
 
     // 重置槽位占用
     if (this.bloodFlow && this.bloodFlow.slots) {
