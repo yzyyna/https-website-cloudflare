@@ -2180,7 +2180,6 @@
         this.dead = false;
         this.recoil = 0;
         this.muzzleFlash = 0;   // 炮口火光计时器
-        this.smokeTimer = 0;    // 残血冒烟计时器
 
         // Boss specific
         this.isBoss = (type === 'boss');
@@ -2189,8 +2188,11 @@
           this.hp = 60;
           this.speed = 2.2;
           this.size = 2.7;
+          // 视觉巨大但碰撞半径收紧：否则 1 格走廊里必然卡死
+          this.collisionRadius = 0.46;
         } else {
           this.size = 1.15;
+          this.collisionRadius = null; // 默认按 size * 0.36 推导
         }
 
         // AI behavior
@@ -2229,6 +2231,12 @@
         this.radarCtx = this.radarCanvas.getContext('2d');
 
         this.scene = new WebGLScene(this.canvas);
+
+        // 画布尺寸兜底轮询的缓存字段（bindEvents 中启动自调度链）
+        this._lastCw = this.canvas ? this.canvas.clientWidth : 0;
+        this._lastCh = this.canvas ? this.canvas.clientHeight : 0;
+        this._lastDpr = Math.min(window.devicePixelRatio || 1, 2);
+        this._canvasPoll = null;
 
         // GPU context loss: freeze the game and show a notice instead of a silent frozen frame.
         // Context restore is NOT implemented (GL buffers/programs are not rebuilt), so the user must reload.
@@ -2373,6 +2381,35 @@
 
       bindEvents() {
         window.addEventListener('resize', () => this.scene.resize());
+        window.addEventListener('orientationchange', () => {
+          setTimeout(() => this.scene.resize(), 120);
+          setTimeout(() => this.scene.resize(), 400);
+        });
+
+        // 视口尺寸兜底：部分内嵌面板/移动端地址栏场景不派发 resize，
+        // 导致画布后备缓冲区按过期尺寸分配（出现右侧黑边与模糊）。
+        // 用自调度 setTimeout 链主动比对真实尺寸（setInterval 在部分面板会被冻结）。
+        const self = this;
+        (function pollCanvasSize() {
+          const c = self.canvas;
+          if (c) {
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            if (c.clientWidth !== self._lastCw || c.clientHeight !== self._lastCh || dpr !== self._lastDpr) {
+              self._lastCw = c.clientWidth;
+              self._lastCh = c.clientHeight;
+              self._lastDpr = dpr;
+              self.scene.resize();
+            }
+          }
+          self._canvasPoll = setTimeout(pollCanvasSize, 250);
+        })();
+        // 页面卸载时清理轮询句柄
+        window.addEventListener('pagehide', () => {
+          if (self._canvasPoll) {
+            clearTimeout(self._canvasPoll);
+            self._canvasPoll = null;
+          }
+        });
 
         // Keyboard Inputs (Prevent Space & Arrow Scrolling)
         window.addEventListener('keydown', e => {
@@ -3232,7 +3269,7 @@
 
       // Safe push that never shoves a tank inside a wall (fixes separation-induced corner pin)
       tryPushEntity(entity, dx, dz) {
-        const r = entity.size * 0.36;
+        const r = entity.collisionRadius || entity.size * 0.36;
         if (!this.checkTileCollision(entity.x + dx, entity.z + dz, r)) {
           entity.x += dx; entity.z += dz;
           return;
@@ -3247,7 +3284,7 @@
 
       // Corner-forgiving axis-separated sliding with micro-step fallback
       moveEntityWithCollision(entity, dirX, dirZ, speed, dt) {
-        const radius = entity.size * 0.36;
+        const radius = entity.collisionRadius || entity.size * 0.36;
         const dist = speed * dt;
         const origX = entity.x;
         const origZ = entity.z;
