@@ -766,6 +766,60 @@
       50%      { opacity: 0.72; }
     }
 
+    /* Floating score popups & boss banner */
+    .score-pop {
+      position: absolute;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 15px;
+      color: #fde047;
+      text-shadow: 0 0 10px rgba(250, 204, 21, 0.8), 0 2px 4px rgba(0,0,0,0.8);
+      pointer-events: none;
+      z-index: 30;
+      animation: scorePop 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: transform, opacity;
+    }
+    @keyframes scorePop {
+      0%   { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+      18%  { opacity: 1; transform: translate(-50%, -14px) scale(1.15); }
+      100% { opacity: 0; transform: translate(-50%, -52px) scale(0.95); }
+    }
+    #score-pop-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 30;
+      overflow: hidden;
+    }
+
+    #boss-banner {
+      position: absolute;
+      top: 26%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.8);
+      font-size: clamp(22px, 5vw, 40px);
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      color: #fca5a5;
+      text-shadow: 0 0 24px rgba(239, 68, 68, 0.9), 0 4px 12px rgba(0,0,0,0.9);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 35;
+      transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+    }
+    #boss-banner.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+      animation: bossBannerShake 0.6s ease-in-out 0.3s;
+    }
+    @keyframes bossBannerShake {
+      0%, 100% { margin-left: 0; }
+      25% { margin-left: -6px; }
+      50% { margin-left: 5px; }
+      75% { margin-left: -3px; }
+    }
+
     /* Floating Toast Message */
     #toast-msg {
       position: absolute;
@@ -1039,6 +1093,12 @@
 
   <!-- Floating Toast Notification -->
   <div id="toast-msg">道具获得: 能量护盾！</div>
+
+  <!-- Boss entrance banner -->
+  <div id="boss-banner">⚠ 泰 坦 出 击 ⚠</div>
+
+  <!-- Floating score popups layer -->
+  <div id="score-pop-layer"></div>
 
   <!-- Start Menu Modal -->
   <div class="overlay-modal active" id="modal-start">
@@ -1323,6 +1383,29 @@
         } catch (e) {}
       }
 
+      // Rising two-tone alarm for the BOSS telegraph (throttled internally)
+      playAlarm() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        if (now - (this.lastAlarmTime || 0) < 1.5) return;
+        this.lastAlarmTime = now;
+        [660, 520].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const t = now + idx * 0.22;
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.14, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(t);
+          osc.stop(t + 0.2);
+        });
+      }
+
       playVictory() {
         if (this.disabled || !this.enabled) return;
         this.init();
@@ -1599,6 +1682,7 @@
     const VS_SOURCE = `
       attribute vec3 aPosition;
       attribute vec3 aNormal;
+      attribute vec4 aColor;
 
       uniform mat4 uModel;
       uniform mat4 uView;
@@ -1606,11 +1690,13 @@
 
       varying vec3 vNormal;
       varying vec3 vFragPos;
+      varying vec4 vColor;
 
       void main() {
         vec4 worldPos = uModel * vec4(aPosition, 1.0);
         vFragPos = worldPos.xyz;
         vNormal = normalize((uModel * vec4(aNormal, 0.0)).xyz);
+        vColor = aColor;
         gl_Position = uProjection * uView * worldPos;
       }
     `;
@@ -1620,8 +1706,10 @@
 
       varying vec3 vNormal;
       varying vec3 vFragPos;
+      varying vec4 vColor;
 
       uniform vec4 uColor;
+      uniform float uUseVertexColor;
       uniform vec3 uLightDir;
       uniform vec3 uPointLightPos;
       uniform vec3 uPointLightColor;
@@ -1652,8 +1740,9 @@
         vec3 reflectDir = reflect(-lightDir, norm);
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), 12.0) * 0.35;
 
-        vec3 finalColor = (ambient + diffuse + pointLight) * uColor.rgb + vec3(spec) + (uColor.rgb * uEmissive);
-        gl_FragColor = vec4(finalColor, uColor.a);
+        vec4 base = mix(uColor, vColor, uUseVertexColor);
+        vec3 finalColor = (ambient + diffuse + pointLight) * base.rgb + vec3(spec) + (base.rgb * uEmissive);
+        gl_FragColor = vec4(finalColor, base.a);
       }
     `;
 
@@ -1727,7 +1816,8 @@
         this.program = program;
         this.attribs = {
           position: gl.getAttribLocation(program, 'aPosition'),
-          normal: gl.getAttribLocation(program, 'aNormal')
+          normal: gl.getAttribLocation(program, 'aNormal'),
+          color: gl.getAttribLocation(program, 'aColor')
         };
         this.uniforms = {
           model: gl.getUniformLocation(program, 'uModel'),
@@ -1738,7 +1828,8 @@
           pointLightPos: gl.getUniformLocation(program, 'uPointLightPos'),
           pointLightColor: gl.getUniformLocation(program, 'uPointLightColor'),
           pointLightIntensity: gl.getUniformLocation(program, 'uPointLightIntensity'),
-          emissive: gl.getUniformLocation(program, 'uEmissive')
+          emissive: gl.getUniformLocation(program, 'uEmissive'),
+          useVertexColor: gl.getUniformLocation(program, 'uUseVertexColor')
         };
       }
 
@@ -1764,6 +1855,168 @@
         this.cube = this.createVBO(createCubeMesh());
         this.cylinder = this.createVBO(createCylinderMesh(14));
         this.pyramid = this.createVBO(createPyramidMesh());
+
+        // Bake templates used by the batch builders (pos+norm interleaved)
+        const cm = createCubeMesh();
+        this.cubeTemplate = { pos: cm.positions, norm: cm.normals, verts: cm.count };
+        this.pyrTemplate = createPyramidMesh();
+        this.pyrTemplate.pos = this.pyrTemplate.positions;
+        this.pyrTemplate.norm = this.pyrTemplate.normals;
+        this.cylTemplate = createCylinderMesh(10); // low-seg: cheap enough to bake per-frame
+        this.cylTemplate.pos = this.cylTemplate.positions;
+        this.cylTemplate.norm = this.cylTemplate.normals;
+
+        // Dynamic batch (tanks + bullets + particles + powerups): interleaved
+        // pos3/norm3/color4, rebuilt per frame. Cap is in VERTICES (~1MB buffer).
+        this.dynVertCap = 40000;
+        this.dynData = new Float32Array(this.dynVertCap * 10);
+        this.dynVBO = gl.createBuffer();
+        this.dynCount = 0;
+      }
+
+      // Build (or rebuild) one interleaved pos3/norm3/color4 static VBO from a
+      // list of boxes {x,y,z, sx,sy,sz, r,g,b,a}. Returns {vbo, count} or null.
+      buildBatchVBO(boxes) {
+        const gl = this.gl;
+        if (!boxes.length) return null;
+        // Two templates: axis-aligned cubes and pyramids, baked into one VBO each call
+        const pyr = createPyramidMesh();
+        const total = boxes.reduce((n, b) => n + (b.shape === 'pyramid' ? pyr.count : 36), 0);
+        const data = new Float32Array(total * 10);
+        let w = 0;
+        for (const b of boxes) {
+          const usePyr = b.shape === 'pyramid';
+          const pos = usePyr ? pyr.positions : this.cubeTemplate.pos;
+          const norm = usePyr ? pyr.normals : this.cubeTemplate.norm;
+          const vc = usePyr ? pyr.count : 36;
+          for (let v = 0; v < vc; v++) {
+            data[w++] = pos[v*3]   * b.sx + b.x;
+            data[w++] = pos[v*3+1] * b.sy + b.y;
+            data[w++] = pos[v*3+2] * b.sz + b.z;
+            data[w++] = norm[v*3];
+            data[w++] = norm[v*3+1];
+            data[w++] = norm[v*3+2];
+            data[w++] = b.r; data[w++] = b.g; data[w++] = b.b; data[w++] = b.a;
+          }
+        }
+        const vbo = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+        gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+        return { vbo, count: total };
+      }
+
+      // Draw a merged static batch in a single call (~1 draw call for the whole arena)
+      drawStaticBatch(batch) {
+        if (!batch) return;
+        const gl = this.gl;
+        gl.uniformMatrix4fv(this.uniforms.model, false, M4.create());
+        gl.uniform1f(this.uniforms.emissive, 0);
+        gl.uniform1f(this.uniforms.useVertexColor, 1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
+        gl.enableVertexAttribArray(this.attribs.position);
+        gl.vertexAttribPointer(this.attribs.position, 3, gl.FLOAT, false, 40, 0);
+        gl.enableVertexAttribArray(this.attribs.normal);
+        gl.vertexAttribPointer(this.attribs.normal, 3, gl.FLOAT, false, 40, 12);
+        gl.enableVertexAttribArray(this.attribs.color);
+        gl.vertexAttribPointer(this.attribs.color, 4, gl.FLOAT, false, 40, 24);
+
+        gl.drawArrays(gl.TRIANGLES, 0, batch.count);
+      }
+
+      // Queue one axis-aligned mesh into the per-frame dynamic batch
+      queueDynamicBox(x, y, z, sx, sy, sz, color, shape) {
+        const vc = shape === 'pyr' ? 18 : (shape === 'cyl' ? 120 : 36);
+        if (this.dynCount + vc > this.dynVertCap) return; // batch full: drop silently
+        const tpl = shape === 'pyr' ? this.pyrTemplate : (shape === 'cyl' ? this.cylTemplate : this.cubeTemplate);
+        const d = this.dynData;
+        let w = this.dynCount * 10;
+        for (let v = 0; v < vc; v++) {
+          d[w++] = tpl.pos[v*3]   * sx + x;
+          d[w++] = tpl.pos[v*3+1] * sy + y;
+          d[w++] = tpl.pos[v*3+2] * sz + z;
+          d[w++] = tpl.norm[v*3];
+          d[w++] = tpl.norm[v*3+1];
+          d[w++] = tpl.norm[v*3+2];
+          d[w++] = color[0]; d[w++] = color[1]; d[w++] = color[2];
+          d[w++] = color.length > 3 ? color[3] : 1;
+        }
+        this.dynCount += vc;
+      }
+
+      // Queue a GROUP of meshes in a tank-local frame rotated by `angle` around Y at (cx, cz).
+      // Each item: {x,y,z, sx,sy,sz, r,g,b,a, shape?, ySpin?, spin?} in local coords (x=right, z=forward).
+      // shape: 'cyl'/'pyr' pick the matching template (default cube);
+      // ySpin tumbles around local Y (drill / powerups), spin rolls around local X (road wheels).
+      queueRotatedBoxes(cx, cz, angle, items) {
+        let need = 0;
+        for (let i = 0; i < items.length; i++) {
+          const it = items[i];
+          need += it.shape === 'pyr' ? 18 : (it.shape === 'cyl' ? 120 : 36);
+        }
+        if (this.dynCount + need > this.dynVertCap) return; // batch full: drop whole group
+        const ca = Math.cos(angle), sa = Math.sin(angle);
+        const d = this.dynData;
+        for (let n = 0; n < items.length; n++) {
+          const it = items[n];
+          const tpl = it.shape === 'pyr' ? this.pyrTemplate : (it.shape === 'cyl' ? this.cylTemplate : this.cubeTemplate);
+          const pos = tpl.pos, norm = tpl.norm;
+          const vc = it.shape === 'pyr' ? 18 : (it.shape === 'cyl' ? 120 : 36);
+          const spin = it.spin || 0;
+          let cs = 1, sn = 0;
+          if (spin !== 0) { cs = Math.cos(spin); sn = Math.sin(spin); }
+          const yS = it.ySpin || 0;
+          let cy = 1, sy = 0;
+          if (yS !== 0) { cy = Math.cos(yS); sy = Math.sin(yS); }
+          let w = this.dynCount * 10;
+          for (let v = 0; v < vc; v++) {
+            // template -> scaled local
+            let lx = pos[v*3]   * it.sx;
+            let ly = pos[v*3+1] * it.sy;
+            let lz = pos[v*3+2] * it.sz;
+            let nx = norm[v*3], ny = norm[v*3+1], nz = norm[v*3+2];
+            if (yS !== 0) { // tumble around local Y
+              const tx = lx * cy + lz * sy, tz = -lx * sy + lz * cy;
+              lx = tx; lz = tz;
+              const mx = nx * cy + nz * sy, mz = -nx * sy + nz * cy;
+              nx = mx; nz = mz;
+            }
+            // roll around local X (wheel axle)
+            const ly2 = ly * cs - lz * sn, lz2 = ly * sn + lz * cs;
+            const ny2 = ny * cs - nz * sn, nz2 = ny * sn + nz * cs;
+            // local point (scale -> spin -> offset), then yaw to world
+            const px = lx + it.x, py = ly2 + it.y, pz = lz2 + it.z;
+            d[w++] = px * ca + pz * sa + cx;
+            d[w++] = py;
+            d[w++] = -px * sa + pz * ca + cz;
+            d[w++] = nx * ca + nz2 * sa;
+            d[w++] = ny2;
+            d[w++] = -nx * sa + nz2 * ca;
+            d[w++] = it.r; d[w++] = it.g; d[w++] = it.b; d[w++] = it.a;
+          }
+          this.dynCount += vc;
+        }
+      }
+
+      // Upload & draw everything queued this frame, then reset the queue
+      flushDynamicBatch() {
+        if (this.dynCount === 0) return;
+        const gl = this.gl;
+        gl.uniformMatrix4fv(this.uniforms.model, false, M4.create());
+        gl.uniform1f(this.uniforms.emissive, 0);
+        gl.uniform1f(this.uniforms.useVertexColor, 1);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.dynVBO);
+        gl.bufferData(gl.ARRAY_BUFFER, this.dynData.subarray(0, this.dynCount * 10), gl.DYNAMIC_DRAW);
+        gl.enableVertexAttribArray(this.attribs.position);
+        gl.vertexAttribPointer(this.attribs.position, 3, gl.FLOAT, false, 40, 0);
+        gl.enableVertexAttribArray(this.attribs.normal);
+        gl.vertexAttribPointer(this.attribs.normal, 3, gl.FLOAT, false, 40, 12);
+        gl.enableVertexAttribArray(this.attribs.color);
+        gl.vertexAttribPointer(this.attribs.color, 4, gl.FLOAT, false, 40, 24);
+
+        gl.drawArrays(gl.TRIANGLES, 0, this.dynCount);
+        this.dynCount = 0;
       }
 
       createVBO(mesh) {
@@ -1825,6 +2078,7 @@
         gl.uniformMatrix4fv(this.uniforms.model, false, transformMatrix);
         gl.uniform4fv(this.uniforms.color, color);
         gl.uniform1f(this.uniforms.emissive, emissive);
+        gl.uniform1f(this.uniforms.useVertexColor, 0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vbo.pos);
         gl.enableVertexAttribArray(this.attribs.position);
@@ -1833,6 +2087,10 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, vbo.norm);
         gl.enableVertexAttribArray(this.attribs.normal);
         gl.vertexAttribPointer(this.attribs.normal, 3, gl.FLOAT, false, 0, 0);
+
+        // aColor stays a disabled constant attribute; shader ignores it via uUseVertexColor
+        gl.disableVertexAttribArray(this.attribs.color);
+        gl.vertexAttrib4f(this.attribs.color, 0, 0, 0, 1);
 
         gl.drawArrays(gl.TRIANGLES, 0, vbo.count);
       }
@@ -2291,6 +2549,11 @@
         this.joystickVector = { x: 0, z: 0, active: false };
         this.touchFiring = false;
         this.drones = [];
+        this.staticGround = null;
+        this.staticTiles = null;
+        this.staticTilesDirty = true;
+        this.spawnWarnings = [];
+        this._tankOverlays = []; // translucent per-tank overlays, drawn after the batch
 
         this.initDOM();
         this.bindEvents();
@@ -2370,6 +2633,9 @@
           gameoverReason: document.getElementById('gameover-reason'),
           goStage: document.getElementById('go-stage'),
           goScore: document.getElementById('go-score'),
+
+          scorePopLayer: document.getElementById('score-pop-layer'),
+          bossBanner: document.getElementById('boss-banner'),
 
           // Mobile Touch
           joystickZone: document.getElementById('joystick-zone'),
@@ -2598,6 +2864,57 @@
         }, { passive: false });
       }
 
+      // Project a world (x,z) point to screen pixels for DOM overlays
+      worldToScreen(x, z, y = 0.5) {
+        const sc = this.scene;
+        const vp = [x, y, z, 1];
+        const v = new Float32Array(4);
+        const pv = new Float32Array(4);
+        // view * world
+        const V = sc.viewMatrix, P = sc.projMatrix;
+        for (let r = 0; r < 4; r++) {
+          v[r] = V[r]*vp[0] + V[r+4]*vp[1] + V[r+8]*vp[2] + V[r+12]*vp[3];
+        }
+        for (let r = 0; r < 4; r++) {
+          pv[r] = P[r]*v[0] + P[r+4]*v[1] + P[r+8]*v[2] + P[r+12]*v[3];
+        }
+        if (pv[3] <= 0.01) return null; // behind camera
+        const ndcX = pv[0] / pv[3], ndcY = pv[1] / pv[3];
+        if (!this.canvas || typeof this.canvas.getBoundingClientRect !== 'function') return null;
+        const rect = this.canvas.getBoundingClientRect();
+        return {
+          x: (ndcX * 0.5 + 0.5) * rect.width,
+          y: (-ndcY * 0.5 + 0.5) * rect.height
+        };
+      }
+
+      // Floating "+score" popup at a world position (auto-removed after animation)
+      showScorePop(x, z, text, color = '#fde047') {
+        const layer = this.dom.scorePopLayer;
+        if (!layer || typeof layer.appendChild !== 'function') return; // layer missing: skip silently
+        const pt = this.worldToScreen(x, z, 0.9);
+        if (!pt) return;
+        try {
+          const el = document.createElement('div');
+          el.className = 'score-pop';
+          el.textContent = text;
+          el.style.left = pt.x + 'px';
+          el.style.top = pt.y + 'px';
+          el.style.color = color;
+          layer.appendChild(el);
+          setTimeout(() => el.remove(), 950);
+        } catch (e) { /* overlay failure must never break gameplay */ }
+      }
+
+      // Boss entrance banner: flash twice then fade
+      showBossBanner() {
+        const el = this.dom.bossBanner;
+        if (!el || !el.classList) return;
+        el.classList.add('show');
+        clearTimeout(this._bossBannerTimer);
+        this._bossBannerTimer = setTimeout(() => el.classList.remove('show'), 2600);
+      }
+
       showToast(text) {
         this.dom.toastMsg.textContent = text;
         this.dom.toastMsg.classList.add('show');
@@ -2684,6 +3001,10 @@
         this.powerups = [];
         this.enemies = [];
         this.drones = [];
+        this.spawnWarnings = [];
+        this.staticGround = null;
+        this.staticTiles = null;
+        this.staticTilesDirty = true;
 
         // Spawn Player Tank at bottom center
         const preservedLevel = this.player ? this.player.level : 1;
@@ -2731,7 +3052,34 @@
         const cfg = STAGE_CONFIGS[this.currentStageIdx];
         if (this.enemiesRemainingToSpawn <= 0) return false;
 
-        // 3 Safe Spawn Points at Top (x=1.5, x=7.5, x=13.5, z=1.5)
+        // Two-phase spawn: 1) book a point & show a telegraph pulse, 2) drop the tank
+        // in later so the player can react instead of being shot from nowhere.
+        const pending = this.spawnWarnings.find(w => w.done && w.tankType);
+        if (pending) {
+          // Phase 2: materialize the announced tank
+          const enemy = new Tank(pending.x, pending.z, false, pending.tankType);
+          enemy.angle = Math.PI;
+          enemy.turretAngle = Math.PI;
+          if (pending.isFlashing) enemy.isFlashing = true;
+          if (pending.stats) {
+            enemy.speed = pending.stats.speed;
+            enemy.hp = pending.stats.hp;
+            enemy.maxHp = pending.stats.hp;
+          }
+          enemy.cooldown = 0.8 + Math.random() * 1.2;
+          this.enemies.push(enemy);
+          this.enemiesRemainingToSpawn--;
+
+          // Materialize flash
+          for (let i = 0; i < 8; i++) {
+            this.particles.push(new Particle(pending.x, 0.4, pending.z, [1, 1, 1, 1], 0.2, 3));
+          }
+          this.spawnWarnings.splice(this.spawnWarnings.indexOf(pending), 1);
+          this.updateHUD();
+          return true;
+        }
+
+        // Phase 1: book a free slot & announce it
         const spawnCols = [2.5, 10.5, 18.5];
         for (let i = spawnCols.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -2739,54 +3087,50 @@
         }
         let safeSpawn = null;
         for (let sx of spawnCols) {
-          // Check collision with walls and other tanks
-          if (!this.checkTileCollision(sx, 1.5, 0.45) && !this.enemies.some(e => Math.hypot(e.x - sx, e.z - 1.5) < 1.6)) {
+          const occupied = this.enemies.some(e => Math.hypot(e.x - sx, e.z - 1.5) < 1.6)
+            || this.spawnWarnings.some(w => Math.hypot(w.x - sx, w.z - 1.5) < 1.6);
+          if (!this.checkTileCollision(sx, 1.5, 0.45) && !occupied) {
             safeSpawn = { x: sx, z: 1.5 };
             break;
           }
         }
-        if (!safeSpawn) return false; // Wait for spawn area to be clear
-
-        const spawnX = safeSpawn.x;
-        const spawnZ = safeSpawn.z;
+        if (!safeSpawn) return false;
 
         let type = 'scout';
-        if (cfg.isBossStage && this.enemiesRemainingToSpawn === 1 && !this.enemies.some(e => e.isBoss)) {
+        const isBossTime = cfg.isBossStage && this.enemiesRemainingToSpawn === 1 && !this.enemies.some(e => e.isBoss);
+        if (isBossTime) {
           type = 'boss';
         } else {
           type = cfg.enemyTypes[Math.floor(Math.random() * cfg.enemyTypes.length)];
         }
 
-        const enemy = new Tank(spawnX, spawnZ, false, type);
-        enemy.angle = Math.PI; // Face downwards
-        enemy.turretAngle = Math.PI;
+        const warn = {
+          x: safeSpawn.x,
+          z: safeSpawn.z,
+          age: 0,
+          duration: isBossTime ? 2.2 : 0.9,   // long telegraph for the boss entrance
+          done: false,
+          tankType: null,
+          isFlashing: false,
+          stats: null
+        };
 
-        // 25% Chance of Flashing Tank (drops powerup)
-        if (Math.random() < 0.25 && !enemy.isBoss) {
-          enemy.isFlashing = true;
+        if (isBossTime) {
+          warn.stats = { speed: 2.2, hp: 60 };
+          sound.playAlarm();
+          this.showBossBanner();
+        } else {
+          warn.isFlashing = Math.random() < 0.25;
+          warn.stats = {
+            scout: { speed: 3.0, hp: 1 },
+            speed: { speed: 4.0, hp: 1 },
+            heavy: { speed: 2.4, hp: 3 },
+            sniper: { speed: 2.8, hp: 2 }
+          }[type] || { speed: 3.0, hp: 1 };
         }
-
-        if (type === 'scout') {
-          enemy.speed = 3.0; enemy.hp = 1; enemy.maxHp = 1;
-        } else if (type === 'speed') {
-          enemy.speed = 4.0; enemy.hp = 1; enemy.maxHp = 1;
-        } else if (type === 'heavy') {
-          enemy.speed = 2.4; enemy.hp = 3; enemy.maxHp = 3;
-        } else if (type === 'sniper') {
-          enemy.speed = 2.8; enemy.hp = 2; enemy.maxHp = 2;
-        }
-        enemy.cooldown = 0.8 + Math.random() * 1.2; // no synchronized opening volley on spawn
-
-        this.enemies.push(enemy);
-        this.enemiesRemainingToSpawn--;
-
-        // Spawn Flash Particles (cheap: 8)
-        for (let i = 0; i < 8; i++) {
-          this.particles.push(new Particle(spawnX, 0.4, spawnZ, [1, 1, 1, 1], 0.2, 3));
-        }
-
-        this.updateHUD();
-        return true;
+        warn.tankType = type;
+        this.spawnWarnings.push(warn);
+        return false; // nothing spawned yet; timer re-fires soon
       }
 
       tryPlayerShoot() {
@@ -2917,6 +3261,8 @@
           this.score += enemy.isBoss ? 5000 : (enemy.type === 'heavy' ? 400 : 200);
 
           this.spawnExplosion(enemy.x, 0.5, enemy.z, enemy.isBoss);
+          const gained = enemy.isBoss ? 5000 : (enemy.type === 'heavy' ? 400 : 200);
+          this.showScorePop(enemy.x, enemy.z, '+' + gained, enemy.isBoss ? '#fca5a5' : '#fde047');
 
           // Drop PowerUp if flashing or random chance
           if (enemy.isFlashing || Math.random() < 0.15) {
@@ -2952,6 +3298,7 @@
         if (this.baseDestroyed) return;
         this.baseDestroyed = true;
         this.map[19][10] = TILE_EMPTY; // Eagle destroyed
+        this.staticTilesDirty = true;
 
         this.spawnExplosion(this.baseX, 0.6, this.baseZ, true, [1, 0.2, 0.1, 1]);
         this.triggerGameOver('最高司令部老鹰雕像已被摧毁！');
@@ -2961,6 +3308,7 @@
         p.dead = true;
         sound.playPowerup();
         this.score += 500;
+        this.showScorePop(p.x, p.z, '+500 道具', '#7dd3fc');
 
         switch (p.type) {
           case 'star':
@@ -3035,6 +3383,7 @@
         coords.forEach(([r, c]) => {
           if (this.map[r]) this.map[r][c] = tileType;
         });
+        this.staticTilesDirty = true;
       }
 
       checkStageProgress() {
@@ -3356,6 +3705,7 @@
         if (tile === TILE_BRICK) {
           b.dead = true;
           this.map[row][col] = TILE_EMPTY;
+          this.staticTilesDirty = true;
           sound.playHit(false);
           // Brick Debris Particles
           for (let i = 0; i < 8; i++) {
@@ -3378,6 +3728,7 @@
           // Level 3+, Heavy or Missile Bullet can destroy Steel
           if (b.type === 'heavy' || b.type === 'laser' || b.type === 'missile') {
             this.map[row][col] = TILE_EMPTY;
+          this.staticTilesDirty = true;
             this.spawnExplosion(col + 0.5, 0.4, row + 0.5, false, [0.6, 0.7, 0.8, 1]);
             if (Math.random() < 0.2) {
               const types = ['drill', 'missile', 'gatling', 'drone', 'star'];
@@ -3565,12 +3916,24 @@
           }
         }
 
-        // Spawn Enemies with Active Throttle
+        // Spawn Enemies with Active Throttle + telegraph ticking
         const cfg = STAGE_CONFIGS[this.currentStageIdx];
-        this.enemySpawnTimer -= dt;
-        if (this.enemySpawnTimer <= 0 && this.enemies.filter(e => !e.dead).length < 5 && this.enemiesRemainingToSpawn > 0) {
-          const spawned = this.spawnEnemy();
-          this.enemySpawnTimer = spawned ? cfg.spawnInterval : 0.35;
+        this.spawnWarnings.forEach(w => {
+          w.age += dt;
+          if (!w.done && w.age >= w.duration) w.done = true;
+        });
+        const anyReadyWarn = this.spawnWarnings.some(w => w.done && w.tankType);
+        const aliveEnemies = this.enemies.filter(e => !e.dead).length;
+        // Materialize ready warnings only if a tank slot is free; else hold them pulsing
+        if (anyReadyWarn && aliveEnemies < 5) {
+          this.spawnEnemy();
+          this.enemySpawnTimer = cfg.spawnInterval;
+        } else {
+          this.enemySpawnTimer -= dt;
+          if (this.enemySpawnTimer <= 0 && aliveEnemies < 5 && this.enemiesRemainingToSpawn > 0 && this.spawnWarnings.length < 3) {
+            this.spawnEnemy(); // book a new telegraph
+            this.enemySpawnTimer = 0.35;
+          }
         }
 
         // Update Player Tank
@@ -3685,6 +4048,7 @@
               const tile = this.map[fr][fc];
               if (tile === TILE_BRICK || tile === TILE_STEEL) {
                 this.map[fr][fc] = TILE_EMPTY;
+                this.staticTilesDirty = true;
                 this.spawnExplosion(fc + 0.5, 0.4, fr + 0.5, false, [0.8, 0.6, 0.2, 1]);
                 sound.playHit(true);
                 if (Math.random() < 0.2) {
@@ -3906,133 +4270,42 @@
 
         const mat = M4.create();
 
-        // 2. Draw Ground Arena Base with High-contrast Grid Tiles
-        M4.identity(mat);
-        M4.translate(mat, mat, [7.5, -0.25, 7.5]);
-        M4.scale(mat, mat, [MAP_SIZE + 1.2, 0.4, MAP_SIZE + 1.2]);
-        sc.drawMesh(sc.cube, mat, [0.08, 0.11, 0.18, 1.0]);
+        // 2+3. Ground, border rails and map tiles are PRE-BAKED into two static
+        // vertex-color VBOs (rebuilt only when a tile changes) — the whole arena
+        // draws in 2 calls instead of ~470 per-frame drawMesh calls.
+        if (!this.staticGround) this.rebuildStaticGround();
+        if (!this.staticTiles || this.staticTilesDirty) this.rebuildStaticTiles();
+        sc.drawStaticBatch(this.staticGround);
+        sc.drawStaticBatch(this.staticTiles);
 
-        // Checkerboard Ground Tiles — merged into 2x2 blocks (halves draw calls, same look)
-        for (let r = 0; r < MAP_SIZE; r += 2) {
-          for (let c = 0; c < MAP_SIZE; c += 2) {
-            const rows = Math.min(2, MAP_SIZE - r);
-            const cols = Math.min(2, MAP_SIZE - c);
-            M4.identity(mat);
-            M4.translate(mat, mat, [c + cols / 2, -0.04, r + rows / 2]);
-            M4.scale(mat, mat, [cols * 0.99, 0.06, rows * 0.99]);
-            const isDark = ((r / 2) + (c / 2)) % 2 === 0;
-            const tileColor = isDark ? [0.12, 0.16, 0.24, 1.0] : [0.15, 0.20, 0.30, 1.0];
-            sc.drawMesh(sc.cube, mat, tileColor);
-          }
-        }
-
-        // Glowing Arena Border Rails — thicker and taller so the arena feels walled-in
-        const borderMat = M4.create();
-        M4.identity(borderMat);
-        M4.translate(borderMat, borderMat, [MAP_SIZE / 2, 0.22, 0]);
-        M4.scale(borderMat, borderMat, [MAP_SIZE + 0.6, 0.44, 0.24]);
-        sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
-
-        M4.identity(borderMat);
-        M4.translate(borderMat, borderMat, [MAP_SIZE / 2, 0.22, MAP_SIZE]);
-        M4.scale(borderMat, borderMat, [MAP_SIZE + 0.6, 0.44, 0.24]);
-        sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
-
-        M4.identity(borderMat);
-        M4.translate(borderMat, borderMat, [0, 0.22, MAP_SIZE / 2]);
-        M4.scale(borderMat, borderMat, [0.24, 0.44, MAP_SIZE + 0.6]);
-        sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
-
-        M4.identity(borderMat);
-        M4.translate(borderMat, borderMat, [MAP_SIZE, 0.22, MAP_SIZE / 2]);
-        M4.scale(borderMat, borderMat, [0.24, 0.44, MAP_SIZE + 0.6]);
-        sc.drawMesh(sc.cube, borderMat, [0.13, 0.77, 0.36, 0.9], 0.3);
-
-        // 3. Draw Map Tiles — larger, chunkier blocks so the arena reads as a real battlefield
-        for (let r = 0; r < MAP_SIZE; r++) {
-          for (let c = 0; c < MAP_SIZE; c++) {
-            const tile = this.map[r][c];
-            if (tile === TILE_EMPTY) continue;
-
-            const posX = c + 0.5;
-            const posZ = r + 0.5;
-
-            M4.identity(mat);
-            M4.translate(mat, mat, [posX, 0.5, posZ]);
-
-            if (tile === TILE_BRICK) {
-              // 砖墙：加高加厚，顶面亮一个层级让体积感更强
-              M4.scale(mat, mat, [1.0, 1.16, 1.0]);
-              sc.drawMesh(sc.cube, mat, [0.70, 0.30, 0.15, 1.0]);
-              M4.identity(mat);
-              M4.translate(mat, mat, [posX, 1.09, posZ]);
-              M4.scale(mat, mat, [0.86, 0.09, 0.86]);
-              sc.drawMesh(sc.cube, mat, [0.86, 0.44, 0.24, 1.0], 0.06);
-            } else if (tile === TILE_STEEL) {
-              M4.scale(mat, mat, [1.02, 1.18, 1.02]);
-              sc.drawMesh(sc.cube, mat, [0.62, 0.70, 0.82, 1.0], 0.12);
-            } else if (tile === TILE_WATER) {
-              M4.scale(mat, mat, [1.0, 0.15, 1.0]);
-              const wPulse = 0.25 + Math.sin(performance.now() * 0.003 + (r + c) * 0.6) * 0.12;
-              sc.drawMesh(sc.cube, mat, [0.06, 0.45, 0.85, 0.85], wPulse);
-            } else if (tile === TILE_TREES) {
-              // 3D Tree Canopy (bigger, two-tier for silhouette)
-              M4.scale(mat, mat, [1.08, 1.5, 1.08]);
-              sc.drawMesh(sc.pyramid, mat, [0.14, 0.60, 0.24, 0.85]);
-              M4.identity(mat);
-              M4.translate(mat, mat, [posX, 1.16, posZ]);
-              M4.scale(mat, mat, [0.72, 0.85, 0.72]);
-              sc.drawMesh(sc.pyramid, mat, [0.20, 0.72, 0.32, 0.9]);
-            } else if (tile === TILE_ICE) {
-              M4.scale(mat, mat, [1.0, 0.05, 1.0]);
-              sc.drawMesh(sc.cube, mat, [0.65, 0.88, 0.98, 0.9], 0.3);
-            } else if (tile === TILE_BASE) {
-              // Base Eagle Monument: plinth + taller spire so the HQ reads as a landmark
-              M4.identity(mat);
-              M4.translate(mat, mat, [posX, 0.42, posZ]);
-              M4.scale(mat, mat, [1.7, 0.84, 1.7]);
-              sc.drawMesh(sc.cube, mat, [0.36, 0.30, 0.22, 1.0]);
-              M4.identity(mat);
-              M4.translate(mat, mat, [posX, 1.05, posZ]);
-              M4.scale(mat, mat, [1.45, 1.5, 1.45]);
-              sc.drawMesh(sc.pyramid, mat, [0.95, 0.75, 0.12, 1.0], 0.4);
-            }
-          }
-        }
-
-        // 4. Draw Powerups
+        // 4. Draw Powerups — baked straight into the dynamic batch (0 draw calls)
+        const foldEmPU = (c, em) => {
+          const f = 1 + em;
+          return [Math.min(1, c[0]*f), Math.min(1, c[1]*f), Math.min(1, c[2]*f), c.length > 3 ? c[3] : 1];
+        };
         this.powerups.forEach(p => {
           if (p.dead) return;
-          M4.identity(mat);
-          M4.translate(mat, mat, [p.x, p.y, p.z]);
-          M4.rotateY(mat, mat, p.rot);
-
-          if (p.type === 'drill') {
-            M4.scale(mat, mat, [0.4, 0.6, 0.4]);
-            sc.drawMesh(sc.pyramid, mat, [0.95, 0.8, 0.15, 1], 0.6);
-          } else if (p.type === 'missile') {
-            M4.scale(mat, mat, [0.3, 0.5, 0.3]);
-            sc.drawMesh(sc.cylinder, mat, [0.95, 0.2, 0.2, 1], 0.6);
-          } else if (p.type === 'gatling') {
-            M4.scale(mat, mat, [0.38, 0.38, 0.38]);
-            sc.drawMesh(sc.cube, mat, [0.2, 0.85, 0.95, 1], 0.6);
-          } else if (p.type === 'drone') {
-            M4.scale(mat, mat, [0.4, 0.3, 0.4]);
-            sc.drawMesh(sc.pyramid, mat, [0.75, 0.35, 0.95, 1], 0.6);
-          } else {
-            M4.scale(mat, mat, [0.45, 0.45, 0.45]);
-            let pColor = [1, 0.8, 0.2, 1];
-            if (p.type === 'shield') pColor = [0.2, 0.8, 1, 1];
-            if (p.type === 'bomb') pColor = [1, 0.2, 0.2, 1];
-            if (p.type === 'clock') pColor = [0.8, 0.4, 1, 1];
-            if (p.type === 'shovel') pColor = [0.8, 0.85, 0.9, 1];
-            if (p.type === 'health') pColor = [0.95, 0.2, 0.45, 1];
-            if (p.type === 'speed') pColor = [0.2, 0.95, 0.4, 1];
-            sc.drawMesh(sc.cube, mat, pColor, 0.5);
-          }
+          const shape = p.type === 'missile' ? 'cyl' : (p.type === 'drill' || p.type === 'drone' ? 'pyr' : undefined);
+          const c = p.type === 'drill' ? foldEmPU([0.95, 0.8, 0.15], 0.6)
+            : p.type === 'missile' ? foldEmPU([0.95, 0.2, 0.2], 0.6)
+            : p.type === 'gatling' ? foldEmPU([0.2, 0.85, 0.95], 0.6)
+            : p.type === 'drone' ? foldEmPU([0.75, 0.35, 0.95], 0.6)
+            : p.type === 'shield' ? foldEmPU([0.2, 0.8, 1], 0.5)
+            : p.type === 'bomb' ? foldEmPU([1, 0.2, 0.2], 0.5)
+            : p.type === 'clock' ? foldEmPU([0.8, 0.4, 1], 0.5)
+            : p.type === 'shovel' ? foldEmPU([0.8, 0.85, 0.9], 0.5)
+            : p.type === 'health' ? foldEmPU([0.95, 0.2, 0.45], 0.5)
+            : foldEmPU([1, 0.8, 0.2], 0.5);
+          const sx = p.type === 'drill' ? 0.4 : p.type === 'missile' ? 0.3 : p.type === 'gatling' ? 0.38 : p.type === 'drone' ? 0.4 : 0.45;
+          const sy = p.type === 'drill' ? 0.6 : p.type === 'missile' ? 0.5 : p.type === 'gatling' ? 0.38 : p.type === 'drone' ? 0.3 : 0.45;
+          // yawed box via the rotated-group queue (single item, yaw only)
+          sc.queueRotatedBoxes(p.x, p.z, p.rot || 0, [{ x: 0, y: p.y, z: 0, sx, sy, sz: sx, r: c[0], g: c[1], b: c[2], a: c[3], shape }]);
         });
 
-        // 5. Draw Tanks (Player & Enemies) — multi-part detailed hulls
+        // 5. Draw Tanks (Player & Enemies) — multi-part detailed hulls.
+        // Every part is CPU-baked into the shared dynamic batch: one rotated group
+        // per hull-frame (tracks/wheels/hull/lamps) + one per turret-frame
+        // (turret/barrel/gun), so a whole tank costs ZERO extra draw calls.
         const renderTank = (tank) => {
           if (tank.dead) return;
 
@@ -4069,276 +4342,243 @@
           const wheelColor  = [0.22, 0.24, 0.28, 1.0];
           const barrelColor = [0.16, 0.19, 0.24, 1.0];
           const glassColor  = [0.35, 0.78, 0.95, 1.0];
-          const trimColor   = [bodyColor[0]*1.25, bodyColor[1]*1.25, bodyColor[2]*1.25, 1.0];
+          const trimColor   = [Math.min(1, bodyColor[0]*1.25), Math.min(1, bodyColor[1]*1.25), Math.min(1, bodyColor[2]*1.25), 1.0];
 
           const hullH   = 0.40;
           const hullY   = 0.34;
           const trackW  = S * 0.26;
           const trackOff = S * 0.50;
+          const flash = Math.max(0, tank.recoil || 0);
 
-          // ---- Ground contact shadow (cheap fake AO: one flattened dark slab) ----
-          M4.identity(mat);
-          M4.translate(mat, mat, [tank.x, 0.022, tank.z]);
-          M4.rotateY(mat, mat, tank.angle);
-          M4.scale(mat, mat, [S * 1.55, 0.03, S * 1.75]);
-          sc.drawMesh(sc.cube, mat, [0.01, 0.02, 0.05, 0.42]);
-
-          // ---- Tracks (two side rails with rolling road wheels) ----
+          // ---- Hull-frame group (baked with tank.angle yaw) ----
+          const hullItems = [];
+          // ground-contact soft shadow slab
+          hullItems.push({ x: 0, y: 0.022, z: 0, sx: S * 1.55, sy: 0.03, sz: S * 1.75, r: 0.01, g: 0.02, b: 0.05, a: 0.42 });
+          // two side rails + rolling road wheels + scrolling track links
           for (let side = -1; side <= 1; side += 2) {
-            // rail body
-            M4.identity(mat);
-            M4.translate(mat, mat, [tank.x, 0.14, tank.z]);
-            M4.rotateY(mat, mat, tank.angle);
-            M4.translate(mat, mat, [side * trackOff, 0, 0]);
-            M4.scale(mat, mat, [trackW, 0.26, S * 1.02]);
-            sc.drawMesh(sc.cube, mat, trackColor);
-
-            // road wheels (roll around X axis; phase driven by travel distance)
-            const wheelSpin = tank.trackPhase;
+            hullItems.push({ x: side * trackOff, y: 0.14, z: 0, sx: trackW, sy: 0.26, sz: S * 1.02, r: trackColor[0], g: trackColor[1], b: trackColor[2], a: 1.0 });
             for (let i = -1; i <= 1; i++) {
-              M4.identity(mat);
-              M4.translate(mat, mat, [tank.x, 0.14, tank.z]);
-              M4.rotateY(mat, mat, tank.angle);
-              M4.translate(mat, mat, [side * (trackOff + trackW * 0.55), 0, i * S * 0.36]);
-              M4.rotateX(mat, mat, wheelSpin);
-              M4.scale(mat, mat, [trackW * 0.85, trackW * 0.85, trackW * 0.85]);
-              sc.drawMesh(sc.cylinder, mat, wheelColor, 0.06);
+              hullItems.push({ x: side * (trackOff + trackW * 0.55), y: 0.14, z: i * S * 0.36,
+                sx: trackW * 0.85, sy: trackW * 0.85, sz: trackW * 0.85,
+                r: Math.min(1, wheelColor[0]*1.06), g: Math.min(1, wheelColor[1]*1.06), b: Math.min(1, wheelColor[2]*1.06), a: 1.0,
+                shape: 'cyl', spin: tank.trackPhase });
             }
-
-            // track links — animated stripes scrolling along Z to read as motion
             for (let i = 0; i < 5; i++) {
               const t = (tank.trackPhase * 0.5 + i * (S * 0.26)) % (S * 1.02);
-              const lz = t - S * 0.5;
-              M4.identity(mat);
-              M4.translate(mat, mat, [tank.x, 0.255, tank.z]);
-              M4.rotateY(mat, mat, tank.angle);
-              M4.translate(mat, mat, [side * trackOff, 0, lz]);
-              M4.scale(mat, mat, [trackW * 1.05, 0.09, 0.10]);
-              sc.drawMesh(sc.cube, mat, [0.34, 0.36, 0.40, 1.0], 0.08);
+              hullItems.push({ x: side * trackOff, y: 0.255, z: t - S * 0.5, sx: trackW * 1.05, sy: 0.09, sz: 0.10, r: Math.min(1, 0.34*1.08), g: Math.min(1, 0.36*1.08), b: Math.min(1, 0.40*1.08), a: 1.0 });
             }
           }
-
-          // ---- Main hull ----
-          M4.identity(mat);
-          M4.translate(mat, mat, [tank.x, hullY, tank.z]);
-          M4.rotateY(mat, mat, tank.angle);
-          M4.scale(mat, mat, [S * 0.94, hullH, S * 0.86]);
-          sc.drawMesh(sc.cube, mat, bodyColor);
-
-          // sloped frontal glacis plate
-          M4.identity(mat);
-          M4.translate(mat, mat, [tank.x, hullY - 0.02, tank.z]);
-          M4.rotateY(mat, mat, tank.angle);
-          M4.translate(mat, mat, [0, 0.02, S * 0.44]);
-          M4.scale(mat, mat, [S * 0.86, hullH * 0.8, S * 0.22]);
-          sc.drawMesh(sc.pyramid, mat, trimColor);
-
-          // side skirt plates (read as armour depth, cheap 2 draws)
+          // main hull block + sloped frontal glacis
+          hullItems.push({ x: 0, y: hullY, z: 0, sx: S * 0.94, sy: hullH, sz: S * 0.86, r: bodyColor[0], g: bodyColor[1], b: bodyColor[2], a: 1.0 });
+          hullItems.push({ x: 0, y: hullY - 0.02 + 0.02, z: S * 0.44, sx: S * 0.86, sy: hullH * 0.8, sz: S * 0.22, r: trimColor[0], g: trimColor[1], b: trimColor[2], a: 1.0, shape: 'pyr' });
+          // side skirts + livery stripes (team readability)
           for (let side = -1; side <= 1; side += 2) {
-            M4.identity(mat);
-            M4.translate(mat, mat, [tank.x, hullY - 0.06, tank.z]);
-            M4.rotateY(mat, mat, tank.angle);
-            M4.translate(mat, mat, [side * S * 0.47, 0, 0]);
-            M4.scale(mat, mat, [0.07, 0.2, S * 0.94]);
-            sc.drawMesh(sc.cube, mat, [bodyColor[0]*0.55, bodyColor[1]*0.55, bodyColor[2]*0.55, 1.0]);
+            hullItems.push({ x: side * S * 0.47, y: hullY - 0.06, z: 0, sx: 0.07, sy: 0.2, sz: S * 0.94, r: bodyColor[0]*0.55, g: bodyColor[1]*0.55, b: bodyColor[2]*0.55, a: 1.0 });
+            hullItems.push({ x: side * S * 0.485, y: hullY + 0.05, z: 0, sx: 0.03, sy: 0.07, sz: S * 0.7, r: 1.0, g: 1.0, b: 1.0, a: 1.0 });
           }
-
-          // livery stripe along the hull flank (team readability at a glance)
-          for (let side = -1; side <= 1; side += 2) {
-            M4.identity(mat);
-            M4.translate(mat, mat, [tank.x, hullY + 0.05, tank.z]);
-            M4.rotateY(mat, mat, tank.angle);
-            M4.translate(mat, mat, [side * S * 0.485, 0, 0]);
-            M4.scale(mat, mat, [0.03, 0.07, S * 0.7]);
-            sc.drawMesh(sc.cube, mat, [1.0, 0.95, 0.75, 1.0], 0.15);
-          }
-
-          // rear engine deck + exhaust stack
-          M4.identity(mat);
-          M4.translate(mat, mat, [tank.x, hullY + hullH * 0.5, tank.z]);
-          M4.rotateY(mat, mat, tank.angle);
-          M4.translate(mat, mat, [0, 0, -S * 0.42]);
-          M4.scale(mat, mat, [S * 0.6, 0.1, S * 0.22]);
-          sc.drawMesh(sc.cube, mat, trimColor);
-
+          // rear engine deck
+          hullItems.push({ x: 0, y: hullY + hullH * 0.5, z: -S * 0.42, sx: S * 0.6, sy: 0.1, sz: S * 0.22, r: trimColor[0], g: trimColor[1], b: trimColor[2], a: 1.0 });
+          // spare track links stowed on the rear (heavy/boss)
           if (isHeavy || isBoss) {
-            // spare track links stowed on the rear
             for (let side = -1; side <= 1; side += 2) {
-              M4.identity(mat);
-              M4.translate(mat, mat, [tank.x, hullY + 0.02, tank.z]);
-              M4.rotateY(mat, mat, tank.angle);
-              M4.translate(mat, mat, [side * S * 0.3, 0, -S * 0.46]);
-              M4.scale(mat, mat, [0.12, 0.16, S * 0.3]);
-              sc.drawMesh(sc.cube, mat, trackColor);
+              hullItems.push({ x: side * S * 0.3, y: hullY + 0.02, z: -S * 0.46, sx: 0.12, sy: 0.16, sz: S * 0.3, r: trackColor[0], g: trackColor[1], b: trackColor[2], a: 1.0 });
             }
           }
-
-          // ---- Turret ----
-          const turretY = hullY + hullH * 0.5 + 0.11;
-          const turretR = S * (isBoss ? 0.42 : (isHeavy ? 0.36 : 0.30));
-          M4.identity(mat);
-          M4.translate(mat, mat, [tank.x, turretY, tank.z]);
-          M4.rotateY(mat, mat, tank.turretAngle);
-          M4.scale(mat, mat, [turretR * 2, 0.24, turretR * 2]);
-          sc.drawMesh(sc.cylinder, mat, trimColor);
-
-          // turret top hatch
-          M4.identity(mat);
-          M4.translate(mat, mat, [tank.x, turretY + 0.12, tank.z]);
-          M4.rotateY(mat, mat, tank.turretAngle);
-          M4.scale(mat, mat, [turretR * 0.8, 0.08, turretR * 0.8]);
-          sc.drawMesh(sc.cylinder, mat, [bodyColor[0]*0.7, bodyColor[1]*0.7, bodyColor[2]*0.7, 1.0]);
-
-          // commander cupola (small offset dome, only for player/heavy/boss)
-          if (tank.isPlayer || isHeavy || isBoss) {
-            M4.identity(mat);
-            M4.translate(mat, mat, [tank.x, turretY + 0.16, tank.z]);
-            M4.rotateY(mat, mat, tank.turretAngle);
-            M4.translate(mat, mat, [turretR * 0.5, 0, -turretR * 0.3]);
-            M4.scale(mat, mat, [0.12, 0.1, 0.12]);
-            sc.drawMesh(sc.cylinder, mat, glassColor, 0.25);
-          }
-
-          // ---- Main gun ----
-          const barrelRecoil = Math.max(0, tank.recoil || 0);
-          const barrelLen = S * (isBoss ? 1.05 : (isHeavy ? 0.85 : 0.7));
-          M4.identity(mat);
-          M4.translate(mat, mat, [tank.x, turretY + 0.04, tank.z]);
-          M4.rotateY(mat, mat, tank.turretAngle);
-          M4.translate(mat, mat, [0, 0, turretR * 0.6 - barrelRecoil]);
-          M4.scale(mat, mat, [0.13, 0.13, barrelLen]);
-          sc.drawMesh(sc.cylinder, mat, barrelColor);
-
-          // muzzle brake
-          M4.identity(mat);
-          M4.translate(mat, mat, [tank.x, turretY + 0.04, tank.z]);
-          M4.rotateY(mat, mat, tank.turretAngle);
-          M4.translate(mat, mat, [0, 0, turretR * 0.6 + barrelLen * 0.85 - barrelRecoil]);
-          M4.scale(mat, mat, [0.19, 0.19, 0.16]);
-          sc.drawMesh(sc.cylinder, mat, [0.28, 0.30, 0.34, 1.0]);
-
-          // coaxial machine gun for heavy/boss
-          if (isHeavy || isBoss) {
-            M4.identity(mat);
-            M4.translate(mat, mat, [tank.x, turretY + 0.14, tank.z]);
-            M4.rotateY(mat, mat, tank.turretAngle);
-            M4.translate(mat, mat, [turretR * 0.55, 0, turretR * 0.5 + barrelLen * 0.7]);
-            M4.scale(mat, mat, [0.07, 0.07, 0.4]);
-            sc.drawMesh(sc.cylinder, mat, barrelColor);
-          }
-
-          // ---- Muzzle flash (one emissive puff right after firing) ----
-          if (tank.muzzleFlash > 0) {
-            const mf = Math.max(0, Math.min(1, tank.muzzleFlash));
-            M4.identity(mat);
-            M4.translate(mat, mat, [tank.x, turretY + 0.04, tank.z]);
-            M4.rotateY(mat, mat, tank.turretAngle);
-            M4.translate(mat, mat, [0, 0, turretR * 0.6 + barrelLen * 0.95 - barrelRecoil]);
-            M4.scale(mat, mat, [0.3 * mf, 0.3 * mf, 0.34 * mf]);
-            sc.drawMesh(sc.pyramid, mat, [1.0, 0.86, 0.42, 1.0], 1.0 * mf);
-          }
-
-          // ---- Boss extra armour: reactive blocks + glowing reactor core ----
+          // boss reactive armour blocks
           if (isBoss) {
             for (let side = -1; side <= 1; side += 2) {
-              M4.identity(mat);
-              M4.translate(mat, mat, [tank.x, hullY + 0.1, tank.z]);
-              M4.rotateY(mat, mat, tank.angle);
-              M4.translate(mat, mat, [side * S * 0.42, 0, -S * 0.1]);
-              M4.scale(mat, mat, [0.16, 0.3, S * 0.5]);
-              sc.drawMesh(sc.cube, mat, [0.32, 0.33, 0.38, 1.0], 0.05);
+              hullItems.push({ x: side * S * 0.42, y: hullY + 0.1, z: -S * 0.1, sx: 0.16, sy: 0.3, sz: S * 0.5, r: Math.min(1, 0.32*1.05), g: Math.min(1, 0.33*1.05), b: Math.min(1, 0.38*1.05), a: 1.0 });
             }
-            // reactor core glow on the turret rear
-            M4.identity(mat);
-            M4.translate(mat, mat, [tank.x, turretY + 0.1, tank.z]);
-            M4.rotateY(mat, mat, tank.turretAngle);
-            M4.translate(mat, mat, [0, 0, -turretR * 0.7]);
-            M4.scale(mat, mat, [0.26, 0.26, 0.12]);
-            sc.drawMesh(sc.cylinder, mat, [1.0, 0.35, 0.2, 1.0], 0.9);
           }
-
-          // ---- Headlamps ----
+          // headlamps
           for (let side = -1; side <= 1; side += 2) {
-            M4.identity(mat);
-            M4.translate(mat, mat, [tank.x, hullY + 0.04, tank.z]);
-            M4.rotateY(mat, mat, tank.angle);
-            M4.translate(mat, mat, [side * S * 0.3, 0, S * 0.44]);
-            M4.scale(mat, mat, [0.1, 0.1, 0.06]);
-            sc.drawMesh(sc.cube, mat, [1.0, 0.95, 0.7, 1.0], 0.85);
+            hullItems.push({ x: side * S * 0.3, y: hullY + 0.04, z: S * 0.44, sx: 0.1, sy: 0.1, sz: 0.06, r: 1.0, g: 1.0, b: 1.0, a: 1.0 });
           }
-
-          // ---- Active drill on player front ----
+          // active drill on player front (spinning around local Y)
           if (tank.isPlayer && tank.drillTime > 0) {
-            M4.identity(mat);
-            M4.translate(mat, mat, [tank.x, hullY, tank.z]);
-            M4.rotateY(mat, mat, tank.angle);
-            M4.translate(mat, mat, [0, 0.02, S * 0.58]);
-            M4.rotateY(mat, mat, now * 0.03);
-            M4.scale(mat, mat, [0.34, 0.5, 0.34]);
-            sc.drawMesh(sc.pyramid, mat, [0.98, 0.86, 0.24, 1.0], 0.75);
+            hullItems.push({ x: 0, y: hullY + 0.02, z: S * 0.58, sx: 0.34, sy: 0.5, sz: 0.34, r: 1.0, g: 1.0, b: Math.min(1, 0.24*1.75), a: 1.0, shape: 'pyr', ySpin: now * 0.03 });
           }
+          sc.queueRotatedBoxes(tank.x, tank.z, tank.angle, hullItems);
 
-          // ---- Shield bubble ----
+          // ---- Turret-frame group (baked with tank.turretAngle yaw) ----
+          // Item y is relative to the hull origin, so turretY is added everywhere.
+          const foldEm2 = (c, em) => {
+            const f = 1 + em;
+            return [Math.min(1, c[0]*f), Math.min(1, c[1]*f), Math.min(1, c[2]*f), c.length > 3 ? c[3] : 1];
+          };
+          const turretY = hullY + hullH * 0.5 + 0.11;
+          const turretR = S * (isBoss ? 0.42 : (isHeavy ? 0.36 : 0.30));
+          const barrelLen = S * (isBoss ? 1.05 : (isHeavy ? 0.85 : 0.7));
+          const trItems = [];
+          const trPush = (x, y, z, sx, sy, sz, c, shape) => {
+            trItems.push({ x, y: turretY + y, z, sx, sy, sz, r: c[0], g: c[1], b: c[2], a: c.length > 3 ? c[3] : 1, shape });
+          };
+          trPush(0, 0, 0, turretR * 2, 0.24, turretR * 2, trimColor, 'cyl');
+          trPush(0, 0.12, 0, turretR * 0.8, 0.08, turretR * 0.8, [bodyColor[0]*0.7, bodyColor[1]*0.7, bodyColor[2]*0.7, 1.0], 'cyl');
+          if (tank.isPlayer || isHeavy || isBoss) {
+            trPush(turretR * 0.5, 0.16, -turretR * 0.3, 0.12, 0.1, 0.12, foldEm2(glassColor, 0.25), 'cyl');
+          }
+          trPush(0, 0.04, turretR * 0.6 - flash, 0.13, 0.13, barrelLen, barrelColor, 'cyl');
+          trPush(0, 0.04, turretR * 0.6 + barrelLen * 0.85 - flash, 0.19, 0.19, 0.16, foldEm2([0.28, 0.30, 0.34], 0.0), 'cyl');
+          if (isHeavy || isBoss) {
+            trPush(turretR * 0.55, 0.14, turretR * 0.5 + barrelLen * 0.7, 0.07, 0.07, 0.4, barrelColor, 'cyl');
+          }
+          if (isBoss) {
+            // glowing reactor core on the turret rear
+            trPush(0, 0.1, -turretR * 0.7, 0.26, 0.26, 0.12, foldEm2([1.0, 0.35, 0.2], 0.9), 'cyl');
+          }
+          // muzzle flash puff right after firing (bright emissive baked into color)
+          if (tank.muzzleFlash > 0) {
+            const mf = Math.max(0, Math.min(1, tank.muzzleFlash));
+            trPush(0, 0.04, turretR * 0.6 + barrelLen * 0.95 - flash, 0.3 * mf, 0.3 * mf, 0.34 * mf, foldEm2([1.0, 0.86, 0.42], 1.0 * mf), 'pyr');
+          }
+          sc.queueRotatedBoxes(tank.x, tank.z, tank.turretAngle, trItems);
+
+          // ---- Shield bubble & speed exhaust: DEFERRED translucent overlays ----
+          // They must draw AFTER the opaque tank batch, otherwise their depth-written
+          // faces occlude the tank geometry inside them (tank turns invisible).
           if (tank.shieldTime > 0) {
-            const pulse = 1.0 + Math.sin(now * 0.012) * 0.06;
-            M4.identity(mat);
-            M4.translate(mat, mat, [tank.x, 0.45, tank.z]);
-            M4.scale(mat, mat, [tank.size * 1.4 * pulse, tank.size * 1.05, tank.size * 1.4 * pulse]);
-            sc.drawMesh(sc.cube, mat, [0.3, 0.85, 1.0, 0.26], 0.9);
+            this._tankOverlays.push({ kind: 'shield', tank, S, now });
           }
-
-          // ---- Speed-boost exhaust ----
           if (tank.isPlayer && tank.speedBoostTime > 0) {
-            M4.identity(mat);
-            M4.translate(mat, mat, [tank.x - Math.sin(tank.angle) * S * 0.5, 0.24, tank.z - Math.cos(tank.angle) * S * 0.5]);
-            M4.scale(mat, mat, [0.34, 0.16, 0.34]);
-            sc.drawMesh(sc.cylinder, mat, [0.25, 1.0, 0.55, 0.9], 0.95);
+            this._tankOverlays.push({ kind: 'exhaust', tank, S });
           }
         };
 
         if (this.player) renderTank(this.player);
         this.enemies.forEach(e => renderTank(e));
 
-        // 5.5 Draw Escort Drones
+        // 5.5 Draw Escort Drones — baked into the dynamic batch
         if (this.drones && this.drones.length > 0) {
           this.drones.forEach(d => {
-            M4.identity(mat);
-            M4.translate(mat, mat, [d.x, d.y, d.z]);
-            M4.rotateY(mat, mat, d.angle * 2);
-            M4.scale(mat, mat, [0.3, 0.2, 0.3]);
-            sc.drawMesh(sc.pyramid, mat, [0.3, 0.85, 1.0, 1.0], 0.8);
+            sc.queueDynamicBox(d.x, d.y, d.z, 0.3, 0.2, 0.3, [Math.min(1, 0.3*1.8), Math.min(1, 0.85*1.8), 1.0, 1.0], 'pyr');
           });
         }
 
-        // 6. Draw Bullets
+        // 6+7. Bullets & particles -> ONE dynamic batch (1 draw call total).
+        // Per-object emissive is folded into the vertex color so glow reads the same.
         this.bullets.forEach(b => {
           if (b.dead) return;
-          M4.identity(mat);
-          M4.translate(mat, mat, [b.x, b.y, b.z]);
-          M4.rotateY(mat, mat, b.angle);
-          M4.scale(mat, mat, [b.radius * 2, b.radius * 2, b.radius * 3.5]);
-
+          const stretch = b.radius * 3.5;
           let bColor = [1.0, 0.85, 0.2, 1];
           if (b.isPlayer) {
             if (b.type === 'laser') bColor = [0.2, 0.9, 1.0, 1];
-            if (b.type === 'missile') bColor = [1.0, 0.25, 0.2, 1];
-            if (b.type === 'plasma') bColor = [0.4, 0.8, 1.0, 1];
+            else if (b.type === 'missile') bColor = [1.0, 0.25, 0.2, 1];
+            else if (b.type === 'plasma') bColor = [0.4, 0.8, 1.0, 1];
           } else {
             bColor = [1.0, 0.3, 0.2, 1];
           }
-
-          sc.drawMesh(sc.cylinder, mat, bColor, 0.6);
+          // fold emissive 0.6 into color brightness
+          const e = 1.6;
+          sc.queueDynamicBox(b.x, b.y, b.z, b.radius * 2, b.radius * 2, stretch,
+            [Math.min(1, bColor[0]*e), Math.min(1, bColor[1]*e), Math.min(1, bColor[2]*e), 1]);
         });
 
-        // 7. Draw Particles (per-particle emissive: fire glows, smoke stays matte)
         this.particles.forEach(p => {
           if (p.dead) return;
-          M4.identity(mat);
-          M4.translate(mat, mat, [p.x, p.y, p.z]);
           const scale = Math.max(0.001, p.size * (p.life / p.maxLife));
-          M4.scale(mat, mat, [scale, scale, scale]);
-          sc.drawMesh(sc.cube, mat, p.color, p.emissive !== undefined ? p.emissive : 0.4);
+          const em = p.emissive !== undefined ? p.emissive : 0.4;
+          const f = 1 + em;
+          sc.queueDynamicBox(p.x, p.y, p.z, scale, scale, scale,
+            [Math.min(1, p.color[0]*f), Math.min(1, p.color[1]*f), Math.min(1, p.color[2]*f),
+             p.color.length > 3 ? p.color[3] : 1]);
         });
+
+        // Spawn-warning pulses (translucent red pillars, batched too)
+        this.spawnWarnings.forEach(w => {
+          const pulse = 0.55 + Math.sin(performance.now() * 0.02) * 0.35;
+          const a = 0.35 + pulse * 0.25;
+          sc.queueDynamicBox(w.x, 0.5, w.z, 0.9, 1.0 + pulse * 0.4, 0.9, [1.0, 0.25, 0.2, a]);
+        });
+
+        sc.flushDynamicBatch();
+
+        // Translucent per-tank overlays AFTER the opaque batch (correct depth order:
+        // the tank is already on screen, the bubble just blends over it)
+        if (this._tankOverlays && this._tankOverlays.length) {
+          for (let i = 0; i < this._tankOverlays.length; i++) {
+            const ov = this._tankOverlays[i];
+            const tk = ov.tank;
+            if (!tk || tk.dead) continue;
+            if (ov.kind === 'shield') {
+              const pulse = 1.0 + Math.sin(ov.now * 0.012) * 0.06;
+              M4.identity(mat);
+              M4.translate(mat, mat, [tk.x, 0.45, tk.z]);
+              M4.scale(mat, mat, [tk.size * 1.4 * pulse, tk.size * 1.05, tk.size * 1.4 * pulse]);
+              sc.drawMesh(sc.cube, mat, [0.3, 0.85, 1.0, 0.26], 0.9);
+            } else if (ov.kind === 'exhaust') {
+              M4.identity(mat);
+              M4.translate(mat, mat, [tk.x - Math.sin(tk.angle) * ov.S * 0.5, 0.24, tk.z - Math.cos(tk.angle) * ov.S * 0.5]);
+              M4.scale(mat, mat, [0.34, 0.16, 0.34]);
+              sc.drawMesh(sc.cylinder, mat, [0.25, 1.0, 0.55, 0.9], 0.95);
+            }
+          }
+          this._tankOverlays.length = 0;
+        }
+      }
+
+      // ---- Static batch builders ----
+      rebuildStaticGround() {
+        const boxes = [];
+        const mc = MAP_SIZE / 2;
+        // Base slab
+        boxes.push({ x: mc, y: -0.25, z: mc, sx: MAP_SIZE + 1.2, sy: 0.4, sz: MAP_SIZE + 1.2, r: 0.08, g: 0.11, b: 0.18, a: 1.0 });
+        // Checkerboard 2x2 blocks
+        for (let r = 0; r < MAP_SIZE; r += 2) {
+          for (let c = 0; c < MAP_SIZE; c += 2) {
+            const rows = Math.min(2, MAP_SIZE - r);
+            const cols = Math.min(2, MAP_SIZE - c);
+            const isDark = ((r / 2) + (c / 2)) % 2 === 0;
+            const cc = isDark ? [0.12, 0.16, 0.24] : [0.15, 0.20, 0.30];
+            boxes.push({ x: c + cols / 2, y: -0.04, z: r + rows / 2, sx: cols * 0.99, sy: 0.06, sz: rows * 0.99, r: cc[0], g: cc[1], b: cc[2], a: 1.0 });
+          }
+        }
+        // Glowing border rails
+        const rail = [0.13, 0.77, 0.36];
+        boxes.push({ x: mc, y: 0.22, z: 0, sx: MAP_SIZE + 0.6, sy: 0.44, sz: 0.24, r: rail[0], g: rail[1], b: rail[2], a: 0.9 });
+        boxes.push({ x: mc, y: 0.22, z: MAP_SIZE, sx: MAP_SIZE + 0.6, sy: 0.44, sz: 0.24, r: rail[0], g: rail[1], b: rail[2], a: 0.9 });
+        boxes.push({ x: 0, y: 0.22, z: mc, sx: 0.24, sy: 0.44, sz: MAP_SIZE + 0.6, r: rail[0], g: rail[1], b: rail[2], a: 0.9 });
+        boxes.push({ x: MAP_SIZE, y: 0.22, z: mc, sx: 0.24, sy: 0.44, sz: MAP_SIZE + 0.6, r: rail[0], g: rail[1], b: rail[2], a: 0.9 });
+        this.staticGround = this.scene.buildBatchVBO(boxes);
+      }
+
+      rebuildStaticTiles() {
+        const boxes = [];
+        const foldEm = (c, em) => {
+          const f = 1 + em;
+          return [Math.min(1, c[0]*f), Math.min(1, c[1]*f), Math.min(1, c[2]*f)];
+        };
+        for (let r = 0; r < MAP_SIZE; r++) {
+          for (let c = 0; c < MAP_SIZE; c++) {
+            const tile = this.map[r][c];
+            if (tile === TILE_EMPTY) continue;
+            const posX = c + 0.5, posZ = r + 0.5;
+
+            if (tile === TILE_BRICK) {
+              boxes.push({ x: posX, y: 0.5, z: posZ, sx: 1.0, sy: 1.16, sz: 1.0, r: 0.70, g: 0.30, b: 0.15, a: 1.0 });
+              const top = foldEm([0.86, 0.44, 0.24], 0.06);
+              boxes.push({ x: posX, y: 1.09, z: posZ, sx: 0.86, sy: 0.09, sz: 0.86, r: top[0], g: top[1], b: top[2], a: 1.0 });
+            } else if (tile === TILE_STEEL) {
+              const cc = foldEm([0.62, 0.70, 0.82], 0.12);
+              boxes.push({ x: posX, y: 0.5, z: posZ, sx: 1.02, sy: 1.18, sz: 1.02, r: cc[0], g: cc[1], b: cc[2], a: 1.0 });
+            } else if (tile === TILE_WATER) {
+              const cc = foldEm([0.06, 0.45, 0.85], 0.28);
+              boxes.push({ x: posX, y: 0.5, z: posZ, sx: 1.0, sy: 0.15, sz: 1.0, r: cc[0], g: cc[1], b: cc[2], a: 0.85 });
+            } else if (tile === TILE_TREES) {
+              boxes.push({ x: posX, y: 0.55, z: posZ, sx: 1.08, sy: 1.5, sz: 1.08, r: 0.14, g: 0.60, b: 0.24, a: 0.85, shape: 'pyramid' });
+              boxes.push({ x: posX, y: 1.16, z: posZ, sx: 0.72, sy: 0.85, sz: 0.72, r: 0.20, g: 0.72, b: 0.32, a: 0.9, shape: 'pyramid' });
+            } else if (tile === TILE_ICE) {
+              const cc = foldEm([0.65, 0.88, 0.98], 0.3);
+              boxes.push({ x: posX, y: 0.5, z: posZ, sx: 1.0, sy: 0.05, sz: 1.0, r: cc[0], g: cc[1], b: cc[2], a: 0.9 });
+            } else if (tile === TILE_BASE) {
+              boxes.push({ x: posX, y: 0.42, z: posZ, sx: 1.7, sy: 0.84, sz: 1.7, r: 0.36, g: 0.30, b: 0.22, a: 1.0 });
+              const spire = foldEm([0.95, 0.75, 0.12], 0.4);
+              boxes.push({ x: posX, y: 1.05, z: posZ, sx: 1.45, sy: 1.5, sz: 1.45, r: spire[0], g: spire[1], b: spire[2], a: 1.0, shape: 'pyramid' });
+            }
+          }
+        }
+        this.staticTiles = this.scene.buildBatchVBO(boxes);
+        this.staticTilesDirty = false;
       }
     }
 
