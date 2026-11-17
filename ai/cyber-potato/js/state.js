@@ -150,6 +150,9 @@ window.PotatoState = (function () {
   // 重置状态
   function reset() {
     state = defaultState();
+    /* 新土豆从零开始计算在线疏忽：沿用旧累积会让新土豆秒吃 neglectScore */
+    onlineSeconds = 0;
+    lastTickAt = Date.now();
     save();
     notifyChange({ event: 'reset' });
   }
@@ -205,31 +208,41 @@ window.PotatoState = (function () {
   }
 
   // 定时驱动心脏跳动 Tick
+  let lastTickAt = 0;
   function startTick() {
     if (tickTimer) clearInterval(tickTimer);
+    lastTickAt = Date.now();
     tickTimer = setInterval(() => {
+      // 按真实墙钟推进：后台标签被浏览器强节流（最低约 1 次/分钟）时，
+      // 固定每秒衰减会严重失真；用 dt 缩放后前台/后台速率统一。
+      // dt 钳 30s：极端挂起后不做过量跳变（长时间离线由 load() 的离线推演负责）。
+      const nowTick = Date.now();
+      const dt = Math.min(30, Math.max(0, (nowTick - lastTickAt) / 1000));
+      lastTickAt = nowTick;
+      if (dt <= 0) return;
+
       // 饥饿自然下降 (每秒约 -0.15)
-      state.stats.hunger = Math.max(0, state.stats.hunger - 0.15);
+      state.stats.hunger = Math.max(0, state.stats.hunger - 0.15 * dt);
 
       // 精力
       if (state.isSleeping) {
         // 睡眠只回升、不回落（精力可能因咖啡超过 100）
-        state.stats.energy = Math.max(state.stats.energy, Math.min(100, state.stats.energy + 0.6));
+        state.stats.energy = Math.max(state.stats.energy, Math.min(100, state.stats.energy + 0.6 * dt));
         // 充满电后自动醒来
         if (state.stats.energy >= 100) {
           state.isSleeping = false;
         }
       } else {
-        state.stats.energy = Math.max(0, state.stats.energy - 0.1);
+        state.stats.energy = Math.max(0, state.stats.energy - 0.1 * dt);
       }
 
       // 心智情绪自然回落
-      state.stats.sanity = Math.max(0, state.stats.sanity - 0.08);
+      state.stats.sanity = Math.max(0, state.stats.sanity - 0.08 * dt);
 
       // 过载温度自然冷却 (每秒 -1.2)
       const prevOverheat = state.stats.overheat || 0;
       if (state.stats.overheat > 0) {
-        state.stats.overheat = Math.max(0, state.stats.overheat - 1.2);
+        state.stats.overheat = Math.max(0, state.stats.overheat - 1.2 * dt);
         if (prevOverheat > 60 && state.stats.overheat <= 60) {
           // 过载狂暴消退后遗症：精力回落与吐槽
           // 只做回落、不抬升：精力已低于 10 时不能被“修正”成 10
@@ -241,7 +254,7 @@ window.PotatoState = (function () {
       }
 
       // 在线疏忽累积：与离线同速率，每满 600s 加 1
-      onlineSeconds += 1;
+      onlineSeconds += dt;
       if (onlineSeconds >= 600) {
         onlineSeconds = 0;
         state.counters.neglectScore = (state.counters.neglectScore || 0) + 1;

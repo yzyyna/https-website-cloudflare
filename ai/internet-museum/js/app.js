@@ -83,7 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (introModal) {
       introModal.classList.remove('visible');
       setTimeout(() => {
-        introModal.classList.add('hidden');
+        /* 淡出期间弹窗被重新打开（visible 已回来）时不得补加 hidden，避免卡死 */
+        if (!introModal.classList.contains('visible')) introModal.classList.add('hidden');
       }, 250);
     }
   };

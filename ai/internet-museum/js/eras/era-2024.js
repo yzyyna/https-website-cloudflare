@@ -302,7 +302,8 @@ function showTransparencyModal() {
     audioManager.playClick();
     modal.classList.remove('visible');
     setTimeout(() => {
-      modal.classList.add('hidden');
+      /* 淡出期间弹窗被重新打开时不得补加 hidden，避免卡死 */
+      if (!modal.classList.contains('visible')) modal.classList.add('hidden');
     }, 250);
     closeBtns.forEach(btn => btn.removeEventListener('click', closer));
   };

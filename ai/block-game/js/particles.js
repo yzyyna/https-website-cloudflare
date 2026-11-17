@@ -8,6 +8,11 @@
     this._arr = new Float32Array(0);
   }
 
+  /* 全局粒子数量上限裁剪：TNT 直推等绕过 spawnBurst 的入口也必须走这里 */
+  Particles.prototype.cap = function (max) {
+    if (this.list.length > max) this.list.splice(0, this.list.length - max);
+  };
+
   /* 在方块位置喷出一撮带方块颜色的碎片 */
   Particles.prototype.spawnBurst = function (atlas, blockId, bx, by, bz) {
     var def = MC.DEFS[blockId];
@@ -31,7 +36,7 @@
         size: 0.09 + Math.random() * 0.09
       });
     }
-    if (this.list.length > 400) this.list.splice(0, this.list.length - 400);
+    this.cap(400);
   };
 
   Particles.prototype.update = function (dt) {

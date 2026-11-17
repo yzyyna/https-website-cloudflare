@@ -184,9 +184,11 @@ export function initEra2008() {
   // 4. 回帖交互（失败自动解锁按钮，避免“发送中”卡死；成功才保存存档）
   if (btnSubmitReply) {
     btnSubmitReply.addEventListener('click', () => {
-      const text = replyInput?.value.trim().slice(0, 2000);
-      if (!text || text.length < 15) {
-        eggsManager.showToast('回帖不少于 15 字，再多分享一点吧');
+      const raw = (replyInput?.value ?? '').trim().slice(0, 2000);
+      /* 15 字下限只统计正文：剥离引用样板，否则一键引用+零正文即可绕过校验 */
+      const contentLength = raw.replace(/\[quote\][\s\S]*?\[\/quote\]/gi, '').replace(/\[\/?(?:b|quote)\]/gi, '').trim().length;
+      if (!raw || contentLength < 15) {
+        eggsManager.showToast('回帖正文不少于 15 字（引用内容不计），再多分享一点吧');
         return;
       }
 
@@ -202,7 +204,7 @@ export function initEra2008() {
           rank: '游侠大虾',
           avatar: '🤠',
           time: new Date().toLocaleTimeString(),
-          content: text,
+          content: raw,
           signature: '———— 岁月神偷，我们在 2008 年的深坑里留下了脚印。'
         };
         floorContainer.appendChild(renderFloorItem(userPost));

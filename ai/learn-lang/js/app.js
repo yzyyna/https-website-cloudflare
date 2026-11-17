@@ -109,10 +109,11 @@ function loadState() {
     if (Array.isArray(parsed.posts) && parsed.posts.length > 0) {
       STATE.posts = parsed.posts
         .filter(p => p && typeof p === 'object')
-        .map(p => {
+        .map((p, idx) => {
           const author = String(p.author || '学员').slice(0, 30);
           return {
-            id: toSafeInt(p.id, 0, Date.now()),
+            // 脏 id 回退加 idx 偏移：多条脏数据同用 Date.now() 会让 toggleLike 永远命中第一条
+            id: toSafeInt(p.id, 0, Date.now() + idx),
             author,
             avatar: ensureAvatar(p.avatar, author),
             content: String(p.content || '').slice(0, 500),
@@ -437,6 +438,8 @@ function renderFlashcard() {
 
   STATE.isFlipped = false;
   if (cardEl) cardEl.classList.remove('flipped');
+  /* 重置翻转锁：上一张的剩余锁会静默吞掉新卡的第一次翻转（点击无响应） */
+  lastFlipAt = 0;
 
   if (wordEl) wordEl.textContent = card.word;
   if (transEl) transEl.textContent = card.translation;
@@ -679,6 +682,12 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     el.click();
   });
+
+  // 初始加载为空 hash 时用 replaceState 落锚：避免 navigate() 再 push 一条
+  // 「无 hash → #home」的历史记录，返回键在两者间空转
+  if (!window.location.hash) {
+    try { history.replaceState(null, '', '#home'); } catch (e) { /* file:// 个别环境限制时静默 */ }
+  }
 
   // Login name input preview
   const loginInput = document.getElementById('login-name-input');

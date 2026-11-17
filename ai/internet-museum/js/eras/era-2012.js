@@ -24,7 +24,7 @@ export function initEra2012() {
   // 1. 初始化皮肤与装扮值
   const state = museumStore.getState();
   applySkin(state.spaceSkin || 'sakura');
-  updateDecorScore(state.spaceDecorScore || 45);
+  updateDecorScore(state.spaceDecorScore ?? 45);
 
   function applySkin(skinKey) {
     container.classList.remove('skin-sakura', 'skin-blue', 'skin-night');
@@ -56,7 +56,7 @@ export function initEra2012() {
     btn.addEventListener('click', () => {
       audioManager.playWaterDrop();
       const skin = btn.dataset.skin;
-      let newScore = (museumStore.getState().spaceDecorScore || 45) + 15;
+      let newScore = (museumStore.getState().spaceDecorScore ?? 45) + 15;
       if (newScore > 100) newScore = 100;
 
       museumStore.update({
@@ -94,13 +94,15 @@ export function initEra2012() {
         </div>
       `;
 
-      // 点赞事件
+      // 点赞事件：走 store 正规 update 补丁路径，不直接篡改 getState() 的共享引用
       const likeBtn = card.querySelector('.btn-feed-like');
       likeBtn?.addEventListener('click', () => {
         audioManager.playWaterDrop();
-        item.likes = (item.likes || 0) + 1;
-        museumStore.saveState();
-        likeBtn.textContent = `❤️ 赞 (${item.likes})`;
+        const posts = museumStore.getState().spacePosts.map((p, i) =>
+          i === index ? { ...p, likes: (p.likes || 0) + 1 } : p
+        );
+        museumStore.update({ spacePosts: posts });
+        likeBtn.textContent = `❤️ 赞 (${posts[index].likes})`;
         spawnFlyingHeart(likeBtn);
       });
 

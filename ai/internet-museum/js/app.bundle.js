@@ -174,6 +174,7 @@ class MuseumStore {
           if (Array.isArray(parsed.guestbookMessages)) {
             base.guestbookMessages = parsed.guestbookMessages
               .filter(m => m && typeof m === 'object')
+              .slice(0, 100) /* 条数钳制：防篡改存档塞入数千条拖慢首屏渲染 */
               .map(m => ({
                 name: String(m.name ?? '').slice(0, 30),
                 text: String(m.text ?? '').slice(0, 500),
@@ -184,6 +185,7 @@ class MuseumStore {
           if (Array.isArray(parsed.forumReplies)) {
             base.forumReplies = parsed.forumReplies
               .filter(m => m && typeof m === 'object')
+              .slice(0, 100)
               .map(m => ({
                 floor: String(m.floor ?? '').slice(0, 20),
                 user: String(m.user ?? '').slice(0, 30),
@@ -200,6 +202,7 @@ class MuseumStore {
           if (Array.isArray(parsed.spacePosts)) {
             base.spacePosts = parsed.spacePosts
               .filter(p => p && typeof p === 'object')
+              .slice(0, 100)
               .map(p => ({
                 text: String(p.text ?? '').slice(0, 500),
                 source: String(p.source ?? '').slice(0, 30),
@@ -864,7 +867,7 @@ class NavigationManager {
     museumStore.subscribe((state) => {
       this.updateIndicators(state.currentEra);
       if (this.eggCountEl) {
-        this.eggCountEl.textContent = `${state.eggs.length} / 6`;
+        this.eggCountEl.textContent = `${state.eggs.length} / ${Object.keys(EGGS_METADATA).length}`;
       }
     });
   }
@@ -898,20 +901,30 @@ class NavigationManager {
     }
   }
 
-  goToEraByIndex(index, smooth = true) {
+  goToEraByIndex(index, smooth = true, silent = false) {
     const clampedIndex = Math.max(0, Math.min(this.eras.length - 1, index));
     const width = this.galleryEl.clientWidth || window.innerWidth;
     const targetScroll = clampedIndex * width;
 
+    /* 同厅短路：拖拽松手/时间轴点击落在当前展厅时不播穿越音与提示 */
+    if (clampedIndex === this.currentIndex &&
+        Math.abs(this.galleryEl.scrollLeft - targetScroll) < 2) {
+      this.updateIndicators(this.eras[clampedIndex].year);
+      return;
+    }
+
     this.isProgrammaticScroll = true;
+    this._programmaticTarget = targetScroll;
     this.currentIndex = clampedIndex;
     const targetEra = this.eras[clampedIndex];
 
     museumStore.update({ currentEra: targetEra.year });
-    audioManager.playEraTransition();
-    // 展厅间过渡提示：切换年代时给出轻量面包屑，避免用户在横向长廊中迷失方位
-    if (typeof eggsManager !== 'undefined' && eggsManager.showToast) {
-      eggsManager.showToast(`已穿越至 ${targetEra.year} · ${targetEra.name}`);
+    if (!silent) {
+      audioManager.playEraTransition();
+      // 展厅间过渡提示：切换年代时给出轻量面包屑，避免用户在横向长廊中迷失方位
+      if (typeof eggsManager !== 'undefined' && eggsManager.showToast) {
+        eggsManager.showToast(`已穿越至 ${targetEra.year} · ${targetEra.name}`);
+      }
     }
 
     this.galleryEl.scrollTo({
@@ -920,10 +933,18 @@ class NavigationManager {
     });
 
     if (this._programmaticTimer) clearTimeout(this._programmaticTimer);
-    this._programmaticTimer = setTimeout(() => {
+    const settle = () => {
+      /* 长距离平滑滚动可能超过固定等待：滚动未抵达目标前保持程序态，
+         防止中途减速经过的展厅被 detectCurrentEraFromScroll 误写 + 音效连播 */
+      if (smooth && Math.abs(this.galleryEl.scrollLeft - targetScroll) >= 2) {
+        this._programmaticTimer = setTimeout(settle, 80);
+        return;
+      }
       this.isProgrammaticScroll = false;
+      this._programmaticTarget = null;
       this.updateIndicators(targetEra.year);
-    }, smooth ? 450 : 50);
+    };
+    this._programmaticTimer = setTimeout(settle, smooth ? 450 : 50);
   }
 
   goToEraByYear(year) {
@@ -949,9 +970,10 @@ class NavigationManager {
     const state = museumStore.getState();
     const idx = this.eras.findIndex(e => e.year === state.currentEra);
     const initialIndex = idx !== -1 ? idx : 0;
-    this.goToEraByIndex(initialIndex, false);
+    /* 初始定位走 silent 路径：恢复上次的展厅不算“穿越”，不播提示与音效 */
+    this.goToEraByIndex(initialIndex, false, true);
     if (this.eggCountEl) {
-      this.eggCountEl.textContent = `${state.eggs.length} / 6`;
+      this.eggCountEl.textContent = `${state.eggs.length} / ${Object.keys(EGGS_METADATA).length}`;
     }
   }
 
@@ -1062,6 +1084,14 @@ class EggsManager {
       let armed = false;
       let armTimer = 0;
       const defaultLabel = resetBtn.textContent;
+      /* 抽屉关闭时解除武装态：避免「点亮确认后关抽屉、5 秒内重开一次误点即清档」 */
+      this._disarmReset = () => {
+        if (!armed) return;
+        armed = false;
+        clearTimeout(armTimer);
+        delete resetBtn.dataset.armed;
+        resetBtn.textContent = defaultLabel;
+      };
       resetBtn.addEventListener('click', () => {
         if (!armed) {
           armed = true;
@@ -1118,6 +1148,9 @@ class EggsManager {
     if (descEl) descEl.textContent = egg.desc;
     if (locationEl) locationEl.textContent = `遗址来源：${egg.foundAt}`;
 
+    /* 关闭动画的延迟 hidden 存在竞态：重开前必须清掉挂起定时器，否则 200ms 内
+       「关闭→重开」会让定时器把刚打开的弹窗强行 hidden（display:none!important）造成卡死 */
+    if (this._modalHideTimer) { clearTimeout(this._modalHideTimer); this._modalHideTimer = 0; }
     this.modalEl.classList.remove('hidden');
     this.modalEl.classList.add('visible');
   }
@@ -1125,8 +1158,13 @@ class EggsManager {
   closeUnlockModal() {
     if (!this.modalEl) return;
     this.modalEl.classList.remove('visible');
-    setTimeout(() => {
-      this.modalEl.classList.add('hidden');
+    if (this._modalHideTimer) clearTimeout(this._modalHideTimer);
+    this._modalHideTimer = setTimeout(() => {
+      this._modalHideTimer = 0;
+      /* 淡出期间若弹窗被重新打开（visible 已回来），不得补加 hidden */
+      if (this.modalEl && !this.modalEl.classList.contains('visible')) {
+        this.modalEl.classList.add('hidden');
+      }
     }, 200);
   }
 
@@ -1144,6 +1182,7 @@ class EggsManager {
   openBook() {
     this.renderBookGrid();
     if (this.bookDrawerEl) {
+      if (this._bookHideTimer) { clearTimeout(this._bookHideTimer); this._bookHideTimer = 0; }
       this.bookDrawerEl.classList.remove('hidden');
       this.bookDrawerEl.classList.add('visible');
     }
@@ -1152,8 +1191,15 @@ class EggsManager {
   closeBook() {
     if (this.bookDrawerEl) {
       this.bookDrawerEl.classList.remove('visible');
-      setTimeout(() => {
-        this.bookDrawerEl.classList.add('hidden');
+      /* 抽屉收起时同步解除重置按钮的武装态，防止重开后一次误点清档 */
+      if (typeof this._disarmReset === 'function') this._disarmReset();
+      if (this._bookHideTimer) clearTimeout(this._bookHideTimer);
+      this._bookHideTimer = setTimeout(() => {
+        this._bookHideTimer = 0;
+        /* 淡出期间抽屉被重开（visible 已回来）时不得补加 hidden，避免卡死 */
+        if (this.bookDrawerEl && !this.bookDrawerEl.classList.contains('visible')) {
+          this.bookDrawerEl.classList.add('hidden');
+        }
       }, 200);
     }
   }
@@ -1224,16 +1270,17 @@ class EggsManager {
       gridEl.appendChild(card);
     });
 
-    // 检查是否全集齐
+    // 检查是否全集齐（总数取自元数据，避免新增彩蛋时多处硬编码漂移）
     const totalCollected = state.eggs.length;
+    const eggTotal = Object.keys(EGGS_METADATA).length;
     const summaryCountEl = document.getElementById('book-collected-count');
     if (summaryCountEl) {
-      summaryCountEl.textContent = `${totalCollected} / 6`;
+      summaryCountEl.textContent = `${totalCollected} / ${eggTotal}`;
     }
 
     const exportArea = document.getElementById('book-export-area');
     if (exportArea) {
-      if (totalCollected >= 6) {
+      if (totalCollected >= eggTotal) {
         exportArea.classList.remove('hidden');
       } else {
         exportArea.classList.add('hidden');
@@ -1498,7 +1545,8 @@ function showWin98Dialog(title, content) {
     audioManager.playClick();
     modal.classList.remove('visible');
     setTimeout(() => {
-      modal.classList.add('hidden');
+      /* 淡出期间对话框被重新打开时不得补加 hidden，避免卡死 */
+      if (!modal.classList.contains('visible')) modal.classList.add('hidden');
     }, 250);
     closeBtn?.removeEventListener('click', closer);
     okBtn?.removeEventListener('click', closer);
@@ -1905,9 +1953,11 @@ function initEra2008() {
   // 4. 回帖交互（失败自动解锁按钮，避免“发送中”卡死；成功才保存存档）
   if (btnSubmitReply) {
     btnSubmitReply.addEventListener('click', () => {
-      const text = replyInput?.value.trim().slice(0, 2000);
-      if (!text || text.length < 15) {
-        eggsManager.showToast('回帖不少于 15 字，再多分享一点吧');
+      const raw = (replyInput?.value ?? '').trim().slice(0, 2000);
+      /* 15 字下限只统计正文：剥离引用样板，否则一键引用+零正文即可绕过校验 */
+      const contentLength = raw.replace(/\[quote\][\s\S]*?\[\/quote\]/gi, '').replace(/\[\/?(?:b|quote)\]/gi, '').trim().length;
+      if (!raw || contentLength < 15) {
+        eggsManager.showToast('回帖正文不少于 15 字（引用内容不计），再多分享一点吧');
         return;
       }
 
@@ -1923,7 +1973,7 @@ function initEra2008() {
           rank: '游侠大虾',
           avatar: '🤠',
           time: new Date().toLocaleTimeString(),
-          content: text,
+          content: raw,
           signature: '———— 岁月神偷，我们在 2008 年的深坑里留下了脚印。'
         };
         floorContainer.appendChild(renderFloorItem(userPost));
@@ -2020,7 +2070,7 @@ function initEra2012() {
   // 1. 初始化皮肤与装扮值
   const state = museumStore.getState();
   applySkin(state.spaceSkin || 'sakura');
-  updateDecorScore(state.spaceDecorScore || 45);
+  updateDecorScore(state.spaceDecorScore ?? 45);
 
   function applySkin(skinKey) {
     container.classList.remove('skin-sakura', 'skin-blue', 'skin-night');
@@ -2052,7 +2102,7 @@ function initEra2012() {
     btn.addEventListener('click', () => {
       audioManager.playWaterDrop();
       const skin = btn.dataset.skin;
-      let newScore = (museumStore.getState().spaceDecorScore || 45) + 15;
+      let newScore = (museumStore.getState().spaceDecorScore ?? 45) + 15;
       if (newScore > 100) newScore = 100;
 
       museumStore.update({
@@ -2090,13 +2140,15 @@ function initEra2012() {
         </div>
       `;
 
-      // 点赞事件
+      // 点赞事件：走 store 正规 update 补丁路径，不直接篡改 getState() 的共享引用
       const likeBtn = card.querySelector('.btn-feed-like');
       likeBtn?.addEventListener('click', () => {
         audioManager.playWaterDrop();
-        item.likes = (item.likes || 0) + 1;
-        museumStore.saveState();
-        likeBtn.textContent = `❤️ 赞 (${item.likes})`;
+        const posts = museumStore.getState().spacePosts.map((p, i) =>
+          i === index ? { ...p, likes: (p.likes || 0) + 1 } : p
+        );
+        museumStore.update({ spacePosts: posts });
+        likeBtn.textContent = `❤️ 赞 (${posts[index].likes})`;
         spawnFlyingHeart(likeBtn);
       });
 
@@ -2469,7 +2521,8 @@ function showTransparencyModal() {
     audioManager.playClick();
     modal.classList.remove('visible');
     setTimeout(() => {
-      modal.classList.add('hidden');
+      /* 淡出期间弹窗被重新打开时不得补加 hidden，避免卡死 */
+      if (!modal.classList.contains('visible')) modal.classList.add('hidden');
     }, 250);
     closeBtns.forEach(btn => btn.removeEventListener('click', closer));
   };
@@ -2562,11 +2615,13 @@ function initEra2099() {
     if (count === total) {
       // 全部修复完成！
       if (archiveFinalCard) archiveFinalCard.classList.remove('hidden');
-      museumStore.update({
-        restorationComplete: true,
-        restoredFragments: restoredIds
-      });
+      /* 纯渲染初始化（isInit）不重复写库：数据已由 loadState 恢复，
+         刷新时无需再产生一次无意义的 localStorage 写入与全员 notify */
       if (!isInit) {
+        museumStore.update({
+          restorationComplete: true,
+          restoredFragments: restoredIds
+        });
         eggsManager.triggerEgg('restored_memory');
       }
     }
@@ -2853,7 +2908,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (introModal) {
       introModal.classList.remove('visible');
       setTimeout(() => {
-        introModal.classList.add('hidden');
+        /* 淡出期间弹窗被重新打开（visible 已回来）时不得补加 hidden，避免卡死 */
+        if (!introModal.classList.contains('visible')) introModal.classList.add('hidden');
       }, 250);
     }
   };

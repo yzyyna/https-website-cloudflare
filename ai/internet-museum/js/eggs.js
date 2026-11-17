@@ -66,6 +66,14 @@ export class EggsManager {
       let armed = false;
       let armTimer = 0;
       const defaultLabel = resetBtn.textContent;
+      /* 抽屉关闭时解除武装态：避免「点亮确认后关抽屉、5 秒内重开一次误点即清档」 */
+      this._disarmReset = () => {
+        if (!armed) return;
+        armed = false;
+        clearTimeout(armTimer);
+        delete resetBtn.dataset.armed;
+        resetBtn.textContent = defaultLabel;
+      };
       resetBtn.addEventListener('click', () => {
         if (!armed) {
           armed = true;
@@ -122,6 +130,9 @@ export class EggsManager {
     if (descEl) descEl.textContent = egg.desc;
     if (locationEl) locationEl.textContent = `遗址来源：${egg.foundAt}`;
 
+    /* 关闭动画的延迟 hidden 存在竞态：重开前必须清掉挂起定时器，否则 200ms 内
+       「关闭→重开」会让定时器把刚打开的弹窗强行 hidden（display:none!important）造成卡死 */
+    if (this._modalHideTimer) { clearTimeout(this._modalHideTimer); this._modalHideTimer = 0; }
     this.modalEl.classList.remove('hidden');
     this.modalEl.classList.add('visible');
   }
@@ -129,8 +140,13 @@ export class EggsManager {
   closeUnlockModal() {
     if (!this.modalEl) return;
     this.modalEl.classList.remove('visible');
-    setTimeout(() => {
-      this.modalEl.classList.add('hidden');
+    if (this._modalHideTimer) clearTimeout(this._modalHideTimer);
+    this._modalHideTimer = setTimeout(() => {
+      this._modalHideTimer = 0;
+      /* 淡出期间若弹窗被重新打开（visible 已回来），不得补加 hidden */
+      if (this.modalEl && !this.modalEl.classList.contains('visible')) {
+        this.modalEl.classList.add('hidden');
+      }
     }, 200);
   }
 
@@ -148,6 +164,7 @@ export class EggsManager {
   openBook() {
     this.renderBookGrid();
     if (this.bookDrawerEl) {
+      if (this._bookHideTimer) { clearTimeout(this._bookHideTimer); this._bookHideTimer = 0; }
       this.bookDrawerEl.classList.remove('hidden');
       this.bookDrawerEl.classList.add('visible');
     }
@@ -156,8 +173,15 @@ export class EggsManager {
   closeBook() {
     if (this.bookDrawerEl) {
       this.bookDrawerEl.classList.remove('visible');
-      setTimeout(() => {
-        this.bookDrawerEl.classList.add('hidden');
+      /* 抽屉收起时同步解除重置按钮的武装态，防止重开后一次误点清档 */
+      if (typeof this._disarmReset === 'function') this._disarmReset();
+      if (this._bookHideTimer) clearTimeout(this._bookHideTimer);
+      this._bookHideTimer = setTimeout(() => {
+        this._bookHideTimer = 0;
+        /* 淡出期间抽屉被重开（visible 已回来）时不得补加 hidden，避免卡死 */
+        if (this.bookDrawerEl && !this.bookDrawerEl.classList.contains('visible')) {
+          this.bookDrawerEl.classList.add('hidden');
+        }
       }, 200);
     }
   }
@@ -228,16 +252,17 @@ export class EggsManager {
       gridEl.appendChild(card);
     });
 
-    // 检查是否全集齐
+    // 检查是否全集齐（总数取自元数据，避免新增彩蛋时多处硬编码漂移）
     const totalCollected = state.eggs.length;
+    const eggTotal = Object.keys(EGGS_METADATA).length;
     const summaryCountEl = document.getElementById('book-collected-count');
     if (summaryCountEl) {
-      summaryCountEl.textContent = `${totalCollected} / 6`;
+      summaryCountEl.textContent = `${totalCollected} / ${eggTotal}`;
     }
 
     const exportArea = document.getElementById('book-export-area');
     if (exportArea) {
-      if (totalCollected >= 6) {
+      if (totalCollected >= eggTotal) {
         exportArea.classList.remove('hidden');
       } else {
         exportArea.classList.add('hidden');

@@ -224,6 +224,7 @@
         return;
       }
 
+      var oldFeet = pos[1]; /* 移动前脚底高度：用于区分“落地吸附”与“撞头停住” */
       pos[1] += amount;
       var minX = pos[0] - HALF_W, minY = pos[1], minZ = pos[2] - HALF_W;
       var maxX = pos[0] + HALF_W, maxY = pos[1] + HEIGHT, maxZ = pos[2] + HALF_W;
@@ -231,21 +232,40 @@
       var y0 = Math.floor(minY), y1 = Math.ceil(maxY) - 1;
       var z0 = Math.floor(minZ), z1 = Math.ceil(maxZ) - 1;
       var x, y, z;
+      if (amount > 0) {
+        /* 上升撞头：自下而上第一个实体即最低阻挡方块，停在其底面之下 */
+        for (y = y0; y <= y1; y++) {
+          for (z = z0; z <= z1; z++) {
+            for (x = x0; x <= x1; x++) {
+              if (!MC.isSolid(this.world.getBlock(x, y, z))) continue;
+              pos[1] = y - HEIGHT - EPS;
+              this.vel[1] = 0;
+              return;
+            }
+          }
+        }
+        return;
+      }
+      /* 下落：只有顶面不高于移动前脚底的实体才视为“地面”；其余按撞头停住，
+         避免下落中头部擦到悬空方块被瞬移到其顶面（最多约 2 格的假传送） */
+      var landingY = -Infinity;
+      var blockLowY = Infinity;
       for (y = y0; y <= y1; y++) {
         for (z = z0; z <= z1; z++) {
           for (x = x0; x <= x1; x++) {
             if (!MC.isSolid(this.world.getBlock(x, y, z))) continue;
-            if (amount > 0) {
-              pos[1] = y - HEIGHT - EPS;
-            } else {
-              pos[1] = y + 1 + EPS;
-              this.onGround = true;
-            }
-            this.vel[1] = 0;
-            return;
+            if (y + 1 <= oldFeet + EPS && y + 1 > landingY) landingY = y + 1;
+            if (y < blockLowY) blockLowY = y;
           }
         }
       }
+      if (landingY > -Infinity) {
+        pos[1] = landingY + EPS;
+        this.onGround = true;
+      } else if (blockLowY < Infinity) {
+        pos[1] = blockLowY - HEIGHT - EPS;
+      }
+      this.vel[1] = 0;
       return;
     }
 
@@ -268,8 +288,9 @@
       return;
     }
 
-    /* 2. 碰壁！如果处于地面或水边攀爬，尝试平滑跨越（Auto Step-Up 0.6~1.05m 高度） */
-    var canStep = (this.onGround || wasOnGround || (this.waterClimb && this.waterClimb > 0)) && !this.flying;
+    /* 2. 碰壁！仅在真实着地（本子步已确立）或水中攀爬时尝试平滑跨越（Auto Step-Up 0.6~1.05m 高度）；
+       wasOnGround 是帧初旧值，保留它会让下落中贴台阶边缘被凭空抬升（空中蹬墙爬升） */
+    var canStep = (this.onGround || (this.waterClimb && this.waterClimb > 0)) && !this.flying;
     if (canStep) {
       var stepH = 1.02;
       /* 验证头顶空间无遮挡 */

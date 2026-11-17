@@ -85,11 +85,13 @@ export function initEra2099() {
     if (count === total) {
       // 全部修复完成！
       if (archiveFinalCard) archiveFinalCard.classList.remove('hidden');
-      museumStore.update({
-        restorationComplete: true,
-        restoredFragments: restoredIds
-      });
+      /* 纯渲染初始化（isInit）不重复写库：数据已由 loadState 恢复，
+         刷新时无需再产生一次无意义的 localStorage 写入与全员 notify */
       if (!isInit) {
+        museumStore.update({
+          restorationComplete: true,
+          restoredFragments: restoredIds
+        });
         eggsManager.triggerEgg('restored_memory');
       }
     }

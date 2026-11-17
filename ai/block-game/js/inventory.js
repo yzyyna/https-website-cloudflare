@@ -16,16 +16,16 @@
     if (this.onChange) this.onChange();
   };
 
-  /* 返回是否成功放入 */
+  /* 返回是否成功放入（部分入库也算有变更，会触发刷新） */
   Inventory.prototype.add = function (id, n) {
     if (!id || !n) return false;
-    var i, s;
+    var i, s, changed = false;
     /* 先叠加 */
     for (i = 0; i < TOTAL; i++) {
       s = this.slots[i];
       if (s && s.id === id && s.count < STACK_MAX) {
         var take = Math.min(n, STACK_MAX - s.count);
-        s.count += take; n -= take;
+        if (take > 0) { s.count += take; n -= take; changed = true; }
         if (n <= 0) { this._emit(); return true; }
       }
     }
@@ -35,10 +35,13 @@
         var put = Math.min(n, STACK_MAX);
         this.slots[i] = { id: id, count: put };
         n -= put;
+        changed = true;
         if (n <= 0) { this._emit(); return true; }
       }
     }
-    this._emit();
+    /* 仅在确有入库时才通知：背包满且完全放不下时保持静默，
+       避免磁吸范围内每帧重试 add 引发全量 HUD DOM/Canvas 重建 */
+    if (changed) this._emit();
     return false; /* 背包满 */
   };
 

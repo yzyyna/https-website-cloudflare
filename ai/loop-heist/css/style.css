@@ -159,7 +159,10 @@ html, body {
   background: rgba(20, 32, 58, 0.9);
   color: #ffe66d;
   font-size: 14px;
-  white-space: nowrap;
+  /* 长文案允许换行，窄屏不溢出舞台 */
+  white-space: normal;
+  max-width: 90%;
+  text-align: center;
   pointer-events: none;
 }
 
@@ -212,6 +215,8 @@ html, body {
   justify-content: center;
   padding: 16px;
   background: rgba(8, 12, 22, 0.72);
+  /* 极矮横屏下卡片可能超出视口，放开滚动兜底保证按钮可达 */
+  overflow-y: auto;
 }
 
 .overlay-card {
@@ -250,7 +255,23 @@ html, body {
     gap: 4px;
   }
   .action-col { min-width: 96px; gap: 6px; }
-  .action-btn { min-height: 40px; padding: 0 12px; font-size: 13px; }
-  .hud-btn { min-height: 40px; }
-  .hint-toggle { min-height: 36px; }
+  /* 只缩字号与内边距，保持 44px 触控目标下限（守则要求） */
+  .action-btn { min-height: 44px; padding: 0 10px; font-size: 13px; }
+  .hud-btn { min-height: 44px; }
+  .hint-toggle { min-height: 44px; padding: 0 8px; }
+}
+
+/* 最矮横屏（如 iPhone SE 横屏 320px 高）：进一步压缩，保证最下一排方向键可达 */
+@media (max-height: 360px) {
+  #game { overflow-y: auto; }
+  .stage { min-height: 0; flex: 1 1 auto; }
+  .dpad {
+    grid-template-columns: repeat(3, 40px);
+    grid-template-rows: repeat(3, 40px);
+    gap: 3px;
+  }
+  .pad-btn { font-size: 15px; }
+  .action-col { min-width: 84px; gap: 4px; }
+  .hud { gap: 2px; }
+  .screen { padding: 8px; }
 }

@@ -277,6 +277,8 @@
       if (locked) {
         state = 'playing';
         hud.showState('playing');
+        /* showState 对非 playing 态会单向隐藏飞行徽标，恢复游玩时按实际状态补回 */
+        syncFlyUI(player.flying);
         if (!welcomed) {
           welcomed = true;
           hud.toast('欢迎来到方块世界！先砍树试试手感');
@@ -452,6 +454,8 @@
         size: 0.22 + Math.random() * 0.22
       });
     }
+    /* TNT 连锁可在极短时间内叠加大量粒子，统一走上限裁剪 */
+    particles.cap(400);
 
     /* 破坏周边半径 3.2m 范围内的所有非基岩方块 */
     var r = 3.2;

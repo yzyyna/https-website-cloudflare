@@ -163,7 +163,8 @@ function showWin98Dialog(title, content) {
     audioManager.playClick();
     modal.classList.remove('visible');
     setTimeout(() => {
-      modal.classList.add('hidden');
+      /* 淡出期间对话框被重新打开时不得补加 hidden，避免卡死 */
+      if (!modal.classList.contains('visible')) modal.classList.add('hidden');
     }, 250);
     closeBtn?.removeEventListener('click', closer);
     okBtn?.removeEventListener('click', closer);

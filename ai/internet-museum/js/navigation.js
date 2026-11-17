@@ -3,7 +3,7 @@
  * 负责横向展区滚动、手势拖拽、键盘导航与时代同步
  */
 
-import { ERAS_CONFIG, museumStore } from './state.js';
+import { ERAS_CONFIG, EGGS_METADATA, museumStore } from './state.js';
 import { audioManager } from './audio.js';
 import { eggsManager } from './eggs.js';
 
@@ -149,7 +149,7 @@ export class NavigationManager {
     museumStore.subscribe((state) => {
       this.updateIndicators(state.currentEra);
       if (this.eggCountEl) {
-        this.eggCountEl.textContent = `${state.eggs.length} / 6`;
+        this.eggCountEl.textContent = `${state.eggs.length} / ${Object.keys(EGGS_METADATA).length}`;
       }
     });
   }
@@ -183,20 +183,30 @@ export class NavigationManager {
     }
   }
 
-  goToEraByIndex(index, smooth = true) {
+  goToEraByIndex(index, smooth = true, silent = false) {
     const clampedIndex = Math.max(0, Math.min(this.eras.length - 1, index));
     const width = this.galleryEl.clientWidth || window.innerWidth;
     const targetScroll = clampedIndex * width;
 
+    /* 同厅短路：拖拽松手/时间轴点击落在当前展厅时不播穿越音与提示 */
+    if (clampedIndex === this.currentIndex &&
+        Math.abs(this.galleryEl.scrollLeft - targetScroll) < 2) {
+      this.updateIndicators(this.eras[clampedIndex].year);
+      return;
+    }
+
     this.isProgrammaticScroll = true;
+    this._programmaticTarget = targetScroll;
     this.currentIndex = clampedIndex;
     const targetEra = this.eras[clampedIndex];
 
     museumStore.update({ currentEra: targetEra.year });
-    audioManager.playEraTransition();
-    // 展厅间过渡提示：切换年代时给出轻量面包屑，避免用户在横向长廊中迷失方位
-    if (typeof eggsManager !== 'undefined' && eggsManager.showToast) {
-      eggsManager.showToast(`已穿越至 ${targetEra.year} · ${targetEra.name}`);
+    if (!silent) {
+      audioManager.playEraTransition();
+      // 展厅间过渡提示：切换年代时给出轻量面包屑，避免用户在横向长廊中迷失方位
+      if (typeof eggsManager !== 'undefined' && eggsManager.showToast) {
+        eggsManager.showToast(`已穿越至 ${targetEra.year} · ${targetEra.name}`);
+      }
     }
 
     this.galleryEl.scrollTo({
@@ -205,10 +215,18 @@ export class NavigationManager {
     });
 
     if (this._programmaticTimer) clearTimeout(this._programmaticTimer);
-    this._programmaticTimer = setTimeout(() => {
+    const settle = () => {
+      /* 长距离平滑滚动可能超过固定等待：滚动未抵达目标前保持程序态，
+         防止中途减速经过的展厅被 detectCurrentEraFromScroll 误写 + 音效连播 */
+      if (smooth && Math.abs(this.galleryEl.scrollLeft - targetScroll) >= 2) {
+        this._programmaticTimer = setTimeout(settle, 80);
+        return;
+      }
       this.isProgrammaticScroll = false;
+      this._programmaticTarget = null;
       this.updateIndicators(targetEra.year);
-    }, smooth ? 450 : 50);
+    };
+    this._programmaticTimer = setTimeout(settle, smooth ? 450 : 50);
   }
 
   goToEraByYear(year) {
@@ -234,9 +252,10 @@ export class NavigationManager {
     const state = museumStore.getState();
     const idx = this.eras.findIndex(e => e.year === state.currentEra);
     const initialIndex = idx !== -1 ? idx : 0;
-    this.goToEraByIndex(initialIndex, false);
+    /* 初始定位走 silent 路径：恢复上次的展厅不算“穿越”，不播提示与音效 */
+    this.goToEraByIndex(initialIndex, false, true);
     if (this.eggCountEl) {
-      this.eggCountEl.textContent = `${state.eggs.length} / 6`;
+      this.eggCountEl.textContent = `${state.eggs.length} / ${Object.keys(EGGS_METADATA).length}`;
     }
   }
 

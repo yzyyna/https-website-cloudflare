@@ -28,6 +28,14 @@
   const modalWardrobe = document.getElementById('modalWardrobe');
   const modalTimeMachine = document.getElementById('modalTimeMachine');
 
+  // 三个模态共用同层遮罩：打开任一前先关其余，防止辞职信被衣橱/时光机盖住不可见
+  function openModalExclusive(target) {
+    [modalResignation, modalWardrobe, modalTimeMachine].forEach((m) => {
+      if (m && m !== target) m.classList.remove('open');
+    });
+    if (target) target.classList.add('open');
+  }
+
   // 音频切换
   const btnMute = document.getElementById('btnMute');
   const muteIcon = document.getElementById('muteIcon');
@@ -506,7 +514,7 @@
     document.getElementById('btnWardrobe').addEventListener('click', () => {
       const state = window.PotatoState.getState();
       window.PotatoAccessories.renderWardrobe(state);
-      modalWardrobe.classList.add('open');
+      openModalExclusive(modalWardrobe);
       window.PotatoAudio.playPoke();
       haptic(12);
     });
@@ -521,7 +529,7 @@
 
     // 打开时光机
     document.getElementById('btnTimeMachine').addEventListener('click', () => {
-      modalTimeMachine.classList.add('open');
+      openModalExclusive(modalTimeMachine);
       window.PotatoAudio.playPoke();
     });
     document.getElementById('btnCloseTimeMachine').addEventListener('click', () => {
@@ -562,6 +570,7 @@
       state.stats.overheat = 0;
       state.isSleeping = false;
       window.PotatoState.save();
+      window.PotatoState.evaluateStatus(); /* 立即刷新状态机，不等下一 tick 才脱离 sleeping 态 */
       updateUI(state);
       window.PotatoAudio.playFeed();
       window.PotatoDialogue.say('全属性拉满！感觉自己充满了神圣的碳水之力！', 'idle');
@@ -647,7 +656,8 @@
     const pad = (n) => String(n).padStart(2, '0');
     const localDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     document.getElementById('resignationDate').textContent = localDate;
-    modalResignation.classList.add('open');
+    /* 强制二选一交互：弹出辞职信时先关掉衣橱/时光机，避免被同层遮罩盖住不可见 */
+    openModalExclusive(modalResignation);
     window.PotatoDialogue.say(null, 'resigned');
   }
 
@@ -742,6 +752,17 @@
     if (window.PotatoState && typeof window.PotatoState.stopTick === 'function') {
       window.PotatoState.stopTick();
     }
+  });
+
+  // bfcache 返回（移动端返回键/后退导航常见）：pagehide 已停表，必须重启，
+  // 否则页面看起来活着但数值永远不动，玩家感知为“坏了”
+  window.addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    if (window.PotatoState) {
+      if (typeof window.PotatoState.load === 'function') window.PotatoState.load();
+      if (typeof window.PotatoState.startTick === 'function') window.PotatoState.startTick();
+    }
+    if (typeof startClock === 'function') startClock();
   });
 
   // 页面加载完成后自启动

@@ -221,6 +221,7 @@ main {
   border-color: rgba(255, 255, 255, 0.25);
 }
 .preview-section {
+  position: relative;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: 14px;
@@ -283,6 +284,34 @@ main {
   border: none;
   background: #000;
 }
+/* 预览加载覆盖层：WebGL 页面 shader 编译需数秒，切换期间给出明确反馈 */
+.preview-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #01040a;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  z-index: 2;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.preview-loading.hidden { opacity: 0; }
+.preview-loading .spin {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(70, 232, 255, 0.25);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: previewSpin 0.8s linear infinite;
+}
+@keyframes previewSpin { to { transform: rotate(360deg); } }
 @media (max-width: 768px) {
   header { padding: 32px 16px 16px; }
   h1 { font-size: 22px; }
@@ -406,6 +435,7 @@ footer {
       </div>
     </div>
     <iframe class="preview-frame" id="previewFrame" src="./gemini/index.html" loading="lazy"></iframe>
+    <div class="preview-loading hidden" id="previewLoading"><span class="spin"></span><span>PREVIEW LOADING…</span></div>
   </div>
 </main>
 
@@ -414,12 +444,30 @@ footer {
 </footer>
 
 <script>
+var _previewLoadingTimer = 0;
 function setPreview(url, title, tabEl, scrollToView) {
   var frame = document.getElementById('previewFrame');
   var titleEl = document.getElementById('previewTitle');
+  var loading = document.getElementById('previewLoading');
+  /* 同地址短路：重复点击当前 tab 不触发整页重载（WebGL 页面重载成本极高） */
+  var currentSrc = frame.getAttribute('src') || '';
+  if (currentSrc === url) {
+    document.querySelectorAll('.preview-tab').forEach(function(tab) {
+      tab.classList.toggle('active', tab === tabEl);
+    });
+    if (scrollToView) document.querySelector('.preview-section').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
   try { frame.contentWindow.stop(); } catch (e) {}
   frame.src = url;
   titleEl.textContent = '当前预览：' + title;
+
+  /* 显示加载态：iframe load 后隐藏；8s 超时兜底避免 file:// 下 load 事件缺失时永久转圈 */
+  if (loading) {
+    loading.classList.remove('hidden');
+    if (_previewLoadingTimer) clearTimeout(_previewLoadingTimer);
+    _previewLoadingTimer = setTimeout(function () { loading.classList.add('hidden'); }, 8000);
+  }
 
   document.querySelectorAll('.preview-tab').forEach(function(tab) {
     tab.classList.remove('active');
@@ -432,6 +480,15 @@ function setPreview(url, title, tabEl, scrollToView) {
     document.querySelector('.preview-section').scrollIntoView({ behavior: 'smooth' });
   }
 }
+
+(function () {
+  var frame = document.getElementById('previewFrame');
+  var loading = document.getElementById('previewLoading');
+  frame.addEventListener('load', function () {
+    if (loading) loading.classList.add('hidden');
+    if (_previewLoadingTimer) { clearTimeout(_previewLoadingTimer); _previewLoadingTimer = 0; }
+  });
+})();
 
 function loadPreview(url, title) {
   setPreview(url, title, null, true);

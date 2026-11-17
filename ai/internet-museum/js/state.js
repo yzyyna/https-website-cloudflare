@@ -171,6 +171,7 @@ class MuseumStore {
           if (Array.isArray(parsed.guestbookMessages)) {
             base.guestbookMessages = parsed.guestbookMessages
               .filter(m => m && typeof m === 'object')
+              .slice(0, 100) /* 条数钳制：防篡改存档塞入数千条拖慢首屏渲染 */
               .map(m => ({
                 name: String(m.name ?? '').slice(0, 30),
                 text: String(m.text ?? '').slice(0, 500),
@@ -181,6 +182,7 @@ class MuseumStore {
           if (Array.isArray(parsed.forumReplies)) {
             base.forumReplies = parsed.forumReplies
               .filter(m => m && typeof m === 'object')
+              .slice(0, 100)
               .map(m => ({
                 floor: String(m.floor ?? '').slice(0, 20),
                 user: String(m.user ?? '').slice(0, 30),
@@ -197,6 +199,7 @@ class MuseumStore {
           if (Array.isArray(parsed.spacePosts)) {
             base.spacePosts = parsed.spacePosts
               .filter(p => p && typeof p === 'object')
+              .slice(0, 100)
               .map(p => ({
                 text: String(p.text ?? '').slice(0, 500),
                 source: String(p.source ?? '').slice(0, 30),

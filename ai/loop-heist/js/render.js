@@ -22,6 +22,7 @@
     } catch (e) {
       reduceMotion = false;
     }
+    observeStage();
   }
 
   function fit(world) {
@@ -30,12 +31,27 @@
     cssW = stage.clientWidth;
     cssH = stage.clientHeight;
     tile = Math.max(12, Math.min(72, Math.floor(Math.min(cssW / world.w, cssH / world.h))));
-    canvas.width = Math.floor(cssW * dpr);
-    canvas.height = Math.floor(cssH * dpr);
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
     canvas.style.width = cssW + 'px';
     canvas.style.height = cssH + 'px';
     ox = Math.floor((cssW - world.w * tile) / 2);
     oy = Math.floor((cssH - world.h * tile) / 2);
+    _lastFitWorld = world;
+  }
+
+  /* 布局性尺寸变化（提示展开/收起改变 .stage 高度等）不走 window resize，
+     用 ResizeObserver 观察 .stage 保证画布与地图始终贴合容器 */
+  var _ro = null;
+  var _lastFitWorld = null;
+  function observeStage() {
+    if (_ro || typeof ResizeObserver === 'undefined') return;
+    var stage = canvas.parentElement;
+    if (!stage) return;
+    _ro = new ResizeObserver(function () {
+      if (_lastFitWorld) fit(_lastFitWorld);
+    });
+    _ro.observe(stage);
   }
 
   function lerpPos(e, from, k) {
@@ -160,8 +176,9 @@
       c.fillStyle = '#ffe66d';
       c.fillRect(px, py, s, s);
     } else {
-      c.globalAlpha = 0.55;
-      c.fillStyle = 'rgba(125,211,252,0.25)';
+      /* 单层透明即可：0.55 × 0.25 双重叠乘后有效不透明度仅约 0.14，幽灵几乎不可见 */
+      c.globalAlpha = 0.5;
+      c.fillStyle = 'rgba(125,211,252,0.85)';
       c.strokeStyle = '#7dd3fc';
       c.lineWidth = 1.5;
       c.setLineDash([3, 3]);
@@ -175,14 +192,16 @@
   function draw(world, anim, now, shaking) {
     if (!c) return;
     var k = anim && !reduceMotion ? Math.min(1, (now - anim.t0) / MOVE_MS) : 1;
-    var sh = shaking && !reduceMotion ? (Math.random() - 0.5) * 8 : 0;
+    /* x/y 独立随机：单随机数会让画面只沿主对角线抖 */
+    var shx = shaking && !reduceMotion ? (Math.random() - 0.5) * 8 : 0;
+    var shy = shaking && !reduceMotion ? (Math.random() - 0.5) * 8 : 0;
 
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.fillStyle = '#080c16';
     c.fillRect(0, 0, cssW, cssH);
 
     c.save();
-    c.translate(ox + sh, oy + sh);
+    c.translate(ox + shx, oy + shy);
     for (var y = 0; y < world.h; y++) {
       for (var x = 0; x < world.w; x++) {
         drawTile(world, x, y, now);
