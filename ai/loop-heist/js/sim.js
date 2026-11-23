@@ -1,6 +1,8 @@
 /* 时光回放小偷 · 回合制模拟内核（纯逻辑，不依赖 DOM）
  * 每次输入记为一个 tick；所有幽灵按各自录下的动作逐 tick 重放，守卫按路线循环推进。
  * 同一份录像在任何时候重放结果都一致，因此幽灵的行为可以被提前规划。
+ * 唯一例外是门：每 tick 先移动、后结算门状态，移动按上一 tick 末的开/关判定；
+ * 幽灵若恰在门关上的那一 tick 走向门格会被挡在原地，之后的重放位置会与原录像错位。
  */
 (function () {
   'use strict';
@@ -35,13 +37,16 @@
   function viewCells(world, guard) {
     var cells = [{ x: guard.x, y: guard.y }];
     var d = DIRS[guard.facing];
+    if (!d) return cells;
     for (var i = 1; i <= VIEW_RANGE; i++) {
       var x = guard.x + d[0] * i;
       var y = guard.y + d[1] * i;
       if (!inBounds(world, x, y)) break;
       var c = world.tiles[y][x];
-      if (c === '#' || (c === 'D' && !world.doorOpen) || (c === 'G' && !world.gateOpen)) break;
+      if (c === '#') break;
       cells.push({ x: x, y: y });
+      /* 关闭的门/闸门本身可见（站在门框里躲不掉），只遮挡其后的格子 */
+      if ((c === 'D' && !world.doorOpen) || (c === 'G' && !world.gateOpen)) break;
     }
     return cells;
   }
@@ -99,12 +104,17 @@
       world.bodies.push({ x: start.x, y: start.y, isPlayer: false, timeline: timeline });
     });
 
-    (level.guards || []).forEach(function (g) {
+    /* 守卫列表与路线都做形状合法化：非数组、含 null 条目、空串或含非法字符的坏数据
+       不应炸掉对局（空路线会让 facing 成为 undefined，viewCells 取 DIRS[undefined] 抛 TypeError） */
+    (Array.isArray(level.guards) ? level.guards : []).forEach(function (g) {
+      if (!g || typeof g !== 'object') return;
+      var path = typeof g.path === 'string' ? g.path.replace(/[^UDLRW]/g, '') : '';
+      if (!path) path = 'W';
       world.guards.push({
         x: g.x,
         y: g.y,
-        path: g.path,
-        facing: firstFacing(g.path)
+        path: path,
+        facing: firstFacing(path)
       });
     });
 
@@ -136,12 +146,14 @@
     world.gateOpen = world.plates.length > 0 && pressed === world.plates.length;
   }
 
+  /* 以身体为外层循环（bodies[0] 恒为玩家）：同一 tick 内玩家优先于幽灵归因，
+     跨守卫时也优先报告看到玩家的那只，避免 caughtBy 指向只看到幽灵的守卫 */
   function detect(world) {
-    for (var i = 0; i < world.guards.length; i++) {
-      var cells = viewCells(world, world.guards[i]);
-      for (var j = 0; j < world.bodies.length; j++) {
-        var b = world.bodies[j];
-        var hit = cells.some(function (c) {
+    var views = world.guards.map(function (g) { return viewCells(world, g); });
+    for (var j = 0; j < world.bodies.length; j++) {
+      var b = world.bodies[j];
+      for (var i = 0; i < views.length; i++) {
+        var hit = views[i].some(function (c) {
           return c.x === b.x && c.y === b.y;
         });
         if (hit) {
