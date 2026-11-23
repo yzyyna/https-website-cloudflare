@@ -16,12 +16,12 @@
 
     <!-- Desktop Sidebar -->
     <aside class="sidebar">
-      <div class="brand" onclick="navigate('home')">
+      <div class="brand" role="button" tabindex="0" aria-label="LinguaJourney 首页" onclick="navigate('home')">
         <div class="brand-logo">L</div>
         <span class="brand-text">LinguaJourney</span>
       </div>
 
-      <nav class="nav-menu">
+      <nav class="nav-menu" aria-label="主导航">
         <button class="nav-item active" data-nav="home" onclick="navigate('home')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -348,7 +348,7 @@
                 <button class="btn btn-outline" style="padding:6px 12px;font-size:13px" onclick="navigate('course')">
                   ← 返回
                 </button>
-                <span style="font-weight:700;font-size:18px;">核心词汇互动闪卡</span>
+                <span id="learn-module-title" style="font-weight:700;font-size:18px;">核心词汇互动闪卡</span>
               </div>
 
               <div class="step-indicators">
@@ -398,7 +398,8 @@
               </svg>
             </div>
             <h2 style="font-size:32px;font-weight:800;margin-bottom:8px">太棒了！模块训练完成</h2>
-            <p style="font-size:18px;color:var(--text-muted);margin-bottom:28px">已成功掌握本组高频词汇，首次完成奖励 <span style="color:var(--accent-orange);font-weight:700">+50 EXP</span>！</p>
+            <p id="learn-reward-text" style="font-size:18px;color:var(--text-muted);margin-bottom:28px">已成功掌握本组高频词汇，首次完成奖励 <span style="color:var(--accent-orange);font-weight:700">+50 EXP</span>！</p>
+            <p id="learn-unlock-hint" style="font-size:15px;color:var(--text-light);margin:-16px 0 28px"></p>
             <button class="btn btn-primary" style="padding:14px 36px;font-size:15px" onclick="navigate('dashboard')">
               返回学习中心
             </button>
@@ -529,7 +530,7 @@
     </main>
 
     <!-- Mobile Bottom Navigation Bar -->
-    <nav class="mobile-nav">
+    <nav class="mobile-nav" aria-label="移动端导航">
       <button class="mobile-nav-item active" data-nav="home" onclick="navigate('home')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>

@@ -56,6 +56,10 @@ const STATE = {
     rewardGranted: false, // 闪卡结算奖励是否已发放（持久化，防止重复进入会话后重复加经验）
   },
   currentRoute: 'home',
+  // 本次闪卡会话归属的课程模块：从课程卡片进入时为该模块，其他入口为 null（结算时沿用 m1）
+  activeModuleId: null,
+  // 课程卡片点击后待认领的模块，由 resetLearnSession 消费一次后清空
+  pendingModuleId: null,
   flashcards: [
     { word: 'Synergy', translation: '协同作用', example: 'We need to create synergy between the two departments.' },
     { word: 'Leverage', translation: '利用，发挥效能', example: 'We must leverage our existing resources to optimize results.' },
@@ -75,7 +79,17 @@ const STATE = {
 // 存储键带版本号；旧版无版本号键仅作只读回退，不删除，保证旧数据可回滚
 const STORAGE_KEY = 'linguajourney_state_v1';
 const LEGACY_STORAGE_KEY = 'linguajourney_state';
-const KNOWN_MODULE_IDS = ['m1', 'm2', 'm3', 'm4', 'm5'];
+
+// 课程模块总表（课程页渲染、学习页标题与完成结算共用同一份，避免多处漂移）。
+// locked 的模块需前一模块完成后才开放。
+const COURSE_MODULES = [
+  { id: 'm1', title: '破冰与自我介绍', duration: '15 mins', type: 'vocab', locked: false },
+  { id: 'm2', title: '主持英文例会', duration: '25 mins', type: 'speaking', locked: false },
+  { id: 'm3', title: '商务邮件撰写规范', duration: '20 mins', type: 'grammar', locked: false },
+  { id: 'm4', title: '听懂带口音的客户', duration: '30 mins', type: 'listening', locked: true },
+  { id: 'm5', title: '谈判技巧与妥协', duration: '40 mins', type: 'speaking', locked: true },
+];
+const KNOWN_MODULE_IDS = COURSE_MODULES.map(m => m.id);
 
 // 数值清洗：非有限数（NaN / Infinity / 非数字字符串）一律回退到默认值
 function toSafeInt(value, min, fallback) {
@@ -177,12 +191,14 @@ function renderRoute(route) {
   // Hide all views
   document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
 
-  // Update nav buttons
+  // Update nav buttons（侧栏与移动端两套导航同步高亮，并标注当前页供读屏软件识别）
   document.querySelectorAll('[data-nav]').forEach(el => {
-    if (el.dataset.nav === route || (route === 'course' && el.dataset.nav === 'course')) {
-      el.classList.add('active');
+    const isActive = el.dataset.nav === route;
+    el.classList.toggle('active', isActive);
+    if (isActive) {
+      el.setAttribute('aria-current', 'page');
     } else {
-      el.classList.remove('active');
+      el.removeAttribute('aria-current');
     }
   });
 
@@ -256,13 +272,45 @@ function addExp(amount) {
   renderDashboard();
 }
 
+/* 把模块记为完成；返回本次是否新增了完成记录（重复完成返回 false） */
 function completeModule(moduleId) {
   // 白名单校验：未知模块 ID 不写入存档
-  if (!KNOWN_MODULE_IDS.includes(moduleId)) return;
-  if (!STATE.progress.completedModules.includes(moduleId)) {
-    STATE.progress.completedModules.push(moduleId);
-    saveState();
+  if (!KNOWN_MODULE_IDS.includes(moduleId)) return false;
+  if (STATE.progress.completedModules.includes(moduleId)) return false;
+  STATE.progress.completedModules.push(moduleId);
+  saveState();
+  return true;
+}
+
+/* 结算区的一句提示：只陈述本次会话确实改变了什么。
+   通用练习、复习已完成模块都不产生新的进度，不能一律提示「下一模块已开放」 */
+function completionHint(doneId, newlyCompleted) {
+  const doneIndex = COURSE_MODULES.findIndex(m => m.id === doneId);
+  const nextModule = doneIndex >= 0 ? COURSE_MODULES[doneIndex + 1] : null;
+
+  if (!newlyCompleted) {
+    return STATE.activeModuleId
+      ? `复习完成：「${COURSE_MODULES[doneIndex].title}」此前已完成`
+      : '本次为通用练习，未计入模块进度；从课程页的模块卡片进入才会记入对应模块';
   }
+  if (nextModule) {
+    const nextLabel = `${doneIndex + 2}. ${nextModule.title}`;
+    // locked 的模块要等前一模块完成才开放，这时才谈得上「解锁」
+    return nextModule.locked ? `已解锁下一模块：${nextLabel}` : `下一模块：${nextLabel}`;
+  }
+  const remaining = COURSE_MODULES.filter(m => !STATE.progress.completedModules.includes(m.id));
+  return remaining.length
+    ? `已是最后一个模块；还有 ${remaining.map(m => m.title).join('、')} 未完成，可回课程页补学`
+    : `全部 ${COURSE_MODULES.length} 个模块均已完成，可随时回课程页复习`;
+}
+
+let rewardTextDefaultHtml = null;
+/* 结算区的奖励文案：只有本次真的发了奖才提 +50 EXP（奖励仅首次完成发放） */
+function setCompletionRewardText(rewarded) {
+  const el = document.getElementById('learn-reward-text');
+  if (!el) return;
+  if (rewardTextDefaultHtml === null) rewardTextDefaultHtml = el.innerHTML;
+  el.innerHTML = rewarded ? rewardTextDefaultHtml : '已成功掌握本组高频词汇，继续保持！';
 }
 
 // Dashboard View Logic
@@ -358,13 +406,7 @@ function renderActivityChart() {
 // Course View Logic
 function renderCourse() {
   const completed = STATE.progress.completedModules || [];
-  const modules = [
-    { id: 'm1', title: '破冰与自我介绍', duration: '15 mins', type: 'vocab', locked: false },
-    { id: 'm2', title: '主持英文例会', duration: '25 mins', type: 'speaking', locked: false },
-    { id: 'm3', title: '商务邮件撰写规范', duration: '20 mins', type: 'grammar', locked: false },
-    { id: 'm4', title: '听懂带口音的客户', duration: '30 mins', type: 'listening', locked: true },
-    { id: 'm5', title: '谈判技巧与妥协', duration: '40 mins', type: 'speaking', locked: true },
-  ];
+  const modules = COURSE_MODULES;
 
   const listEl = document.getElementById('course-module-list');
   if (!listEl) return;
@@ -415,16 +457,35 @@ function handleModuleClick(id, type, isLocked) {
     showToast('先完成前置模块，再解锁此内容');
     return;
   }
+  // 课程卡片只出现在课程页。已经身处学习页时的重复触发不再认领模块：
+  // 那次会话已被开始，重复认领会让随后派发的 hashchange 把它重置成通用会话
+  if (window.location.hash === '#learn') return;
+  // 记下来源模块：学完这一组闪卡后，完成的正是点进来的这个模块
+  STATE.pendingModuleId = id;
   navigate('learn');
 }
 
 // Learn / Flashcard Logic
 function resetLearnSession() {
+  // 会话归属只认「从课程卡片进入」这一次：其他入口（首页/学习中心的闪卡入口、直接改 hash）
+  // 一律视为通用会话（结算沿用 m1），上次点到一半的模块不会被顺带记为完成
+  STATE.activeModuleId = KNOWN_MODULE_IDS.includes(STATE.pendingModuleId) ? STATE.pendingModuleId : null;
+  STATE.pendingModuleId = null;
   STATE.learnIndex = 0;
   STATE.isFlipped = false;
   STATE.sessionCompleted = false;
   document.getElementById('learn-session-active').style.display = 'block';
   document.getElementById('learn-session-complete').style.display = 'none';
+
+  // 标题标明当前模块，让玩家知道这组闪卡算在哪个模块头上
+  const activeModule = COURSE_MODULES.find(m => m.id === STATE.activeModuleId);
+  const titleEl = document.getElementById('learn-module-title');
+  if (titleEl) {
+    titleEl.textContent = activeModule ? `核心词汇互动闪卡 · ${activeModule.title}` : '核心词汇互动闪卡';
+  }
+  const unlockHintEl = document.getElementById('learn-unlock-hint');
+  if (unlockHintEl) unlockHintEl.textContent = '';
+
   renderFlashcard();
 }
 
@@ -495,12 +556,21 @@ function nextCard() {
     STATE.sessionCompleted = true;
     document.getElementById('learn-session-active').style.display = 'none';
     document.getElementById('learn-session-complete').style.display = 'block';
-    // 奖励只发放一次：先置标记再 addExp，使标记随同一次 saveState 落库
-    if (!STATE.progress.rewardGranted) {
+    // 完成记录与首通奖励解耦：模块完成每次会话都落库（否则 m2/m3 永远完不成，
+    // 依赖前序完成的 m4/m5 会被永久锁死），奖励仍然只发一次
+    const doneId = STATE.activeModuleId || 'm1';
+    const newlyCompleted = completeModule(doneId);
+    // 奖励只发放一次：先置标记再 addExp，使标记随同 EXP 的那次 saveState 一并落库。
+    // 顺序不能反——先加经验再置标记的话，落库的是「已发奖、未标记」，刷新后可重复领奖
+    const rewarded = !STATE.progress.rewardGranted;
+    if (rewarded) {
       STATE.progress.rewardGranted = true;
       addExp(50);
-      completeModule('m1');
     }
+    setCompletionRewardText(rewarded);
+
+    const unlockHintEl = document.getElementById('learn-unlock-hint');
+    if (unlockHintEl) unlockHintEl.textContent = completionHint(doneId, newlyCompleted);
   }
 }
 
@@ -552,11 +622,11 @@ function renderCommunity() {
       </div>
       <div class="post-content">${safeContent}</div>
       <div class="post-actions">
-        <button class="action-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
+        <button class="action-btn ${post.liked ? 'liked' : ''}" data-like-id="${post.id}" aria-pressed="${post.liked}" onclick="toggleLike(${post.id})">
           <svg viewBox="0 0 24 24" fill="${post.liked ? '#ef4444' : 'none'}" stroke="${post.liked ? '#ef4444' : 'currentColor'}" stroke-width="2" width="16" height="16">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
-          <span>${post.likes}</span>
+          <span class="like-count">${post.likes}</span>
         </button>
         <button class="action-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -606,9 +676,23 @@ function toggleLike(id) {
   const post = STATE.posts.find(p => p.id === id);
   if (!post) return;
   post.liked = !post.liked;
-  post.likes += post.liked ? 1 : -1;
+  post.likes = Math.max(0, post.likes + (post.liked ? 1 : -1));
   saveState();
-  renderCommunity();
+  // 就地更新这一个按钮，不重建整个信息流：键盘/读屏用户的焦点不会从按钮上丢失
+  const btn = document.querySelector('#community-feed [data-like-id="' + id + '"]');
+  if (!btn) {
+    renderCommunity();
+    return;
+  }
+  btn.classList.toggle('liked', post.liked);
+  btn.setAttribute('aria-pressed', String(post.liked));
+  const icon = btn.querySelector('svg');
+  if (icon) {
+    icon.setAttribute('fill', post.liked ? '#ef4444' : 'none');
+    icon.setAttribute('stroke', post.liked ? '#ef4444' : 'currentColor');
+  }
+  const count = btn.querySelector('.like-count');
+  if (count) count.textContent = post.likes;
 }
 
 // 剪贴板：优先 Clipboard API，失败或不可用时降级为 execCommand('copy')
@@ -672,22 +756,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Route listening
   window.addEventListener('hashchange', handleHashChange);
-  navigate(normalizeRoute(window.location.hash));
 
-  // 键盘可达：challenge-card 与闪卡响应 Enter / Space（事件委托，单次注册）
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    const el = e.target;
-    if (!(el instanceof HTMLElement) || !el.matches('.challenge-card, .flashcard')) return;
-    e.preventDefault();
-    el.click();
-  });
-
-  // 初始加载为空 hash 时用 replaceState 落锚：避免 navigate() 再 push 一条
-  // 「无 hash → #home」的历史记录，返回键在两者间空转
+  // 初始加载为空 hash 时先 replaceState 落锚，再 navigate：
+  // 顺序不能反——navigate 会把 hash 写成 #home 并压入一条历史记录，
+  // 之后再判断「hash 是否为空」永远不成立，落锚就成了空操作
   if (!window.location.hash) {
     try { history.replaceState(null, '', '#home'); } catch (e) { /* file:// 个别环境限制时静默 */ }
   }
+  navigate(normalizeRoute(window.location.hash));
+
+  // 键盘可达：challenge-card、闪卡与左上角品牌标响应 Enter / Space（事件委托，单次注册）
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const el = e.target;
+    if (!(el instanceof HTMLElement) || !el.matches('.challenge-card, .flashcard, .brand')) return;
+    e.preventDefault();
+    el.click();
+  });
 
   // Login name input preview
   const loginInput = document.getElementById('login-name-input');
