@@ -614,6 +614,8 @@
     // 辞职信按钮：磕糖挽留
     document.getElementById('btnKeepPotato').addEventListener('click', () => {
       const state = window.PotatoState.getState();
+      // 连点保护：辞职信只能被处理一次。第一次点击已挽留成功，后续点击不得重复累加挽留次数与反馈
+      if (!state.resigned) return;
       state.resigned = false;
       state.stats.hunger = 85;
       state.stats.sanity = 85;
@@ -639,6 +641,8 @@
 
     // 辞职信按钮：批准辞职 (孵化新土豆)
     document.getElementById('btnDismissPotato').addEventListener('click', () => {
+      // 连点保护：辞职信只能被处理一次，重复点击不应反复重置存档与播报
+      if (!window.PotatoState.getState().resigned) return;
       window.PotatoAudio.playStamp();
       modalResignation.classList.remove('open');
       window.PotatoState.reset();

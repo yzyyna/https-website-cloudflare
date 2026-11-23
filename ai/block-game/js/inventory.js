@@ -9,6 +9,7 @@
     this.slots = new Array(TOTAL).fill(null); /* {id, count} | null */
     this.selected = 0;
     this.pickedSlot = null; /* 背包整理时的待移动源槽位 */
+    this.lastAddedSlot = -1; /* 最近一次 add 实际接收物品的格子；-1 表示没有 */
     this.onChange = null;
   }
 
@@ -20,12 +21,17 @@
   Inventory.prototype.add = function (id, n) {
     if (!id || !n) return false;
     var i, s, changed = false;
+    /* 实际接收物品的第一格：拾取动效据此指向叠入的那一格，而不是当前选中的格子 */
+    this.lastAddedSlot = -1;
     /* 先叠加 */
     for (i = 0; i < TOTAL; i++) {
       s = this.slots[i];
       if (s && s.id === id && s.count < STACK_MAX) {
         var take = Math.min(n, STACK_MAX - s.count);
-        if (take > 0) { s.count += take; n -= take; changed = true; }
+        if (take > 0) {
+          s.count += take; n -= take; changed = true;
+          if (this.lastAddedSlot < 0) this.lastAddedSlot = i;
+        }
         if (n <= 0) { this._emit(); return true; }
       }
     }
@@ -36,6 +42,7 @@
         this.slots[i] = { id: id, count: put };
         n -= put;
         changed = true;
+        if (this.lastAddedSlot < 0) this.lastAddedSlot = i;
         if (n <= 0) { this._emit(); return true; }
       }
     }
@@ -123,6 +130,7 @@
     }
     this.selected = Math.min(HOTBAR - 1, Math.max(0, obj.selected | 0));
     this.pickedSlot = null;
+    this.lastAddedSlot = -1;
     this._emit();
   };
 
@@ -130,6 +138,7 @@
     this.slots = new Array(TOTAL).fill(null);
     this.selected = 0;
     this.pickedSlot = null;
+    this.lastAddedSlot = -1;
     this._emit();
   };
 

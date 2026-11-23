@@ -39,6 +39,9 @@
 
     function fbm2(x, y, oct, w) {
       var amp = 1, freq = 1, sum = 0, norm = 0, i;
+      /* 至少叠加一个八度：oct 为 0 时 norm 为 0，结果 NaN 会污染整片地形。
+         用 !(oct >= 1) 同时覆盖 undefined / NaN；现有调用都传 3 或 4，地形结果不变 */
+      if (!(oct >= 1)) oct = 1;
       for (i = 0; i < oct; i++) {
         sum += noise2(x * freq, y * freq, (w || 0) + i * 131) * amp;
         norm += amp; amp *= 0.5; freq *= 2;

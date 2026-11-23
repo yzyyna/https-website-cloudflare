@@ -812,8 +812,11 @@
           MC.Sound.pickup();
           var dropDef = MC.DEFS[drop.id];
           if (dropDef) {
-            hud.toast('+1 ' + dropDef.name);
-            hud.pulseHotbarSlot(inventory.selected);
+            /* 动效指向物品实际叠入的那一格；add 优先叠加旧堆，未必是当前选中的格子。
+               物品落在背包区（不在快捷栏）时快捷栏没有可闪的格子，改在提示里说明去向 */
+            var slot = inventory.lastAddedSlot;
+            hud.toast('+1 ' + dropDef.name + (slot >= MC.Inventory.HOTBAR ? ' · 已放入背包' : ''));
+            hud.pulseHotbarSlot(slot);
           }
           dropList.splice(di, 1);
           continue;
