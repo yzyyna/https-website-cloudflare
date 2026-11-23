@@ -20,6 +20,11 @@ function safeInit(name, fn) {
     fn();
   } catch (e) {
     console.error(`[${name}] 初始化失败:`, e);
+    // 只写控制台的话，用户面对的是一个没有任何解释的死展厅；补一条站内提示
+    try {
+      const what = name.startsWith('era-') ? `${name.slice(4)} 展厅` : '部分页面功能';
+      eggsManager.showToast(`⚠️ ${what}加载失败，其余展厅不受影响`);
+    } catch (toastErr) { /* 提示组件自身不可用时静默 */ }
   }
 }
 
@@ -105,6 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (startExploreBtn) {
     startExploreBtn.addEventListener('click', closeIntroModal);
   }
+  // Esc 关闭导览弹窗，与彩蛋弹窗、发现册的键盘行为保持一致
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && introModal && introModal.classList.contains('visible')) {
+      closeIntroModal();
+    }
+  });
 
   console.log('🏛️《404 之前：互联网考古馆》已成功启动！穿越 1998 ~ 2099 年代。');
 });

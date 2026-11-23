@@ -114,7 +114,7 @@ export function initEra2012() {
 
   if (btnPublishPost) {
     btnPublishPost.addEventListener('click', () => {
-      const text = postInput?.value.trim().slice(0, 500);
+      const text = (postInput?.value ?? '').trim().slice(0, 500);
       if (!text) {
         eggsManager.showToast('说说内容不能为空哦～');
         return;

@@ -135,8 +135,9 @@ export function initEra2003() {
 
   if (guestSubmitBtn) {
     guestSubmitBtn.addEventListener('click', () => {
-      const name = (guestNameInput?.value.trim() || '神秘网友').slice(0, 12);
-      const text = guestTextInput?.value.trim().slice(0, 500);
+      // ?. 只保护到输入框本身，链式 .value.trim() 在 value 缺失时仍会抛错，故补 ?? ''
+      const name = ((guestNameInput?.value ?? '').trim() || '神秘网友').slice(0, 12);
+      const text = (guestTextInput?.value ?? '').trim().slice(0, 500);
 
       if (!text) {
         eggsManager.showToast('请输入留言内容哦～');

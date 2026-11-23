@@ -7,6 +7,14 @@ import { ERAS_CONFIG, EGGS_METADATA, museumStore } from './state.js';
 import { audioManager } from './audio.js';
 import { eggsManager } from './eggs.js';
 
+/* 程序滚动态的最长保持时间：跨多个展厅的平滑滚动通常 1 秒左右完成；
+   超过它仍未抵达，多半是滚动被用户手势打断，此时必须放开程序态 */
+const PROGRAMMATIC_SCROLL_MAX_MS = 3000;
+
+/* 任一遮罩/抽屉打开时，方向键归遮罩层处理，不在背后切换展厅 */
+const OPEN_OVERLAY_SELECTOR = '.museum-modal-backdrop.visible, .archaeology-drawer.visible';
+const NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown'];
+
 export class NavigationManager {
   constructor() {
     this.galleryEl = null;
@@ -49,6 +57,8 @@ export class NavigationManager {
       if (this.isProgrammaticScroll) return;
       clearTimeout(this.scrollTimeout);
       this.scrollTimeout = setTimeout(() => {
+        // 排定之后才开始的程序滚动：这次检测已过期，执行它会把中途经过的展厅写进存档并多播一次音
+        if (this.isProgrammaticScroll) return;
         this.detectCurrentEraFromScroll();
       }, 60);
     }, { passive: true });
@@ -57,6 +67,8 @@ export class NavigationManager {
     this.galleryEl.addEventListener('wheel', (e) => {
       // 若主要是横向滚动（如触控板左右轻扫），直接交由原生处理
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        // 但它同样会打断正在进行的程序滚动：放开程序态，让之后的滚动事件照常同步时代
+        this.releaseProgrammaticScroll();
         return;
       }
 
@@ -82,6 +94,8 @@ export class NavigationManager {
       // 仅在当前垂直空间已到顶/到底，或无需纵向滚动的展区内，才将滚轮转换为横向穿梭
       if (Math.abs(e.deltaY) > 10) {
         e.preventDefault();
+        // 滚轮接管了滚动位置，正在进行的程序滚动作废：放开程序态让手动滚动重新生效
+        this.releaseProgrammaticScroll();
         this.galleryEl.scrollBy({
           left: e.deltaY * 1.3,
           behavior: 'auto'
@@ -91,10 +105,21 @@ export class NavigationManager {
 
     // 3. 键盘左右键切换
     window.addEventListener('keydown', (e) => {
-      // 避免输入框内按左右键触发切屏
-      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+      // 避免在输入控件（含下拉与可编辑区）内按左右键触发切屏
+      const active = document.activeElement;
+      const inInput = !!(active && (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName) || active.isContentEditable));
+      // 有遮罩/抽屉打开时方向键归遮罩层处理，不在它背后悄悄切展厅
+      if (document.querySelector(OPEN_OVERLAY_SELECTOR)) {
+        // 遮罩多半由展厅内的按钮打开，焦点还在可滚动的展厅里：
+        // 拦掉方向键的原生滚动，否则展厅会在遮罩背后翻页（输入控件内除外，光标移动要用）
+        if (!inInput && !e.altKey && !e.ctrlKey && !e.metaKey && NAV_KEYS.includes(e.key)) {
+          e.preventDefault();
+        }
         return;
       }
+      if (inInput) return;
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      if (e.repeat) return; // 按住不放的系统自动重复不连续跳厅、不叠音
       if (e.key === 'ArrowRight' || e.key === 'PageDown') {
         e.preventDefault();
         this.nextEra();
@@ -106,7 +131,10 @@ export class NavigationManager {
 
     // 4. 鼠标指针拖拽滑动支持
     this.galleryEl.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // 只认左键：右键/中键按下不应进入拖拽态
       if (e.target.closest('button, input, textarea, a, .clickable, .draggable-item')) return;
+      // 即将手动拖动，正在进行的程序滚动作废
+      this.releaseProgrammaticScroll();
       this.isDragging = true;
       this.startX = e.pageX - this.galleryEl.offsetLeft;
       this.scrollLeftStart = this.galleryEl.scrollLeft;
@@ -129,6 +157,26 @@ export class NavigationManager {
         this.galleryEl.style.removeProperty('user-select');
         this.snapToNearestEra();
       }
+    });
+
+    // 触摸拖动会打断浏览器正在进行的平滑滚动：放开程序态，让后续滚动事件照常同步时代
+    this.galleryEl.addEventListener('touchmove', () => {
+      if (this.isProgrammaticScroll) this.releaseProgrammaticScroll();
+    }, { passive: true });
+
+    // 窗口宽度变化后展厅宽度随之改变，按新宽度把当前展厅重新对齐（静默，不算穿越）。
+    // 是否瞬时取决于 CSS 的 scroll-behavior（.gallery 设了 smooth，所以实际是动画）。
+    // 只认宽度：移动端地址栏收放只改高度，那不是真正的重排，不能在用户滑动途中把位置拽回去
+    let lastWidth = this.galleryEl.clientWidth;
+    let resizeTimer = 0;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const width = this.galleryEl.clientWidth;
+        if (width === lastWidth || !width) return;
+        lastWidth = width;
+        this.goToEraByIndex(this.currentIndex, false, true);
+      }, 150);
     });
 
     // 5. 底部时间轴节点点击
@@ -183,29 +231,43 @@ export class NavigationManager {
     }
   }
 
+  /* 结束程序滚动态。平滑滚动被用户手势打断、或超时仍未抵达时必须走到这里：
+     否则标志一直为 true，scroll 监听器从此忽略所有手动滚动，时代指示不再跟随 */
+  releaseProgrammaticScroll() {
+    if (this._programmaticTimer) {
+      clearTimeout(this._programmaticTimer);
+      this._programmaticTimer = 0;
+    }
+    this.isProgrammaticScroll = false;
+  }
+
   goToEraByIndex(index, smooth = true, silent = false) {
     const clampedIndex = Math.max(0, Math.min(this.eras.length - 1, index));
     const width = this.galleryEl.clientWidth || window.innerWidth;
     const targetScroll = clampedIndex * width;
+    const targetEra = this.eras[clampedIndex];
+    /* 判据是「目标展厅是否就是当前展厅」，而不是滚动偏移量：
+       同厅内小幅拖动后松手，偏移必然超过几像素，但那只是在同一展厅里回弹 */
+    const sameEra = clampedIndex === this.currentIndex;
+    const needsSnap = Math.abs(this.galleryEl.scrollLeft - targetScroll) >= 2;
 
-    /* 同厅短路：拖拽松手/时间轴点击落在当前展厅时不播穿越音与提示 */
-    if (clampedIndex === this.currentIndex &&
-        Math.abs(this.galleryEl.scrollLeft - targetScroll) < 2) {
-      this.updateIndicators(this.eras[clampedIndex].year);
+    if (sameEra && !needsSnap) {
+      this.updateIndicators(targetEra.year);
       return;
     }
 
     this.isProgrammaticScroll = true;
-    this._programmaticTarget = targetScroll;
-    this.currentIndex = clampedIndex;
-    const targetEra = this.eras[clampedIndex];
+    this._programmaticStart = performance.now();
 
-    museumStore.update({ currentEra: targetEra.year });
-    if (!silent) {
-      audioManager.playEraTransition();
-      // 展厅间过渡提示：切换年代时给出轻量面包屑，避免用户在横向长廊中迷失方位
-      if (typeof eggsManager !== 'undefined' && eggsManager.showToast) {
-        eggsManager.showToast(`已穿越至 ${targetEra.year} · ${targetEra.name}`);
+    if (!sameEra) {
+      this.currentIndex = clampedIndex;
+      museumStore.update({ currentEra: targetEra.year });
+      if (!silent) {
+        audioManager.playEraTransition();
+        // 展厅间过渡提示：切换年代时给出轻量面包屑，避免用户在横向长廊中迷失方位
+        if (typeof eggsManager !== 'undefined' && eggsManager.showToast) {
+          eggsManager.showToast(`已穿越至 ${targetEra.year} · ${targetEra.name}`);
+        }
       }
     }
 
@@ -216,14 +278,22 @@ export class NavigationManager {
 
     if (this._programmaticTimer) clearTimeout(this._programmaticTimer);
     const settle = () => {
-      /* 长距离平滑滚动可能超过固定等待：滚动未抵达目标前保持程序态，
+      const arrived = Math.abs(this.galleryEl.scrollLeft - targetScroll) < 2;
+      /* 长距离平滑滚动可能超过固定等待：抵达前保持程序态，
          防止中途减速经过的展厅被 detectCurrentEraFromScroll 误写 + 音效连播 */
-      if (smooth && Math.abs(this.galleryEl.scrollLeft - targetScroll) >= 2) {
+      if (!arrived && performance.now() - this._programmaticStart < PROGRAMMATIC_SCROLL_MAX_MS) {
         this._programmaticTimer = setTimeout(settle, 80);
         return;
       }
-      this.isProgrammaticScroll = false;
-      this._programmaticTarget = null;
+      if (!arrived) {
+        /* 超时仍未抵达：滚动多半被没覆盖到的手势打断，用户所在的不一定是目标展厅。
+           以实际滚动位置重新检测，让 store、指示器与所见一致，而不是把指示器刷成没到的那一厅 */
+        this.releaseProgrammaticScroll();
+        this.detectCurrentEraFromScroll();
+        this.updateIndicators(this.eras[this.currentIndex].year);
+        return;
+      }
+      this.releaseProgrammaticScroll();
       this.updateIndicators(targetEra.year);
     };
     this._programmaticTimer = setTimeout(settle, smooth ? 450 : 50);

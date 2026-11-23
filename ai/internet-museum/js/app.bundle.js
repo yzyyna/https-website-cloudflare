@@ -725,6 +725,14 @@ const audioManager = new AudioManager();
  */
 
 
+/* 程序滚动态的最长保持时间：跨多个展厅的平滑滚动通常 1 秒左右完成；
+   超过它仍未抵达，多半是滚动被用户手势打断，此时必须放开程序态 */
+const PROGRAMMATIC_SCROLL_MAX_MS = 3000;
+
+/* 任一遮罩/抽屉打开时，方向键归遮罩层处理，不在背后切换展厅 */
+const OPEN_OVERLAY_SELECTOR = '.museum-modal-backdrop.visible, .archaeology-drawer.visible';
+const NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown'];
+
 class NavigationManager {
   constructor() {
     this.galleryEl = null;
@@ -767,6 +775,8 @@ class NavigationManager {
       if (this.isProgrammaticScroll) return;
       clearTimeout(this.scrollTimeout);
       this.scrollTimeout = setTimeout(() => {
+        // 排定之后才开始的程序滚动：这次检测已过期，执行它会把中途经过的展厅写进存档并多播一次音
+        if (this.isProgrammaticScroll) return;
         this.detectCurrentEraFromScroll();
       }, 60);
     }, { passive: true });
@@ -775,6 +785,8 @@ class NavigationManager {
     this.galleryEl.addEventListener('wheel', (e) => {
       // 若主要是横向滚动（如触控板左右轻扫），直接交由原生处理
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        // 但它同样会打断正在进行的程序滚动：放开程序态，让之后的滚动事件照常同步时代
+        this.releaseProgrammaticScroll();
         return;
       }
 
@@ -800,6 +812,8 @@ class NavigationManager {
       // 仅在当前垂直空间已到顶/到底，或无需纵向滚动的展区内，才将滚轮转换为横向穿梭
       if (Math.abs(e.deltaY) > 10) {
         e.preventDefault();
+        // 滚轮接管了滚动位置，正在进行的程序滚动作废：放开程序态让手动滚动重新生效
+        this.releaseProgrammaticScroll();
         this.galleryEl.scrollBy({
           left: e.deltaY * 1.3,
           behavior: 'auto'
@@ -809,10 +823,21 @@ class NavigationManager {
 
     // 3. 键盘左右键切换
     window.addEventListener('keydown', (e) => {
-      // 避免输入框内按左右键触发切屏
-      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+      // 避免在输入控件（含下拉与可编辑区）内按左右键触发切屏
+      const active = document.activeElement;
+      const inInput = !!(active && (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName) || active.isContentEditable));
+      // 有遮罩/抽屉打开时方向键归遮罩层处理，不在它背后悄悄切展厅
+      if (document.querySelector(OPEN_OVERLAY_SELECTOR)) {
+        // 遮罩多半由展厅内的按钮打开，焦点还在可滚动的展厅里：
+        // 拦掉方向键的原生滚动，否则展厅会在遮罩背后翻页（输入控件内除外，光标移动要用）
+        if (!inInput && !e.altKey && !e.ctrlKey && !e.metaKey && NAV_KEYS.includes(e.key)) {
+          e.preventDefault();
+        }
         return;
       }
+      if (inInput) return;
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      if (e.repeat) return; // 按住不放的系统自动重复不连续跳厅、不叠音
       if (e.key === 'ArrowRight' || e.key === 'PageDown') {
         e.preventDefault();
         this.nextEra();
@@ -824,7 +849,10 @@ class NavigationManager {
 
     // 4. 鼠标指针拖拽滑动支持
     this.galleryEl.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // 只认左键：右键/中键按下不应进入拖拽态
       if (e.target.closest('button, input, textarea, a, .clickable, .draggable-item')) return;
+      // 即将手动拖动，正在进行的程序滚动作废
+      this.releaseProgrammaticScroll();
       this.isDragging = true;
       this.startX = e.pageX - this.galleryEl.offsetLeft;
       this.scrollLeftStart = this.galleryEl.scrollLeft;
@@ -847,6 +875,26 @@ class NavigationManager {
         this.galleryEl.style.removeProperty('user-select');
         this.snapToNearestEra();
       }
+    });
+
+    // 触摸拖动会打断浏览器正在进行的平滑滚动：放开程序态，让后续滚动事件照常同步时代
+    this.galleryEl.addEventListener('touchmove', () => {
+      if (this.isProgrammaticScroll) this.releaseProgrammaticScroll();
+    }, { passive: true });
+
+    // 窗口宽度变化后展厅宽度随之改变，按新宽度把当前展厅重新对齐（静默，不算穿越）。
+    // 是否瞬时取决于 CSS 的 scroll-behavior（.gallery 设了 smooth，所以实际是动画）。
+    // 只认宽度：移动端地址栏收放只改高度，那不是真正的重排，不能在用户滑动途中把位置拽回去
+    let lastWidth = this.galleryEl.clientWidth;
+    let resizeTimer = 0;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const width = this.galleryEl.clientWidth;
+        if (width === lastWidth || !width) return;
+        lastWidth = width;
+        this.goToEraByIndex(this.currentIndex, false, true);
+      }, 150);
     });
 
     // 5. 底部时间轴节点点击
@@ -901,29 +949,43 @@ class NavigationManager {
     }
   }
 
+  /* 结束程序滚动态。平滑滚动被用户手势打断、或超时仍未抵达时必须走到这里：
+     否则标志一直为 true，scroll 监听器从此忽略所有手动滚动，时代指示不再跟随 */
+  releaseProgrammaticScroll() {
+    if (this._programmaticTimer) {
+      clearTimeout(this._programmaticTimer);
+      this._programmaticTimer = 0;
+    }
+    this.isProgrammaticScroll = false;
+  }
+
   goToEraByIndex(index, smooth = true, silent = false) {
     const clampedIndex = Math.max(0, Math.min(this.eras.length - 1, index));
     const width = this.galleryEl.clientWidth || window.innerWidth;
     const targetScroll = clampedIndex * width;
+    const targetEra = this.eras[clampedIndex];
+    /* 判据是「目标展厅是否就是当前展厅」，而不是滚动偏移量：
+       同厅内小幅拖动后松手，偏移必然超过几像素，但那只是在同一展厅里回弹 */
+    const sameEra = clampedIndex === this.currentIndex;
+    const needsSnap = Math.abs(this.galleryEl.scrollLeft - targetScroll) >= 2;
 
-    /* 同厅短路：拖拽松手/时间轴点击落在当前展厅时不播穿越音与提示 */
-    if (clampedIndex === this.currentIndex &&
-        Math.abs(this.galleryEl.scrollLeft - targetScroll) < 2) {
-      this.updateIndicators(this.eras[clampedIndex].year);
+    if (sameEra && !needsSnap) {
+      this.updateIndicators(targetEra.year);
       return;
     }
 
     this.isProgrammaticScroll = true;
-    this._programmaticTarget = targetScroll;
-    this.currentIndex = clampedIndex;
-    const targetEra = this.eras[clampedIndex];
+    this._programmaticStart = performance.now();
 
-    museumStore.update({ currentEra: targetEra.year });
-    if (!silent) {
-      audioManager.playEraTransition();
-      // 展厅间过渡提示：切换年代时给出轻量面包屑，避免用户在横向长廊中迷失方位
-      if (typeof eggsManager !== 'undefined' && eggsManager.showToast) {
-        eggsManager.showToast(`已穿越至 ${targetEra.year} · ${targetEra.name}`);
+    if (!sameEra) {
+      this.currentIndex = clampedIndex;
+      museumStore.update({ currentEra: targetEra.year });
+      if (!silent) {
+        audioManager.playEraTransition();
+        // 展厅间过渡提示：切换年代时给出轻量面包屑，避免用户在横向长廊中迷失方位
+        if (typeof eggsManager !== 'undefined' && eggsManager.showToast) {
+          eggsManager.showToast(`已穿越至 ${targetEra.year} · ${targetEra.name}`);
+        }
       }
     }
 
@@ -934,14 +996,22 @@ class NavigationManager {
 
     if (this._programmaticTimer) clearTimeout(this._programmaticTimer);
     const settle = () => {
-      /* 长距离平滑滚动可能超过固定等待：滚动未抵达目标前保持程序态，
+      const arrived = Math.abs(this.galleryEl.scrollLeft - targetScroll) < 2;
+      /* 长距离平滑滚动可能超过固定等待：抵达前保持程序态，
          防止中途减速经过的展厅被 detectCurrentEraFromScroll 误写 + 音效连播 */
-      if (smooth && Math.abs(this.galleryEl.scrollLeft - targetScroll) >= 2) {
+      if (!arrived && performance.now() - this._programmaticStart < PROGRAMMATIC_SCROLL_MAX_MS) {
         this._programmaticTimer = setTimeout(settle, 80);
         return;
       }
-      this.isProgrammaticScroll = false;
-      this._programmaticTarget = null;
+      if (!arrived) {
+        /* 超时仍未抵达：滚动多半被没覆盖到的手势打断，用户所在的不一定是目标展厅。
+           以实际滚动位置重新检测，让 store、指示器与所见一致，而不是把指示器刷成没到的那一厅 */
+        this.releaseProgrammaticScroll();
+        this.detectCurrentEraFromScroll();
+        this.updateIndicators(this.eras[this.currentIndex].year);
+        return;
+      }
+      this.releaseProgrammaticScroll();
       this.updateIndicators(targetEra.year);
     };
     this._programmaticTimer = setTimeout(settle, smooth ? 450 : 50);
@@ -1541,6 +1611,9 @@ function showWin98Dialog(title, content) {
   });
   const closeBtn = modal.querySelector('.win98-dialog-close');
   const okBtn = modal.querySelector('.win98-dialog-ok');
+  const onEsc = (e) => {
+    if (e.key === 'Escape') closer();
+  };
   const closer = () => {
     audioManager.playClick();
     modal.classList.remove('visible');
@@ -1550,9 +1623,12 @@ function showWin98Dialog(title, content) {
     }, 250);
     closeBtn?.removeEventListener('click', closer);
     okBtn?.removeEventListener('click', closer);
+    window.removeEventListener('keydown', onEsc);
   };
   closeBtn?.addEventListener('click', closer);
   okBtn?.addEventListener('click', closer);
+  // Esc 等同点「确定」：键盘用户不必 Tab 到按钮才能退出对话框
+  window.addEventListener('keydown', onEsc);
 }
 
 
@@ -1691,8 +1767,9 @@ function initEra2003() {
 
   if (guestSubmitBtn) {
     guestSubmitBtn.addEventListener('click', () => {
-      const name = (guestNameInput?.value.trim() || '神秘网友').slice(0, 12);
-      const text = guestTextInput?.value.trim().slice(0, 500);
+      // ?. 只保护到输入框本身，链式 .value.trim() 在 value 缺失时仍会抛错，故补 ?? ''
+      const name = ((guestNameInput?.value ?? '').trim() || '神秘网友').slice(0, 12);
+      const text = (guestTextInput?.value ?? '').trim().slice(0, 500);
 
       if (!text) {
         eggsManager.showToast('请输入留言内容哦～');
@@ -1835,13 +1912,26 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;');
 }
 
-// 安全解析旧论坛 [quote] 和 [b] 标签
+// 安全解析旧论坛 [quote] 和 [b] 标签：先整体转义，再只放行这两个白名单标记
 function formatForumContent(rawText) {
-  const safe = escapeHTML(rawText);
-  return safe
-    .replace(/\[quote\]([\s\S]*?)\[\/quote\]/gi, '<blockquote class="forum-quote-box">$1</blockquote>')
+  const safe = escapeHTML(rawText).replace(/\n/g, '<br>');
+  const leftoverTag = /\[\/?(?:quote|b)\]/gi;
+  // 加粗只作用于成对的 [b]…[/b]；落单或嵌套错位的标记一律剥离，不让字面量漏到页面上
+  const inline = (text) => text
     .replace(/\[b\]([\s\S]*?)\[\/b\]/gi, '<strong>$1</strong>')
-    .replace(/\n/g, '<br>');
+    .replace(leftoverTag, '');
+  const quoteTag = /\[quote\]([\s\S]*?)\[\/quote\]/gi;
+  let out = '';
+  let last = 0;
+  let m;
+  while ((m = quoteTag.exec(safe))) {
+    out += inline(safe.slice(last, m.index));
+    // 引用块内的加粗照常生效；引用是块级元素，不包进 <strong>（block 嵌进行内标签会被浏览器重排）
+    out += `<blockquote class="forum-quote-box">${inline(m[1])}</blockquote>`;
+    last = m.index + m[0].length;
+  }
+  out += inline(safe.slice(last));
+  return out;
 }
 
 function initEra2008() {
@@ -1859,7 +1949,25 @@ function initEra2008() {
 
   let currentLoadedExtra = false;
 
-  function renderFloorItem(post) {
+  /* 楼层号 = max(历史楼层最大楼号, 已展示楼层最大楼号) + 1。
+     历史楼层（含尚未点开「查看更多」的 4、5 楼）在楼序里永远靠前，新回帖排在它们之后；
+     按 children 数量编号会与之撞号——先回帖再展开、或回访用户刷新后再展开，都会出现两个 4 楼 */
+  const HISTORY_MAX_FLOOR = INITIAL_POSTS.concat(MORE_FLOORS)
+    .reduce((max, p) => Math.max(max, parseInt(p.floor, 10) || 0), 0);
+  function nextFloorNumber() {
+    let max = HISTORY_MAX_FLOOR;
+    if (floorContainer) {
+      floorContainer.querySelectorAll('.floor-tag').forEach((tag) => {
+        const n = parseInt(tag.textContent, 10);
+        if (Number.isFinite(n) && n > max) max = n;
+      });
+    }
+    return max + 1;
+  }
+
+  /* floorLabel：展示用楼号。存档里的回帖可能带着改动前算错的楼号，调用方可传入重新派生的值 */
+  function renderFloorItem(post, floorLabel) {
+    const floorText = floorLabel || post.floor;
     const floorDiv = document.createElement('div');
     floorDiv.className = 'forum-floor-item';
     floorDiv.innerHTML = `
@@ -1870,9 +1978,9 @@ function initEra2008() {
       </div>
       <div class="floor-main">
         <div class="floor-meta">
-          <span class="floor-tag">${escapeHTML(post.floor)}</span>
+          <span class="floor-tag">${escapeHTML(floorText)}</span>
           <span class="post-time">发表于 ${escapeHTML(post.time)}</span>
-          <button class="btn-quote-reply" data-floor="${escapeHTML(post.floor)}" data-user="${escapeHTML(post.user)}">[引用回复]</button>
+          <button class="btn-quote-reply" data-floor="${escapeHTML(floorText)}" data-user="${escapeHTML(post.user)}">[引用回复]</button>
         </div>
         <div class="floor-content">${formatForumContent(post.content)}</div>
         <div class="floor-signature">${escapeHTML(post.signature)}</div>
@@ -1885,7 +1993,7 @@ function initEra2008() {
       audioManager.playClick();
       if (replyInput) {
         const snippet = String(post.content).slice(0, 50);
-        replyInput.value = `[quote][b]${post.user}[/b] 在 ${post.floor} 说道：\n${snippet}...[/quote]\n` + replyInput.value;
+        replyInput.value = `[quote][b]${post.user}[/b] 在 ${floorText} 说道：\n${snippet}...[/quote]\n` + replyInput.value;
         replyInput.focus();
       }
     });
@@ -1899,9 +2007,12 @@ function initEra2008() {
     floorContainer.innerHTML = '';
     INITIAL_POSTS.forEach(p => floorContainer.appendChild(renderFloorItem(p)));
 
-    // 恢复历史已保存的回复
+    // 恢复历史已保存的回复。存档里的楼号不直接采信：改动前保存的回帖按「楼层数量」编号，
+    // 可能与历史楼层 4、5 撞号；这里按存档顺序重新派生（6 楼起）。只影响显示，不改写存档
     const savedReplies = museumStore.getState().forumReplies || [];
-    savedReplies.forEach(p => floorContainer.appendChild(renderFloorItem(p)));
+    savedReplies.forEach((p, idx) => {
+      floorContainer.appendChild(renderFloorItem(p, `${HISTORY_MAX_FLOOR + 1 + idx} 楼`));
+    });
   }
 
   initFloors();
@@ -1916,8 +2027,10 @@ function initEra2008() {
         btnLoadMore.disabled = true;
 
         setTimeout(() => {
-          MORE_FLOORS.forEach(p => {
-            floorContainer.appendChild(renderFloorItem(p));
+          /* 历史楼层插在初始楼层之后、回帖之前，保证楼序是 1-2-3-4-5-回帖…；
+             尚无回帖时锚点不存在，insertBefore(node, null) 等价于追加 */
+          MORE_FLOORS.forEach((p, i) => {
+            floorContainer.insertBefore(renderFloorItem(p), floorContainer.children[INITIAL_POSTS.length + i] || null);
           });
           btnLoadMore.textContent = '已展示全部官方历史楼层';
           eggsManager.showToast('📄 已成功加载全部历史楼层讨论！');
@@ -1966,7 +2079,7 @@ function initEra2008() {
       btnSubmitReply.textContent = '网络延迟中... 发送中';
 
       setTimeout(() => {
-        const floorNum = floorContainer.children.length + 1;
+        const floorNum = nextFloorNumber();
         const userPost = {
           floor: `${floorNum} 楼`,
           user: '我 (考古学者)',
@@ -1994,7 +2107,7 @@ function initEra2008() {
         const botReply = randomReplies[Math.floor(Math.random() * randomReplies.length)];
 
         setTimeout(() => {
-          const botFloorNum = floorContainer.children.length + 1;
+          const botFloorNum = nextFloorNumber();
           const botPost = {
             floor: `${botFloorNum} 楼`,
             user: '深夜夜猫子',
@@ -2160,7 +2273,7 @@ function initEra2012() {
 
   if (btnPublishPost) {
     btnPublishPost.addEventListener('click', () => {
-      const text = postInput?.value.trim().slice(0, 500);
+      const text = (postInput?.value ?? '').trim().slice(0, 500);
       if (!text) {
         eggsManager.showToast('说说内容不能为空哦～');
         return;
@@ -2517,6 +2630,9 @@ function showTransparencyModal() {
   });
 
   const closeBtns = modal.querySelectorAll('.btn-close-transparency');
+  const onEsc = (e) => {
+    if (e.key === 'Escape') closer();
+  };
   const closer = () => {
     audioManager.playClick();
     modal.classList.remove('visible');
@@ -2525,8 +2641,11 @@ function showTransparencyModal() {
       if (!modal.classList.contains('visible')) modal.classList.add('hidden');
     }, 250);
     closeBtns.forEach(btn => btn.removeEventListener('click', closer));
+    window.removeEventListener('keydown', onEsc);
   };
   closeBtns.forEach(btn => btn.addEventListener('click', closer));
+  // Esc 关闭：与页内其余遮罩层的键盘行为保持一致
+  window.addEventListener('keydown', onEsc);
 }
 
 
@@ -2845,6 +2964,11 @@ function safeInit(name, fn) {
     fn();
   } catch (e) {
     console.error(`[${name}] 初始化失败:`, e);
+    // 只写控制台的话，用户面对的是一个没有任何解释的死展厅；补一条站内提示
+    try {
+      const what = name.startsWith('era-') ? `${name.slice(4)} 展厅` : '部分页面功能';
+      eggsManager.showToast(`⚠️ ${what}加载失败，其余展厅不受影响`);
+    } catch (toastErr) { /* 提示组件自身不可用时静默 */ }
   }
 }
 
@@ -2930,6 +3054,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (startExploreBtn) {
     startExploreBtn.addEventListener('click', closeIntroModal);
   }
+  // Esc 关闭导览弹窗，与彩蛋弹窗、发现册的键盘行为保持一致
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && introModal && introModal.classList.contains('visible')) {
+      closeIntroModal();
+    }
+  });
 
   console.log('🏛️《404 之前：互联网考古馆》已成功启动！穿越 1998 ~ 2099 年代。');
 });

@@ -298,6 +298,9 @@ function showTransparencyModal() {
   });
 
   const closeBtns = modal.querySelectorAll('.btn-close-transparency');
+  const onEsc = (e) => {
+    if (e.key === 'Escape') closer();
+  };
   const closer = () => {
     audioManager.playClick();
     modal.classList.remove('visible');
@@ -306,6 +309,9 @@ function showTransparencyModal() {
       if (!modal.classList.contains('visible')) modal.classList.add('hidden');
     }, 250);
     closeBtns.forEach(btn => btn.removeEventListener('click', closer));
+    window.removeEventListener('keydown', onEsc);
   };
   closeBtns.forEach(btn => btn.addEventListener('click', closer));
+  // Esc 关闭：与页内其余遮罩层的键盘行为保持一致
+  window.addEventListener('keydown', onEsc);
 }

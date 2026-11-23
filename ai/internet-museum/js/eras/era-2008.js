@@ -66,13 +66,26 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;');
 }
 
-// 安全解析旧论坛 [quote] 和 [b] 标签
+// 安全解析旧论坛 [quote] 和 [b] 标签：先整体转义，再只放行这两个白名单标记
 function formatForumContent(rawText) {
-  const safe = escapeHTML(rawText);
-  return safe
-    .replace(/\[quote\]([\s\S]*?)\[\/quote\]/gi, '<blockquote class="forum-quote-box">$1</blockquote>')
+  const safe = escapeHTML(rawText).replace(/\n/g, '<br>');
+  const leftoverTag = /\[\/?(?:quote|b)\]/gi;
+  // 加粗只作用于成对的 [b]…[/b]；落单或嵌套错位的标记一律剥离，不让字面量漏到页面上
+  const inline = (text) => text
     .replace(/\[b\]([\s\S]*?)\[\/b\]/gi, '<strong>$1</strong>')
-    .replace(/\n/g, '<br>');
+    .replace(leftoverTag, '');
+  const quoteTag = /\[quote\]([\s\S]*?)\[\/quote\]/gi;
+  let out = '';
+  let last = 0;
+  let m;
+  while ((m = quoteTag.exec(safe))) {
+    out += inline(safe.slice(last, m.index));
+    // 引用块内的加粗照常生效；引用是块级元素，不包进 <strong>（block 嵌进行内标签会被浏览器重排）
+    out += `<blockquote class="forum-quote-box">${inline(m[1])}</blockquote>`;
+    last = m.index + m[0].length;
+  }
+  out += inline(safe.slice(last));
+  return out;
 }
 
 export function initEra2008() {
@@ -90,7 +103,25 @@ export function initEra2008() {
 
   let currentLoadedExtra = false;
 
-  function renderFloorItem(post) {
+  /* 楼层号 = max(历史楼层最大楼号, 已展示楼层最大楼号) + 1。
+     历史楼层（含尚未点开「查看更多」的 4、5 楼）在楼序里永远靠前，新回帖排在它们之后；
+     按 children 数量编号会与之撞号——先回帖再展开、或回访用户刷新后再展开，都会出现两个 4 楼 */
+  const HISTORY_MAX_FLOOR = INITIAL_POSTS.concat(MORE_FLOORS)
+    .reduce((max, p) => Math.max(max, parseInt(p.floor, 10) || 0), 0);
+  function nextFloorNumber() {
+    let max = HISTORY_MAX_FLOOR;
+    if (floorContainer) {
+      floorContainer.querySelectorAll('.floor-tag').forEach((tag) => {
+        const n = parseInt(tag.textContent, 10);
+        if (Number.isFinite(n) && n > max) max = n;
+      });
+    }
+    return max + 1;
+  }
+
+  /* floorLabel：展示用楼号。存档里的回帖可能带着改动前算错的楼号，调用方可传入重新派生的值 */
+  function renderFloorItem(post, floorLabel) {
+    const floorText = floorLabel || post.floor;
     const floorDiv = document.createElement('div');
     floorDiv.className = 'forum-floor-item';
     floorDiv.innerHTML = `
@@ -101,9 +132,9 @@ export function initEra2008() {
       </div>
       <div class="floor-main">
         <div class="floor-meta">
-          <span class="floor-tag">${escapeHTML(post.floor)}</span>
+          <span class="floor-tag">${escapeHTML(floorText)}</span>
           <span class="post-time">发表于 ${escapeHTML(post.time)}</span>
-          <button class="btn-quote-reply" data-floor="${escapeHTML(post.floor)}" data-user="${escapeHTML(post.user)}">[引用回复]</button>
+          <button class="btn-quote-reply" data-floor="${escapeHTML(floorText)}" data-user="${escapeHTML(post.user)}">[引用回复]</button>
         </div>
         <div class="floor-content">${formatForumContent(post.content)}</div>
         <div class="floor-signature">${escapeHTML(post.signature)}</div>
@@ -116,7 +147,7 @@ export function initEra2008() {
       audioManager.playClick();
       if (replyInput) {
         const snippet = String(post.content).slice(0, 50);
-        replyInput.value = `[quote][b]${post.user}[/b] 在 ${post.floor} 说道：\n${snippet}...[/quote]\n` + replyInput.value;
+        replyInput.value = `[quote][b]${post.user}[/b] 在 ${floorText} 说道：\n${snippet}...[/quote]\n` + replyInput.value;
         replyInput.focus();
       }
     });
@@ -130,9 +161,12 @@ export function initEra2008() {
     floorContainer.innerHTML = '';
     INITIAL_POSTS.forEach(p => floorContainer.appendChild(renderFloorItem(p)));
 
-    // 恢复历史已保存的回复
+    // 恢复历史已保存的回复。存档里的楼号不直接采信：改动前保存的回帖按「楼层数量」编号，
+    // 可能与历史楼层 4、5 撞号；这里按存档顺序重新派生（6 楼起）。只影响显示，不改写存档
     const savedReplies = museumStore.getState().forumReplies || [];
-    savedReplies.forEach(p => floorContainer.appendChild(renderFloorItem(p)));
+    savedReplies.forEach((p, idx) => {
+      floorContainer.appendChild(renderFloorItem(p, `${HISTORY_MAX_FLOOR + 1 + idx} 楼`));
+    });
   }
 
   initFloors();
@@ -147,8 +181,10 @@ export function initEra2008() {
         btnLoadMore.disabled = true;
 
         setTimeout(() => {
-          MORE_FLOORS.forEach(p => {
-            floorContainer.appendChild(renderFloorItem(p));
+          /* 历史楼层插在初始楼层之后、回帖之前，保证楼序是 1-2-3-4-5-回帖…；
+             尚无回帖时锚点不存在，insertBefore(node, null) 等价于追加 */
+          MORE_FLOORS.forEach((p, i) => {
+            floorContainer.insertBefore(renderFloorItem(p), floorContainer.children[INITIAL_POSTS.length + i] || null);
           });
           btnLoadMore.textContent = '已展示全部官方历史楼层';
           eggsManager.showToast('📄 已成功加载全部历史楼层讨论！');
@@ -197,7 +233,7 @@ export function initEra2008() {
       btnSubmitReply.textContent = '网络延迟中... 发送中';
 
       setTimeout(() => {
-        const floorNum = floorContainer.children.length + 1;
+        const floorNum = nextFloorNumber();
         const userPost = {
           floor: `${floorNum} 楼`,
           user: '我 (考古学者)',
@@ -225,7 +261,7 @@ export function initEra2008() {
         const botReply = randomReplies[Math.floor(Math.random() * randomReplies.length)];
 
         setTimeout(() => {
-          const botFloorNum = floorContainer.children.length + 1;
+          const botFloorNum = nextFloorNumber();
           const botPost = {
             floor: `${botFloorNum} 楼`,
             user: '深夜夜猫子',

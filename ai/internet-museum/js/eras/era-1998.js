@@ -159,6 +159,9 @@ function showWin98Dialog(title, content) {
   });
   const closeBtn = modal.querySelector('.win98-dialog-close');
   const okBtn = modal.querySelector('.win98-dialog-ok');
+  const onEsc = (e) => {
+    if (e.key === 'Escape') closer();
+  };
   const closer = () => {
     audioManager.playClick();
     modal.classList.remove('visible');
@@ -168,7 +171,10 @@ function showWin98Dialog(title, content) {
     }, 250);
     closeBtn?.removeEventListener('click', closer);
     okBtn?.removeEventListener('click', closer);
+    window.removeEventListener('keydown', onEsc);
   };
   closeBtn?.addEventListener('click', closer);
   okBtn?.addEventListener('click', closer);
+  // Esc 等同点「确定」：键盘用户不必 Tab 到按钮才能退出对话框
+  window.addEventListener('keydown', onEsc);
 }
